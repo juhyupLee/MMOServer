@@ -373,7 +373,6 @@ void MMOGameLib::ReleaseSession(MMOSession* delSession)
 	//{
 	//	MMOGameLib::Crash();
 	//}
-	uint64_t tempSessionID = delSession->_ID;
 
 	if (delSession->_ErrorCode == ERROR_SEM_TIMEOUT)
 	{

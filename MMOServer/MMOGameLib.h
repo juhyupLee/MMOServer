@@ -51,7 +51,7 @@ public:
 
 	};
 	MMOSession()
-		:_SendQ(5000) //SendQ QCount 일단 오천개로 제한.
+		:_SendQ(10000) //SendQ QCount 일단 만개로 제한.
 	{
 		_Socket = INVALID_SOCKET;
 		_IOCount = 1;

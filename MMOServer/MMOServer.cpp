@@ -198,7 +198,6 @@ void MyMMOServer::ServerMonitorPrint()
 
 
     wprintf(L"==========OS Resource=========\n");
-    wprintf(L"UpdateThread SleepTime :%d\n", m_WakeTime);
     wprintf(L"HardWare U:%.1f  K:%.1f  Total:%.1f\n", g_CPUUsage.ProcessorUser(), g_CPUUsage.ProcessorKernel(), g_CPUUsage.ProcessorTotal());
     wprintf(L"Process U:%.1f  K:%.1f  Total:%.1f\n", g_CPUUsage.ProcessUser(), g_CPUUsage.ProcessKernel(), g_CPUUsage.ProcessTotal());
     wprintf(L"Private Mem :%lld[K]\n", g_MonitorPDH.GetPrivateMemory() / 1024);
