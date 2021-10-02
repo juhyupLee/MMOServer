@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Main">
+      <UniqueIdentifier>{fe0ee334-dedc-4109-8660-558c2f5036f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lib">
+      <UniqueIdentifier>{8a531878-7ed7-4f8a-9b74-5c550441705a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MMO Game Lib">
+      <UniqueIdentifier>{772ec84a-32db-482f-92d6-15b6d8db46e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{fdeba12f-4f09-416a-916b-dbf8bbc5117a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{5b5deb15-afa9-4fbd-ab68-37a4b8188290}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{ced9258b-81a9-4884-a2ef-c63a108cfa2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LanLib">
+      <UniqueIdentifier>{ede47910-e201-4d4a-a0b3-b73782f36cf1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CPUUsage.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeList.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="LockFreeQ.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="LockFreeStack.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="Log.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryDump.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryLog.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryPool_TLS.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="MonitorPDH.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="Profiler.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="RingBuffer.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="SerializeBuffer.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="MMOGameLib.h">
+      <Filter>MMO Game Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="TemplateQ.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonProtocol2.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketProcess.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="MonitorLanClient.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Option.h">
+      <Filter>Lib</Filter>
+    </ClInclude>
+    <ClInclude Include="LanClientLib.h">
+      <Filter>LanLib</Filter>
+    </ClInclude>
+    <ClInclude Include="MMOServer.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CPUUsage.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="FreeList.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="LockFreeQ.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="Log.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryDump.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="MonitorPDH.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="Profiler.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="RingBuffer.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="SerializeBuffer.cpp">
+      <Filter>Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="MMOGameLib.cpp">
+      <Filter>MMO Game Lib</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="Global.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketProcess.cpp">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="MonitorLanClient.cpp">
+      <Filter>Contents</Filter>
+    </ClCompile>
+    <ClCompile Include="LanClientLib.cpp">
+      <Filter>LanLib</Filter>
+    </ClCompile>
+    <ClCompile Include="MMOServer.cpp">
+      <Filter>Contents</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="NatvisFile.natvis" />
+  </ItemGroup>
+</Project>
