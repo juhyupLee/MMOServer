@@ -51,7 +51,7 @@ public:
 
 	};
 	MMOSession()
-		:_SendQ(10000) //SendQ QCount 일단 만개로 제한.
+		:_SendQ(50000) 
 	{
 		_Socket = INVALID_SOCKET;
 		_IOCount = 1;
@@ -80,7 +80,6 @@ public:
 		_SessionStatus = eSessionStatus::NOT_USED;
 
 		_bSending = false;
-
 
 	}
 	DWORD _SessionStatus;
