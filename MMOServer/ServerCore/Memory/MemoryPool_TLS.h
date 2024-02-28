@@ -49,12 +49,10 @@ public:
 	void Crash();
 	ChunkMemory* ChunkSetting()
 	{
-		//g_Profiler.ProfileBegin(L"ChunkSetting");
 		MemoryPool_TLS<T>::ChunkMemory* chunkPtr = m_ChunkMemoryPool.Alloc();
 		chunkPtr->AllocInit(m_bPlacementNew, m_ObjectCount, this);
 		TlsSetValue(m_TLSChunkIndex, chunkPtr);
-
-		//g_Profiler.ProfileEnd(L"ChunkSetting");
+		
 		return chunkPtr;
 	}
 	int32_t GetChunkCount();

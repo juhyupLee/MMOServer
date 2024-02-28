@@ -5,9 +5,9 @@
 #define DATA_COUNT 1000
 #define THREAD_NUM 8
 
-struct TestData
+struct TestData_LockFreeQ
 {
-	TestData()
+	TestData_LockFreeQ()
 	{
 		_Data = INIT_DATA;
 		_RefCount = INIT_COUNT;
@@ -19,7 +19,7 @@ struct TestData
 
 HANDLE g_Thread[THREAD_NUM];
 
-LockFreeStack<TestData*> g_Stack;
+LockFreeStack<TestData_LockFreeQ*> g_Stack;
 
 LONG g_Data = 0;
 LONG g_TempData = 0;
@@ -27,7 +27,7 @@ LONG g_TempData = 0;
 
 unsigned int __stdcall TestThread_LockFreeStack(LPVOID param)
 {
-	TestData** dataArray = (TestData**)param;
+	TestData_LockFreeQ** dataArray = (TestData_LockFreeQ**)param;
 
 	while (1)
 	{
@@ -77,7 +77,7 @@ unsigned int __stdcall TestThread_LockFreeStack(LPVOID param)
 
 		//Sleep(2000);
 
-		memset(dataArray, 0, sizeof(TestData*) * DATA_COUNT);
+		memset(dataArray, 0, sizeof(TestData_LockFreeQ*) * DATA_COUNT);
 
 		int failCount = 0;
 
@@ -112,13 +112,13 @@ unsigned int __stdcall TestThread_LockFreeStack(LPVOID param)
 void Start_LockFreeStack()
 {
 
-	TestData* dataArray[THREAD_NUM][DATA_COUNT];
+	TestData_LockFreeQ* dataArray[THREAD_NUM][DATA_COUNT];
 
 	for (int i = 0; i < THREAD_NUM; ++i)
 	{
 		for (int j = 0; j < DATA_COUNT; ++j)
 		{
-			dataArray[i][j] = new TestData;
+			dataArray[i][j] = new TestData_LockFreeQ;
 
 			if (dataArray[i][j] == nullptr)
 			{

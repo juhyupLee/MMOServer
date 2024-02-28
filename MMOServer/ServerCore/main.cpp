@@ -5,7 +5,7 @@ CrashDump crash;
 int main()
 {
 
-	StartLockFreeQTest();
+	//StartLockFreeQTest();
 
-	//StartMemoryPoolTLS();
+	StartMemoryPoolTLS();
 }

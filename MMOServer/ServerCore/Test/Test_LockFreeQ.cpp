@@ -11,9 +11,9 @@ HANDLE g_DeQThread;
 int g_TestMode = 0;
 bool g_ExitFlag = false;
 
-struct TestData
+struct TestData_LockFreeQ
 {
-	TestData()
+	TestData_LockFreeQ()
 	{
 		_Data = INIT_DATA;
 		_RefCount = INIT_COUNT;
@@ -22,14 +22,14 @@ struct TestData
 	LONG _RefCount;
 };
 
-LockFreeQ<TestData*> g_Q;
+LockFreeQ<TestData_LockFreeQ*> g_Q;
 
 
 
 
 unsigned int __stdcall TestEnQ(LPVOID param)
 {
-	TestData data;
+	TestData_LockFreeQ data;
 
 	while (true)
 	{
@@ -67,7 +67,7 @@ unsigned int __stdcall TestEnQ(LPVOID param)
 
 unsigned int __stdcall TestDeQ(LPVOID param)
 {
-	TestData* data = nullptr;
+	TestData_LockFreeQ* data = nullptr;
 
 	while (true)
 	{
@@ -93,7 +93,7 @@ unsigned int __stdcall TestDeQ(LPVOID param)
 
 unsigned int __stdcall TestThread(LPVOID param)
 {
-	TestData** dataArray = (TestData**)param;
+	TestData_LockFreeQ** dataArray = (TestData_LockFreeQ**)param;
 
 	while (1)
 	{
@@ -154,15 +154,13 @@ unsigned int __stdcall TestThread(LPVOID param)
 		}
 
 
-		memset(dataArray, 0, sizeof(TestData*) * DATA_COUNT);
+		memset(dataArray, 0, sizeof(TestData_LockFreeQ*) * DATA_COUNT);
 
 		int failCount = 0;
 
 		for (int i = 0; i < DATA_COUNT; ++i)
 		{
-			//g_Profiler.ProfileBegin(L"DeQ");
 			g_Q.DeQ(&dataArray[i]);
-			//g_Profiler.ProfileEnd(L"DeQ");
 		}
 		//
 		if (g_TestMode == 3)
@@ -216,14 +214,14 @@ void StartLockFreeQTest()
 
 
 #if TEST_MODE ==1
-	//TestData* dataArray[THREAD_NUM][DATA_COUNT];
-	std::map<int64_t, TestData*> DataReUseTest;
+	//TestData_LockFreeQ* dataArray[THREAD_NUM][DATA_COUNT];
+	std::map<int64_t, TestData_LockFreeQ*> DataReUseTest;
 
-	TestData*** threadData = new TestData * *[threadNum];
+	TestData_LockFreeQ*** threadData = new TestData_LockFreeQ * *[threadNum];
 
 	for (int i = 0; i < threadNum; ++i)
 	{
-		threadData[i] = new TestData *[dataCount];
+		threadData[i] = new TestData_LockFreeQ *[dataCount];
 	}
 
 
@@ -234,7 +232,7 @@ void StartLockFreeQTest()
 	{
 		for (int j = 0; j < dataCount; ++j)
 		{
-			threadData[i][j] = new TestData;
+			threadData[i][j] = new TestData_LockFreeQ;
 
 			DataReUseTest.insert(std::make_pair((int64_t)threadData[i][j], threadData[i][j]));
 

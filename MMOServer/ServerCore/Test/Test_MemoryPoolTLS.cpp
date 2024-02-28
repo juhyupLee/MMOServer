@@ -2,12 +2,12 @@
 
 CrashDump g_CrashDump;
 
-#define INIT_DATA 0x0000000055555555
+#define INIT_DATA 0x123456789
 #define INIT_COUNT  0
 #define DATA_COUNT 1000000
 #define THREAD_NUM 8
 
-#define POOL_MODE 3
+#define POOL_MODE 1
 
 #define CALL_COUNT 100
 struct Player
@@ -31,14 +31,14 @@ struct Monster
 	char name[10];
 
 };
-struct TestData
+struct TestData_MemoryPool
 {
-	TestData()
+	TestData_MemoryPool()
 	{
 		_Data = INIT_DATA;
 		_RefCount = INIT_COUNT;
 	}
-	//virtual ~TestData()
+	//virtual ~TestData_MemoryPool()
 	//{
 
 	//}
@@ -59,7 +59,7 @@ CrashDump memoryDump;
 HANDLE g_Thread_MemoryPoolTLS[THREAD_NUM];
 bool g_Exit = false;
 
-MemoryPool_TLS<TestData> g_MemoryPool(10000);
+MemoryPool_TLS<TestData_MemoryPool> g_MemoryPool(10000,true);
 
 void Crash()
 {
@@ -69,7 +69,7 @@ void Crash()
 unsigned int __stdcall TestThread_NewDeleteVSAllocFree(LPVOID param)
 {
 	int count = 0;
-	TestData** dataArray = new TestData * [DATA_COUNT];
+	TestData_MemoryPool** dataArray = new TestData_MemoryPool * [DATA_COUNT];
 
 	while (count < CALL_COUNT)
 	{
@@ -78,7 +78,7 @@ unsigned int __stdcall TestThread_NewDeleteVSAllocFree(LPVOID param)
 		//----------------------------------------------------
 		for (int i = 0; i < DATA_COUNT; ++i)
 		{
-			dataArray[i] = new TestData;
+			dataArray[i] = new TestData_MemoryPool;
 		}
 
 		for (int i = 0; i < DATA_COUNT; ++i)
@@ -108,7 +108,7 @@ unsigned int __stdcall TestThread_NewDeleteVSAllocFree(LPVOID param)
 #if POOL_MODE == 0
 unsigned int __stdcall TestThread_NewDelete(LPVOID param)
 {
-	TestData** dataArray = (TestData**)param;
+	TestData_MemoryPool** dataArray = (TestData_MemoryPool**)param;
 	int count = 0;
 
 
@@ -173,7 +173,7 @@ unsigned int __stdcall TestThread_NewDelete(LPVOID param)
 		//Sleep(0);
 
 
-		//memset(dataArray, 0, sizeof(TestData*) * DATA_COUNT);
+		//memset(dataArray, 0, sizeof(TestData_MemoryPool*) * DATA_COUNT);
 
 		//----------------------------------------------------
 		// Alloc ÄÚµå
@@ -182,7 +182,7 @@ unsigned int __stdcall TestThread_NewDelete(LPVOID param)
 		for (int i = 0; i < DATA_COUNT; ++i)
 		{
 
-			dataArray[i] = new TestData;
+			dataArray[i] = new TestData_MemoryPool;
 
 			if (dataArray[i]->_Data != INIT_DATA)
 			{
@@ -225,7 +225,7 @@ unsigned int __stdcall TestThread_NewDelete(LPVOID param)
 #if POOL_MODE == 1
 unsigned int __stdcall TestThread_Pool(LPVOID param)
 {
-	TestData** dataArray = (TestData**)param;
+	TestData_MemoryPool** dataArray = (TestData_MemoryPool**)param;
 	int count = 0;
 	while (true)
 	{
@@ -337,10 +337,10 @@ void StartMemoryPoolTLS()
 {
 #if POOL_MODE ==1
 
-	TestData*** dataArray = new TestData * *[THREAD_NUM];
+	TestData_MemoryPool*** dataArray = new TestData_MemoryPool * *[THREAD_NUM];
 	for (int i = 0; i < THREAD_NUM; ++i)
 	{
-		dataArray[i] = new TestData * [DATA_COUNT];
+		dataArray[i] = new TestData_MemoryPool * [DATA_COUNT];
 	}
 
 
@@ -386,17 +386,17 @@ void StartMemoryPoolTLS()
 #endif
 
 #if POOL_MODE ==0
-	TestData*** dataArray = new TestData * *[THREAD_NUM];
+	TestData_MemoryPool*** dataArray = new TestData_MemoryPool * *[THREAD_NUM];
 	for (int i = 0; i < THREAD_NUM; ++i)
 	{
-		dataArray[i] = new TestData * [DATA_COUNT];
+		dataArray[i] = new TestData_MemoryPool * [DATA_COUNT];
 	}
 
 	for (int i = 0; i < THREAD_NUM; ++i)
 	{
 		for (int j = 0; j < DATA_COUNT; ++j)
 		{
-			dataArray[i][j] = new TestData;
+			dataArray[i][j] = new TestData_MemoryPool;
 
 			if (dataArray[i][j] == nullptr)
 			{
@@ -423,7 +423,7 @@ void StartMemoryPoolTLS()
 
 #if POOL_MODE == 3
 
-	int temp = sizeof(TestData);
+	int temp = sizeof(TestData_MemoryPool);
 	for (int i = 0; i < THREAD_NUM; ++i)
 	{
 		g_Thread_MemoryPoolTLS[i] = (HANDLE)_beginthreadex(NULL, 0, TestThread_NewDeleteVSAllocFree, NULL, 0, NULL);
