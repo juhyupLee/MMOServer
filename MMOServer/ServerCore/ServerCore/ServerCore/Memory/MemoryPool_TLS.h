@@ -1,6 +1,5 @@
 #pragma once
 #include "FreeList.h"
-#include "Global.h"
 
 template <typename T>
 class MemoryPool_TLS
@@ -16,6 +15,7 @@ class MemoryPool_TLS
 	{
 		ChunkMark _FrontMark;
 		T _Data;
+		ChunkMark _RearMark;
 	};
 	class ChunkMemory
 	{
@@ -123,32 +123,26 @@ template<typename T>
 inline bool MemoryPool_TLS<T>::ChunkMemory::Free(T* data)
 {
 
-	//g_Profiler.ProfileBegin(L"Chunk Free");
-
-
-	//g_Profiler.ProfileBegin(L"Chunk Free DataPtrSetting");
 	ChunkAllocMemory* dataPtr = (ChunkAllocMemory*)((char*)data - sizeof(ChunkMark));
-	//g_Profiler.ProfileEnd(L"Chunk Free DataPtrSetting");
+
+
 	//----------------------------------------------------
 	// 반납된 포인터가 언더플로우 한 경우
 	//----------------------------------------------------
-
-	//g_Profiler.ProfileBegin(L"Chunk Free Overflow");
 	if (dataPtr->_FrontMark._MarkValue != MARK_FRONT)
 	{
 		throw(FreeListException(L"Underflow Violation", __LINE__));
 		return false;
 	}
-	////----------------------------------------------------
-	//// 반납된 포인터가 오버플로우 한 경우
-	////----------------------------------------------------
-	//if (dataPtr->_RearMark._ChunkPtr != this || dataPtr->_RearMark._MarkValue != MARK_REAR)
-	//{
-	//	throw(FreeListException(L"Overflow Violation", __LINE__));
-	//	return false;
-	//}
+	//----------------------------------------------------
+	// 오버플로우 체크
+	//----------------------------------------------------
+	if (dataPtr->_RearMark._ChunkPtr != this || dataPtr->_RearMark._MarkValue != MARK_REAR)
+	{
+		throw(FreeListException(L"Overflow Violation", __LINE__));
+		return false;
+	}
 
-	//g_Profiler.ProfileEnd(L"Chunk Free Overflow");
 	//--------------------------------------------
 	// 사용자가 placement 를 사용한다면
 	// Free할때 소멸자를 호출해준다
@@ -159,24 +153,15 @@ inline bool MemoryPool_TLS<T>::ChunkMemory::Free(T* data)
 		data->~T();
 	}
 
-
 	//-------------------------------------
 	// Alloc같은경우는 TLS에서 데이터를 Alloc하기때문에 여러스레드에서 접근할 확률이없지만
 	// Free는 떠다니는 포인터에 어떤스레드든 접근가능하기때문에 여러스레드에서 접근할 수 있다.
 	//-------------------------------------
-	
-	//g_Profiler.ProfileBegin(L"Chunk Free Interlock");
 	if (InterlockedDecrement(&m_FreeCount) == 0)
 	{
-
 		m_CenterMemoryPool->m_ChunkMemoryPool.Free(this);
 		return true;
 	}
-	//g_Profiler.ProfileEnd(L"Chunk Free Interlock");
-
-	//g_Profiler.ProfileEnd(L"Chunk Free");
-	//log.DataSettiong(InterlockedIncrement64(&g_TLSPoolMemoryNo), eMemoryPoolTLS::FREE_DATA_CHUNK, GetCurrentThreadId(), (int64_t)this, m_AllocIndex, m_FreeCount, m_bFree, (int64_t)data);
-	//g_MemoryLog_TLSPool.MemoryLogging(log);
 	return false;
 }
 
@@ -247,9 +232,6 @@ inline T* MemoryPool_TLS<T>::Alloc()
 	
 		chunkPtr = ChunkSetting();
 	}
-	
-	//log.DataSettiong(InterlockedIncrement64(&g_TLSPoolMemoryNo), eMemoryPoolTLS::ALLOC_DATA_MEMTLS, GetCurrentThreadId(), (int64_t)chunkPtr, chunkPtr->m_AllocIndex, chunkPtr->m_FreeCount, chunkPtr->m_bFree, (int64_t)rtnData);
-	//g_MemoryLog_TLSPool.MemoryLogging(log);
 
 	return chunkPtr->Alloc();
 }

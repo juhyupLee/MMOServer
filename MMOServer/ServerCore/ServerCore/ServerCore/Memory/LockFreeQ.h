@@ -1,13 +1,9 @@
 #pragma once
-#define ENQ_MODE 2
-#define KERNEL_ADDRESS 0x80000000000
-#include <iostream>
 #include "FreeList.h"
-#include "MemoryLog.h"
+#define KERNEL_ADDRESS 0x80000000000
 
-extern MemoryLogging_New<Q_LOG,10000> g_MemoryLogQ;
-extern int64_t g_MemoryCount;
-extern void Crash();
+extern void CRASH();
+
 
 template <typename T>
 class LockFreeQ
@@ -102,13 +98,12 @@ public:
 };
 
 
-#if ENQ_MODE ==2
 template<typename T>
 inline bool LockFreeQ<T>::EnQ(T data)
 {
 	if (m_MaxQCount < m_Count)
 	{
-		Crash();
+		CRASH();
 		return false;
 	}
 
@@ -134,7 +129,7 @@ inline bool LockFreeQ<T>::EnQ(T data)
 		//--------------------------------------------------------------
 		if ((int64_t)tempRear._ID == InterlockedCompareExchange64((int64_t*)&tempRear._NodePtr->_Next, (int64_t)newNode, (int64_t)tempRear._ID))
 		{
-	
+
 		}
 		else
 		{
@@ -145,7 +140,7 @@ inline bool LockFreeQ<T>::EnQ(T data)
 				continue;
 			}
 			changeValue._ID = (int64_t)changeValue._NodePtr->_Next;
-			
+
 			BOOL result = InterlockedCompareExchange128((LONG64*)m_RearCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempRear);
 			if (result == TRUE)
 			{
@@ -156,33 +151,28 @@ inline bool LockFreeQ<T>::EnQ(T data)
 			}
 			continue;
 		}
-		
+
 		changeValue._NodePtr = newNode;
 		changeValue._ID = (int64_t)newNode->_Next;
 
-		
+
 		BOOL result = InterlockedCompareExchange128((LONG64*)m_RearCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempRear);
-		//------------------------------------------------------
-		// 여기서 판단되는거는 CAS1을 성공하지못한 다른 스레드가 m_Rear를 바꿧을때와
-		// ABA로 들어온 옛날 m_Rear을 판단할 수 있다
-		//------------------------------------------------------
-		if (result == TRUE)
-		{
-		}
-		else
-		{
-		}
+
+			if (result == TRUE)
+			{
+			}
+			else
+			{
+			}
 		break;
 
 	} while (true);
-	
+
 	InterlockedIncrement(&m_Count);
 	InterlockedIncrement(&m_EnQTPS);
-	
+
 	return true;
 }
-#endif
-
 
 
 template<typename T>

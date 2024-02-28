@@ -1,8 +1,4 @@
 #include "RingBuffer.h"
-#include <iostream>
-#include <Windows.h>
-#include "Log.h"
-#include "MemoryLog.h"
 
 
 enum

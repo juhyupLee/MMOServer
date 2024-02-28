@@ -1,16 +1,9 @@
 #pragma once
-#include <iostream>
-#include <Windows.h>
-#include "MemoryLog.h"
-#include "Global.h"
-
 #define MARK_FRONT 0x1234567876543210
 #define MARK_REAR 0x8765432101234567
 
 
-extern MemoryLogging_New<FreeList_Log,10000> g_MemoryLogFreeList;
 extern long long g_Mark;
-extern int64_t g_FreeListMemoryCount;
 
 class FreeListException
 {
@@ -167,12 +160,11 @@ inline int32_t FreeList<T>::GetAllocCount()
 template<typename T>
 inline T* FreeList<T>::AllocateNewMemory()
 {
-	//g_Profiler.ProfileBegin(L"FREELIST_ALLOCNewMemory");
 	AllocMemory* allocMemory;
 	//--------------------------------------------------------------------------
 	// 언더플로우 체크용 mark ID  + data(Payload)  + 오버플로우 체크용 mark ID  할당
 	//--------------------------------------------------------------------------
-	//allocMemory = (AllocMemory*)malloc(sizeof( AllocMemory));
+
 	allocMemory = (AllocMemory*)_aligned_malloc(sizeof(AllocMemory), 16);
 	new(&allocMemory->_Node)T;
 	//allocMemory->_FrontMark._FreeFlag = 0;
@@ -181,28 +173,18 @@ inline T* FreeList<T>::AllocateNewMemory()
 	allocMemory->_RearMark._MarkID = m_MarkValue;
 	allocMemory->_RearMark._MarkValue = MARK_REAR;
 
-	/*Node* tempNode = &allocMemory->_Node;*/
-
-	//FreeList_Log logData;
-	//logData.DataSettiong(InterlockedIncrement64(&g_FreeListMemoryCount), eFreeListPos::ALLOC_MEMORY, GetCurrentThreadId(), (int64_t)m_TopCheck->_TopPtr,  -1,-1, (int64_t)tempNode);
-	//g_MemoryLogFreeList.MemoryLogging(logData);
-
 
 	InterlockedIncrement(&m_AllocCount);
 	InterlockedIncrement(&m_UseCount);
 
-	//g_Profiler.ProfileEnd(L"FREELIST_ALLOCNewMemory");
 	return (T*)&allocMemory->_Node;
 }
 
 template<typename T>
 bool FreeList<T>::Free(T* data)
 {
-	//g_Profiler.ProfileBegin(L"FREELIST_FREE");
 	Node* freeNode = (Node*)data;
 	AllocMemory* allocMemory = (AllocMemory*)((char*)data - sizeof(Mark));
-	//char* byteDataPtr = (char*)data;
-	//AllocMemory* allocMemory = (AllocMemory*)(byteDataPtr - sizeof(int64_t) * 2);
 
 	//----------------------------------------------------
 	// 반납된 포인터가 언더플로우 한 경우
@@ -220,12 +202,6 @@ bool FreeList<T>::Free(T* data)
 		throw(FreeListException(L"Overflow Violation", __LINE__));
 		return false;
 	}
-
-	//if (0 != InterlockedExchange((LONG*)&(allocMemory->_FrontMark._FreeFlag), 1))
-	//{
-	//	throw(FreeListException(L"Free X 2", __LINE__));
-	//	return false;
-	//}
 
 	if (m_bPlacementNew)
 	{
@@ -245,22 +221,16 @@ bool FreeList<T>::Free(T* data)
 
 	} while (!InterlockedCompareExchange128((LONG64*)m_TopCheck, (LONG64)tempTop._ID + 1, (LONG64)freeNode, (LONG64*)&tempTop));
 
+
 	InterlockedDecrement(&m_UseCount);
 	InterlockedIncrement(&m_PoolCount);
 
-	//FreeList_Log logData;
-	//logData.DataSettiong(InterlockedIncrement64(&g_FreeListMemoryCount), eFreeListPos::FREE_OKAY, GetCurrentThreadId(), (int64_t)m_TopCheck->_TopPtr, (int64_t)tempTop._TopPtr, (int64_t)freeNode,-1);
-	//g_MemoryLogFreeList.MemoryLogging(logData);
-
-	
-	//g_Profiler.ProfileEnd(L"FREELIST_FREE");
 	return true;
 }
 
 template <typename T>
 T* FreeList<T>::Alloc()
 {
-	//g_Profiler.ProfileBegin(L"FREELIST_ALLOC");
 	TopCheck tempTop;
 
 	tempTop._TopPtr = m_TopCheck->_TopPtr;

@@ -1,11 +1,8 @@
 #include "SerializeBuffer.h"
-#include "Protocol.h"
-#include "Global.h"
 
 #define DEBUG_BUFFER_CLEAR  0
 #define PREV_DATA_MEMORY_HISTORY  0
 
-//FreeList<LanPacket> LanPacket::m_MemoryPool;
 MemoryPool_TLS<LanPacket> LanPacket::m_MemoryPool(500);
 MemoryPool_TLS<NetPacket> NetPacket::m_NetPacketMemoryPool(100);
 
@@ -1219,7 +1216,7 @@ void NetPacket::SetHeader(NetHeader* header)
     }
     else
     {
-        Crash();
+        CRASH();
     }
 }
 
@@ -1248,16 +1245,9 @@ SmartLanPacket::~SmartLanPacket()
 {
     if (m_RefCount != nullptr)
     {
-        IOCP_Log log;
-        log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SMARTPACKET_DESTRUCTOR, GetCurrentThreadId(), -1, -1, -1, -1, -1, -1, (int64_t)m_Packet, *m_RefCount);
-        g_MemoryLog_IOCP.MemoryLogging(log);
-
         if (InterlockedDecrement(m_RefCount) == 0)
         {
-            IOCP_Log log;
-            log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SMARTPACKET_DELETE, GetCurrentThreadId(), -1, -1, -1, -1, -1, -1, (int64_t)m_Packet, *m_RefCount);
-            g_MemoryLog_IOCP.MemoryLogging(log);
-
+            
             if (*m_RefCount < 0)
             {
                 int* p = nullptr;
@@ -1285,9 +1275,6 @@ SmartLanPacket::SmartLanPacket(const SmartLanPacket& rhs)
 	if (m_RefCount != nullptr)
 	{
 		InterlockedIncrement(m_RefCount);
-        IOCP_Log log;
-        log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SMARTPACKET_COPY_STRUCTOR, GetCurrentThreadId(), -1, -1, -1, -1, -1, -1, (int64_t)m_Packet, *m_RefCount);
-        g_MemoryLog_IOCP.MemoryLogging(log);
 	}
 
 }
@@ -1300,10 +1287,6 @@ SmartLanPacket& SmartLanPacket::operator=(const SmartLanPacket& rhs)
 	if (m_RefCount != nullptr)
 	{
 		InterlockedIncrement(m_RefCount);
-        IOCP_Log log;
-        log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SMARTPACKET_EXCHANGE, GetCurrentThreadId(), -1, -1, -1, -1, -1, -1, (int64_t)m_Packet, *m_RefCount);
-        g_MemoryLog_IOCP.MemoryLogging(log);
-
 	}
 	return *this;
 }

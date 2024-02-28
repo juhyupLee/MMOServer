@@ -1,9 +1,5 @@
 #pragma once
 #pragma comment(lib,"Dbghelp.lib")
-#include <iostream>
-#include <Windows.h>
-#include <psapi.h>
-#include <Dbghelp.h>
 
 class CrashDump
 {
@@ -26,7 +22,6 @@ public:
 		_set_purecall_handler(myPurecallHandler);
 
 		SetHandlerDump();
-
 
 	}
 
@@ -93,11 +88,6 @@ public:
 
 
 	}
-	static void Crash()
-	{
-		int* p = nullptr;
-		*p = 10;
-	}
 
 	static void SetHandlerDump()
 	{
@@ -106,17 +96,17 @@ public:
 	}
 	static void myInvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, unsigned int line, uintptr_t reserved)
 	{
-		Crash();
+		CRASH();
 	}
 
 	static int _custom_Report_hook(int repostType, char* message, int* returnValue)
 	{
-		Crash();
+		CRASH();
 		return true;
 	}
 	static void myPurecallHandler()
 	{
-		Crash();
+		CRASH();
 	}
 
 
