@@ -2,9 +2,6 @@
 #include "FreeList.h"
 #define KERNEL_ADDRESS 0x80000000000
 
-extern void CRASH();
-
-
 template <typename T>
 class LockFreeQ
 {
@@ -107,11 +104,8 @@ inline bool LockFreeQ<T>::EnQ(T data)
 		return false;
 	}
 
-	int loopCount = 0;
-
 	QCheck tempRear;
 	QCheck changeValue;
-
 	Node* newNode = m_MemoryPool.Alloc();
 
 	newNode->_Data = data;
@@ -119,57 +113,53 @@ inline bool LockFreeQ<T>::EnQ(T data)
 
 	do
 	{
-		loopCount++;
+
 		tempRear._NodePtr = m_RearCheck->_NodePtr;
 		tempRear._ID = m_RearCheck->_ID;
-
-
-		//--------------------------------------------------------------
-		// Commit 1
-		//--------------------------------------------------------------
-		if ((int64_t)tempRear._ID == InterlockedCompareExchange64((int64_t*)&tempRear._NodePtr->_Next, (int64_t)newNode, (int64_t)tempRear._ID))
+		//-------------------------------------------------------------- 
+		// CAS(Compare And Swap) 1 
+		//-------------------------------------------------------------- 
+		if ((int64_t)tempRear._ID != InterlockedCompareExchange64((int64_t*)&tempRear._NodePtr->_Next, (int64_t)newNode, (int64_t)tempRear._ID))
 		{
-
-		}
-		else
-		{
+			//-------------------------------------------------------------- 
+			// CAS1에 실패했을경우 
+			// Rear Pointer라도 갱신시켜준다. 그리고 다시 CAS1을 시도한다 
+			// 그런데 만약 Temp Rear의 Nert포인터가 커널영역의 가상메모리 주소라면 
+			// 이미 갱신까지 마친것으로, 다시 처음부터 CAS1을 시도한다. 
+			//-------------------------------------------------------------- 
 			changeValue._NodePtr = tempRear._NodePtr->_Next;
 
 			if ((int64_t)changeValue._NodePtr >= KERNEL_ADDRESS)
 			{
 				continue;
 			}
+
 			changeValue._ID = (int64_t)changeValue._NodePtr->_Next;
 
 			BOOL result = InterlockedCompareExchange128((LONG64*)m_RearCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempRear);
-			if (result == TRUE)
-			{
-			}
-			else
-			{
 
-			}
 			continue;
+
 		}
 
+		//-------------------------------------------------------------- 
+		// CAS1에 성공한 경우 CAS2를 진행한다. 
+		// CAS2에 실패하더라도 이미 CAS1은 성공했으므로 사실상 Enqueue의 성공한것으로봄 
+		// 그래서 CAS2의 성공 실패를 따지지 않고 Loop를 종료한다 
+		// CAS2는 Rear의 포인터와 현재 이 EnQ ID를 갱신시켜준다. 
+		//-------------------------------------------------------------- 
 		changeValue._NodePtr = newNode;
 		changeValue._ID = (int64_t)newNode->_Next;
 
-
+		//-------------------------------------------------------------- 
+		// CAS(Compare And Swap) 2 
+		//-------------------------------------------------------------- 
 		BOOL result = InterlockedCompareExchange128((LONG64*)m_RearCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempRear);
-
-			if (result == TRUE)
-			{
-			}
-			else
-			{
-			}
 		break;
 
 	} while (true);
 
 	InterlockedIncrement(&m_Count);
-	InterlockedIncrement(&m_EnQTPS);
 
 	return true;
 }

@@ -113,9 +113,6 @@ inline T* MemoryPool_TLS<T>::ChunkMemory::Alloc()
 		m_CenterMemoryPool->ChunkSetting();
 	}
 
-	//log.DataSettiong(InterlockedIncrement64(&g_TLSPoolMemoryNo), eMemoryPoolTLS::ALLOC_DATA_CHUNK, GetCurrentThreadId(), (int64_t)this, m_AllocIndex, m_FreeCount, m_bFree, (int64_t)rtnData);
-	//g_MemoryLog_TLSPool.MemoryLogging(log);
-
 	return rtnData;
 }
 
@@ -192,8 +189,8 @@ __forceinline void MemoryPool_TLS<T>::ChunkMemory::AllocInit(bool placementNew, 
 			m_Chunk[i]._FrontMark._ChunkPtr = this;
 			m_Chunk[i]._FrontMark._MarkValue = MARK_FRONT;
 
-			//m_Chunk[i]._RearMark._ChunkPtr = this;
-			//m_Chunk[i]._RearMark._MarkValue = MARK_REAR;
+			m_Chunk[i]._RearMark._ChunkPtr = this;
+			m_Chunk[i]._RearMark._MarkValue = MARK_REAR;
 		}
 	}
 	else
