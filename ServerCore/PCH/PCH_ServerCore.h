@@ -66,6 +66,8 @@
 #include "../Memory/Protocol.h"
 #include "../Memory/MemoryPool_TLS.h"
 #include "../Memory/SerializeBuffer.h"
+#include "../Network/TemplateQ.h"
+#include "../Network/NetworkSession.h"
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 

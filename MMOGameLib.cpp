@@ -21,7 +21,7 @@ MMOGameLib::~MMOGameLib()
 {
 }
 
-bool MMOGameLib::ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption,MMOSession** sessionArray)
+bool MMOGameLib::ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption,NetworkSession** sessionArray)
 {
 	timeBeginPeriod(1);
 
@@ -37,7 +37,7 @@ bool MMOGameLib::ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, Sock
 	m_TimeOutOption = timeOutOption;
 	m_IndexStack = new LockFreeStack<uint64_t>;
 
-	m_SessionArray = new MMOSession*[maxUserCount];
+	m_SessionArray = new NetworkSession*[maxUserCount];
 	m_MaxUserCount = maxUserCount;
 	for (uint64_t index = 0; index < m_MaxUserCount; ++index)
 	{
@@ -286,7 +286,7 @@ bool MMOGameLib::DisconnectAllUser()
 	return bAllUserRelease;
 }
 
-void MMOGameLib::ReleaseSocket(MMOSession* session)
+void MMOGameLib::ReleaseSocket(NetworkSession* session)
 {
 
 	if (0 == InterlockedExchange(&session->_CloseFlag, 1))
@@ -331,7 +331,7 @@ uint16_t MMOGameLib::GetSessionIndex(uint64_t sessionID)
 }
 
 
-void MMOGameLib::ReleaseSession(MMOSession* delSession)
+void MMOGameLib::ReleaseSession(NetworkSession* delSession)
 {
 	if (delSession == nullptr)
 	{
@@ -374,7 +374,7 @@ void MMOGameLib::ReleaseSession(MMOSession* delSession)
 	InterlockedDecrement(&m_SessionCount);
 }
 
-void MMOGameLib::SessionClear(MMOSession* session)
+void MMOGameLib::SessionClear(NetworkSession* session)
 {
 #if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
 	IOCP_Log log;
@@ -437,29 +437,29 @@ void MMOGameLib::SessionClear(MMOSession* session)
 	m_IndexStack->Push(GetSessionIndex(tempID));
 }
 
-void MMOGameLib::SetTimeOut(MMOSession* session)
+void MMOGameLib::SetTimeOut(NetworkSession* session)
 {
 	session->_TimeOut = m_TimeOutOption._HeartBeatTimeOut;
 }
 
-void MMOGameLib::SetTimeOut(MMOSession* session, DWORD timeOut)
+void MMOGameLib::SetTimeOut(NetworkSession* session, DWORD timeOut)
 {
 	session->_TimeOut = timeOut;
 }
 
-void MMOGameLib::SendNDiscon(MMOSession* session, NetPacket* packet)
+void MMOGameLib::SendNDiscon(NetworkSession* session, NetPacket* packet)
 {
 	//---------------------------------------
    // 보낸 뒤, TimeOut 시간을 2초로 조정한다
    // Client에서 주는 프로토콜이 없다면 끊길것이다.
    //---------------------------------------
-	session->SendUnicast(packet);
+	//session->SendUnicast(packet);
 	SetTimeOut(session, 2000);
 }
 
 
 
-void MMOGameLib::DeQPacket(MMOSession* session)
+void MMOGameLib::DeQPacket(NetworkSession* session)
 {
 	for (int i = 0; i < session->_DeQArraySize; ++i)
 	{
@@ -479,7 +479,7 @@ void MMOGameLib::DeQPacket(MMOSession* session)
 	session->_DeQArraySize = 0;
 }
 
-void MMOGameLib::ReleasePacket(MMOSession* session)
+void MMOGameLib::ReleasePacket(NetworkSession* session)
 {
 	NetPacket* delNetPacket = nullptr;
 
@@ -519,7 +519,7 @@ void MMOGameLib::AcceptUser(SOCKET socket, WCHAR* ip, uint16_t port)
 }
 void MMOGameLib::CreateNewSession(ConnectInfo* conInfo)
 {
-	MMOSession* newSession = nullptr;
+	NetworkSession* newSession = nullptr;
 	uint64_t index = 0;
 
 	while (!m_IndexStack->Pop(&index))
@@ -638,14 +638,14 @@ void MMOGameLib::CreateNewSession(ConnectInfo* conInfo)
 		}
 	}
 }
-bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
+bool MMOGameLib::RecvPacket(NetworkSession* curSession, DWORD transferByte)
 {
 	//-----------------------------------------
 	// Enqueue 확정
 	//-----------------------------------------
 	if ((int)transferByte > curSession->_RecvRingQ.GetFreeSize())
 	{
-		curSession->Disconnect();
+		//curSession->Disconnect();
 
 		return false;
 	}
@@ -677,7 +677,7 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"헤더 코드가 다름 [Session ID:%llu] [Code:%d]", curSession->_ID, header._Code);
 			_LOG->WriteLogHex(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"Recv RingQ Hex", (BYTE*)curSession->_RecvRingQ.GetFrontBufferPtr(), curSession->_RecvRingQ.GetDirectDequeueSize());
 
-			curSession->Disconnect();
+			//curSession->Disconnect();
 			return false;
 		}
 		if (header._Len <= 0)
@@ -687,7 +687,7 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			//----------------------------------------
 
 			_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"헤더의 Len :0  [Session ID:%llu] [Code:%d]", curSession->_ID, header._Len);
-			curSession->Disconnect();
+			//curSession->Disconnect();
 
 			return false;
 		}
@@ -699,7 +699,7 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			//-------------------------------------
 			if (header._Len > curSession->_RecvRingQ.GetFreeSize())
 			{
-				curSession->Disconnect();
+				//curSession->Disconnect();
 				return false;
 			}
 			break;
@@ -728,7 +728,7 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			// Decoding 실패시, 유저를 끊는다.
 			//-----------------------------------
 			packet->Free(packet);
-			curSession->Disconnect();
+			//curSession->Disconnect();
 			return false;
 		}
 		InterlockedIncrement((LONG*)&m_RecvTPS);
@@ -746,7 +746,7 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 
 	return true;
 }
-bool MMOGameLib::RecvPost(MMOSession* curSession)
+bool MMOGameLib::RecvPost(NetworkSession* curSession)
 {
 	//SendFlag_Log sendFlagLog;
 	//-------------------------------------------------------------
@@ -754,7 +754,7 @@ bool MMOGameLib::RecvPost(MMOSession* curSession)
 	//-------------------------------------------------------------
 	if (curSession->_RecvRingQ.GetFreeSize() <= 0)
 	{
-		curSession->Disconnect();
+		//curSession->Disconnect();
 		return false;
 	}
 	if (curSession->_IOCount <= 0)
@@ -918,7 +918,7 @@ DWORD MMOGameLib::GetSendFPS()
 }
 
 
-void MMOGameLib::SetSessionArray(MMOSession* sessionArray,DWORD maxUserCount)
+void MMOGameLib::SetSessionArray(NetworkSession* sessionArray,DWORD maxUserCount)
 {
 	for (DWORD i = 0; i < maxUserCount; ++i)
 	{
@@ -973,7 +973,7 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 	{
 		DWORD transferByte = 0;
 		OVERLAPPED* curOverlap = nullptr;
-		MMOSession* curSession = nullptr;
+		NetworkSession* curSession = nullptr;
 		BOOL gqcsRtn = GetQueuedCompletionStatus(mmoServer->m_IOCP, &transferByte, (PULONG_PTR)&curSession, (LPOVERLAPPED*)&curOverlap, INFINITE);
 
 		int errorCode;
@@ -1098,7 +1098,7 @@ unsigned int __stdcall MMOGameLib::MonitorThread(LPVOID param)
 
 	MMOGameLib* mmoServer = (MMOGameLib*)param;
 	DWORD maxUserCount = mmoServer->m_MaxUserCount;
-	MMOSession** sessionArray = mmoServer->m_SessionArray;
+	NetworkSession** sessionArray = mmoServer->m_SessionArray;
 
 
 	while (true)
@@ -1122,7 +1122,7 @@ unsigned int __stdcall MMOGameLib::MonitorThread(LPVOID param)
 
 		for (DWORD i = 0; i < mmoServer->m_MaxUserCount; ++i)
 		{
-			MMOSession* curSession = mmoServer->m_SessionArray[i];
+			NetworkSession* curSession = mmoServer->m_SessionArray[i];
 
 			mmoServer->m_SendQMemory += curSession->_SendQ.GetMemoryPoolAllocCount();
 		}
@@ -1151,7 +1151,7 @@ unsigned int __stdcall MMOGameLib::GameLogicThread(LPVOID param)
 {
 	MMOGameLib* mmoServer = (MMOGameLib*)param;
 	DWORD maxUserCount = mmoServer->m_MaxUserCount;
-	MMOSession** sessionArray = mmoServer->m_SessionArray;
+	NetworkSession** sessionArray = mmoServer->m_SessionArray;
 	int fpsCount = 0;
 
 	DWORD time = timeGetTime();
@@ -1183,7 +1183,7 @@ unsigned int __stdcall MMOGameLib::GameLogicThread(LPVOID param)
 
 		for (DWORD i = 0; i < maxUserCount; ++i)
 		{
-			MMOSession* curSession = sessionArray[i];
+			NetworkSession* curSession = sessionArray[i];
 
 			if (curSession->_SessionStatus == eSessionStatus::AUTH_TO_GAME)
 			{
@@ -1250,7 +1250,7 @@ unsigned int __stdcall MMOGameLib::AuthThread(LPVOID param)
 {
 	MMOGameLib* mmoServer = (MMOGameLib*)param;
 	DWORD maxUserCount = mmoServer->m_MaxUserCount;
-	MMOSession** sessionArray = mmoServer->m_SessionArray;
+	NetworkSession** sessionArray = mmoServer->m_SessionArray;
 	int fpsCount = 0;
 
 	DWORD time = timeGetTime();
@@ -1304,7 +1304,7 @@ unsigned int __stdcall MMOGameLib::AuthThread(LPVOID param)
 		//-------------------------------------------------------------
 		for (DWORD i = 0; i < maxUserCount; ++i)
 		{
-			MMOSession* curSession = sessionArray[i];
+			NetworkSession* curSession = sessionArray[i];
 
 			if (curSession->_SessionStatus == eSessionStatus::AUTH)
 			{	
@@ -1345,7 +1345,7 @@ unsigned int __stdcall MMOGameLib::SendThread(LPVOID param)
 {
 	MMOGameLib* mmoServer = (MMOGameLib*)param;
 	DWORD maxUserCount = mmoServer->m_MaxUserCount;
-	MMOSession** sessionArray = mmoServer->m_SessionArray;
+	NetworkSession** sessionArray = mmoServer->m_SessionArray;
 	int fpsCount = 0;
 	DWORD time = timeGetTime();
 
@@ -1376,14 +1376,14 @@ unsigned int __stdcall MMOGameLib::SendThread(LPVOID param)
 
 		for (DWORD i = 0; i < maxUserCount; ++i)
 		{
-			MMOSession* curSession = sessionArray[i];
+			NetworkSession* curSession = sessionArray[i];
 			//uint64_t  tempID = curSession->_ID;
 
 			curSession->_bSending = true;
 
 			if (curSession->_SessionStatus == eSessionStatus::AUTH || curSession->_SessionStatus == eSessionStatus::GAME)
 			{				
-				curSession->SendPost();
+				//curSession->SendPost();
 			}
 			else 
 			{
@@ -1401,227 +1401,7 @@ void MMOGameLib::Crash()
 	*p = 10;
 }
 
-bool MMOSession::Disconnect()
-{
-	_bIOCancel = true;
-	IO_Cancel();
-	return true;
-}
 
-void MMOSession::IO_Cancel()
-{
-	//-----------------------------------------------
-	// Overlapped Pointer가 NULL일시 Send ,Recv 둘다 IO취소한다
-	//-----------------------------------------------
-	CancelIoEx((HANDLE)_Socket, NULL);
-}
-
-bool MMOSession::SendPost()
-{
-	int loopCount = 0;
-
-	do
-	{
-		loopCount++;
-
-		if (0 == InterlockedExchange(&_SendFlag, 1))
-		{
-			//--------------------------------------------------------
-			// Echo Count가 증가한 범인
-			//--------------------------------------------------------
-			if (_SendQ.GetQCount() <= 0)
-			{
-				InterlockedExchange(&_SendFlag, 0);
-				continue;
-			}
-			//--------------------------------------------------
-			// IOCount와 이세션이 WSARecv or WSASend 이후 로그를 위해 Session에 접근할수있기 때문에
-			// 참조카운트용으로 하나 더 증가시킨다.
-			//--------------------------------------------------
-			InterlockedAdd((LONG*)&_IOCount, 2);
-			//--------------------------------------------------
-
-			if (_IOCount <= 0)
-			{
-				MMOGameLib::Crash();
-			}
-
-			if (_SessionStatus == eSessionStatus::RELEASE)
-			{
-				CRASH();
-			}
-
-			////-----------------------------------------------------------------------------------------------------------------------
-			//// SendQ에 있는 LanPackt* 포인터들을 뽑아서 WSABUF를 세팅해준다
-			////-----------------------------------------------------------------------------------------------------------------------
-			WSABUF wsaSendBuf[MMOSession::DEQ_PACKET_ARRAY_SIZE];
-
-			int bufCount = 0;
-
-			NetPacket* deQPacket = nullptr;
-
-			if (_DeQArraySize > 0)
-			{
-				MMOGameLib::Crash();
-
-			}
-			while (_SendQ.DeQ(&deQPacket))
-			{
-				if (deQPacket == nullptr)
-				{
-					MMOGameLib::Crash();
-				}
-				if (_DeQArraySize > MMOSession::DEQ_PACKET_ARRAY_SIZE - 1)
-				{
-					MMOGameLib::Crash();
-				}
-
-				if (deQPacket->GetPayloadSize() <= 0)
-				{
-					MMOGameLib::Crash();
-				}
-				wsaSendBuf[_DeQArraySize].buf = deQPacket->GetBufferPtr();
-				wsaSendBuf[_DeQArraySize].len = deQPacket->GetFullPacketSize();
-				_SendByte += wsaSendBuf[_DeQArraySize].len;
-
-				_DeQPacketArray[_DeQArraySize] = deQPacket;
-				_DeQArraySize++;
-			}
-			//------------------------------------------------------
-			//   Send 송신바이트 체크하기
-			//------------------------------------------------------
-			if (_SendByte <= 0)
-			{
-				MMOGameLib::Crash();
-			}
-
-			ZeroMemory(&_SendOL, sizeof(_SendOL));
-
-			if (_IOCount <= 0)
-			{
-				MMOGameLib::Crash();
-			}
-
-			//------------------------------------------------------------------
-			// 	IO Cancel 이 실행됬다면, 입출력을 걸지않고, IOCount를 낮추고 Return한다
-			//  로그를위한 IOCount +1  WSASend를 위한 +1 
-			//------------------------------------------------------------------
-			if (_bIOCancel)
-			{
-				for (int i = 0; i < 2; ++i)
-				{
-					if (0 == InterlockedDecrement(&_IOCount))
-					{
-						_bReleaseReady = true;
-					}
-				}
-				
-				return false;
-			}
-
-
-			int sendRtn = WSASend(_Socket, wsaSendBuf, _DeQArraySize, NULL, 0, &_SendOL, NULL);
-
-			if (_IOCount <= 0)
-			{
-				MMOGameLib::Crash();
-			}
-
-			if (sendRtn == SOCKET_ERROR)
-			{
-				int errorCode = WSAGetLastError();
-
-				if (errorCode != WSA_IO_PENDING)
-				{
-					_IOFail = true;
-					MMOGameLib::SpecialErrorCodeCheck(errorCode);
-
-					//---------------------------------------------------------
-					// WSASend를 걸기위해 증가시킨 IOCount를 감소시킨다.
-					//---------------------------------------------------------
-					int tempIOCount = InterlockedDecrement(&_IOCount);
-
-					if (0 == tempIOCount)
-					{
-						_bReleaseReady = true;
-					}
-				}
-			}
-
-			//---------------------------------------------------------
-			// Log를 위해 올렷던 IOCount를 감소시키고 끝낸다. (Return)
-			//---------------------------------------------------------
-			int tempIOCount = InterlockedDecrement(&_IOCount);
-			if (0 == tempIOCount)
-			{
-				_bReleaseReady = true;
-			}
-			return true;
-		}
-		else
-		{
-			break;
-		}
-
-	
-	} while (_SendQ.GetQCount() > 0);
-
-	return true;
-
-}
-
-bool MMOSession::SendPacket(NetPacket* packet)
-{
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-	IOCP_Log log;
-#endif
-
-#if MEMORYLOG_USE ==1 
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPACKET, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPACKET, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-	_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-	(*packet).HeaderSettingAndEncoding();
-
-	if (packet->GetPayloadSize() <= 0)
-	{
-		MMOGameLib::Crash();
-	}
-	if (!_SendQ.EnQ(packet))
-	{
-		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SendQ 총갯수 초과(LockFreeQ Qcount 초과함)");
-		MMOGameLib::Crash();
-	}
-
-	return true;
-}
-
-void MMOSession::SendUnicast(NetPacket* packet)
-{
-	packet->IncrementRefCount();
-
-	if (!SendPacket(packet))
-	{
-		if (packet->DecrementRefCount() == 0)
-		{
-		/*	InterlockedIncrement(&g_FreeMemoryCount);*/
-			packet->Free(packet);
-		}
-		return;
-	}
-
-	if (packet->DecrementRefCount() == 0)
-	{
-		//InterlockedIncrement(&g_FreeMemoryCount);
-		packet->Free(packet);
-	}
-}
 
 
 

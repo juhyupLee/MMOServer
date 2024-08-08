@@ -1,13 +1,9 @@
 
-//#include <conio.h>
-//#include "Log.h"
-//#include "MonitorLanClient.h"
 
 #pragma comment ( lib, "ServerCore.lib" )
 
 int main()
 {
-
 	MyMMOServer* mmoServer = new MyMMOServer();
 
 	TimeOutOption timeOutOption;
@@ -23,18 +19,18 @@ int main()
 	sockOption._SendBufferZero = false;
 	bool bServerStartFlag = false;
 
-	int threadNum = 0;
-	int maxUser = 0;
-	int runningThread = 0;
-	
-	wprintf(L"워커스레드 갯수:");
-	wscanf_s(L"%d", &threadNum);
+	int threadNum = 8;
+	int maxUser = 1000;
+	int runningThread = 4;
+	//
+	//wprintf(L"워커스레드 갯수:");
+	//wscanf_s(L"%d", &threadNum);
 
-	wprintf(L"러닝 스레드 갯수:");
-	wscanf_s(L"%d", &runningThread);
+	//wprintf(L"러닝 스레드 갯수:");
+	//wscanf_s(L"%d", &runningThread);
 
-	wprintf(L"최대 유저수:");
-	wscanf_s(L"%d", &maxUser);
+	//wprintf(L"최대 유저수:");
+	//wscanf_s(L"%d", &maxUser);
 
 
 	mmoServer->MMOServerStart(nullptr, 40000, runningThread, sockOption, threadNum, maxUser, timeOutOption);

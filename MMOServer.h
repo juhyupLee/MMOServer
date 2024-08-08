@@ -1,9 +1,9 @@
 #pragma once
 #include "MMOGameLib.h"
-
+#include "./ServerCore/Network/NetworkSession.h"
 class MonitorLanClient;
 
-class Client : public MMOSession
+class Client : public NetworkSession
 {
 
 public:

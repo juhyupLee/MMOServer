@@ -1,4 +1,7 @@
 #pragma once
+#include <iostream>
+#include <Windows.h>
+
 
 template <typename T>
 class TemplateQ

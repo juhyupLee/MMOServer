@@ -449,7 +449,7 @@ unsigned  __stdcall LanClient::WorkerThread(LPVOID param)
 				{
 					CRASH();
 				}
-				lanClient->RecvPacket(curSession, transferByte);
+				//lanClient->RecvPacket(curSession, transferByte);
 			}
 			else if (curOverlap == &curSession->_SendOL)
 			{
