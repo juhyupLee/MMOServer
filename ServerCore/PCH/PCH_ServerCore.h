@@ -11,6 +11,7 @@
 #include <sstream>
 #include <fstream>
 #include <ostream>
+#include <conio.h>
 
 //스레드관련
 

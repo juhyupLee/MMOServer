@@ -61,8 +61,6 @@ bool MMOGameLib::ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, Sock
 void MMOGameLib::ServerStop()
 {
 	timeEndPeriod(1);
-
-
 	//-------------------------------------------------------------
 	// 	   Monitor 서버와 연결할 클라 리소스 정리
 	//-------------------------------------------------------------
@@ -290,9 +288,6 @@ bool MMOGameLib::DisconnectAllUser()
 
 void MMOGameLib::ReleaseSocket(MMOSession* session)
 {
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-	IOCP_Log log;
-#endif
 
 	if (0 == InterlockedExchange(&session->_CloseFlag, 1))
 	{
@@ -343,27 +338,6 @@ void MMOGameLib::ReleaseSession(MMOSession* delSession)
 		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"delte Session이 널이다");
 		return;
 	}
-
-
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-	IOCP_Log log;
-#endif
-
-#if MEMORYLOG_USE ==1 
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RELEASE_SESSION, GetCurrentThreadId(), delSession->_Socket, delSession->_IOCount, (int64_t)delSession, delSession->_ID, (int64_t)&delSession->_RecvOL, (int64_t)&delSession->_SendOL, delSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RELEASE_SESSION, GetCurrentThreadId(), delSession->_Socket, delSession->_IOCount, (int64_t)delSession, delSession->_ID, (int64_t)&delSession->_RecvOL, (int64_t)&delSession->_SendOL, delSession->_SendFlag, -1, -1, eRecvMessageType::NOTHING, -1, -1);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-	delSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-	//if (delSession->_ErrorCode != ERROR_SEM_TIMEOUT && delSession->_ErrorCode != 64 && delSession->_ErrorCode != 0 && delSession->_ErrorCode != ERROR_OPERATION_ABORTED)
-	//{
-	//	MMOGameLib::Crash();
-	//}
 
 	if (delSession->_ErrorCode == ERROR_SEM_TIMEOUT)
 	{
@@ -495,13 +469,6 @@ void MMOGameLib::DeQPacket(MMOSession* session)
 		if (0 == delNetPacket->DecrementRefCount())
 		{
 			delNetPacket->Free(delNetPacket);
-
-			//InterlockedIncrement(&g_FreeMemoryCount);
-
-			/*IOCP_Log log;
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::DEQPACKET_FREE, GetCurrentThreadId(), session->_Socket, session->_IOCount, (int64_t)session, session->_ID,(int64_t)&session->_RecvOL, (int64_t)&session->_SendOL, session->_SendFlag, (int64_t)delNetPacket);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-			session->_MemoryLog_IOCP.MemoryLogging(log);*/
 		}
 
 		//----------------------------------------------
@@ -514,7 +481,6 @@ void MMOGameLib::DeQPacket(MMOSession* session)
 
 void MMOGameLib::ReleasePacket(MMOSession* session)
 {
-
 	NetPacket* delNetPacket = nullptr;
 
 	while (session->_SendQ.DeQ(&delNetPacket))
@@ -522,11 +488,6 @@ void MMOGameLib::ReleasePacket(MMOSession* session)
 		if (0 == delNetPacket->DecrementRefCount())
 		{
 			delNetPacket->Free(delNetPacket);
-			/*InterlockedIncrement(&g_FreeMemoryCount);*/
-			//IOCP_Log log;
-			//log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RELEASEPACKET_FREE, GetCurrentThreadId(), -1, -1, (int64_t)session, -1, -1, -1, session->_SendFlag);
-			//g_MemoryLog_IOCP.MemoryLogging(log);
-
 		}
 	}
 
@@ -558,11 +519,6 @@ void MMOGameLib::AcceptUser(SOCKET socket, WCHAR* ip, uint16_t port)
 }
 void MMOGameLib::CreateNewSession(ConnectInfo* conInfo)
 {
-
-
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-	IOCP_Log log;
-#endif
 	MMOSession* newSession = nullptr;
 	uint64_t index = 0;
 
@@ -594,18 +550,6 @@ void MMOGameLib::CreateNewSession(ConnectInfo* conInfo)
 	// SessionID를 갱신 한후, 그때 RelaseFlag를 초기화해준다.
 	//-----------------------------------------------------------------
 	newSession->_ID = GetSessionID(index);
-
-
-#if MEMORYLOG_USE ==1 
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::ACCEPT_NEW_USER, GetCurrentThreadId(), newSession->_Socket, newSession->_IOCount, (int64_t)newSession, newSession->_ID, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL, newSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::ACCEPT_NEW_USER, GetCurrentThreadId(), newSession->_Socket, newSession->_IOCount, (int64_t)newSession, newSession->_ID, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL, newSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-	newSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 
 	wcscpy_s(newSession->_IP, conInfo->_IP);
 	newSession->_Port = conInfo->_Port;
@@ -672,30 +616,10 @@ void MMOGameLib::CreateNewSession(ConnectInfo* conInfo)
 		MMOGameLib::Crash();
 	}
 
-#if IOCOUNT_CHECK ==1
-	InterlockedIncrement(&g_IOPostCount);
-	InterlockedIncrement(&g_IOIncDecCount);
-#endif
-
-
-
-#if MEMORYLOG_USE ==1 
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::ACCEPT_BEFORE_RECV, GetCurrentThreadId(), newSession->_Socket, newSession->_IOCount, (int64_t)newSession, newSession->_ID, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL, newSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::ACCEPT_BEFORE_RECV, GetCurrentThreadId(), newSession->_Socket, newSession->_IOCount, (int64_t)newSession, newSession->_ID, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL, newSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-	newSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-
 	int recvRtn = WSARecv(newSession->_Socket, tempBuffer, 1, NULL, &flag, &newSession->_RecvOL, NULL);
 
 	newSession->_SessionStatus = eSessionStatus::AUTH;
 
-	//g_MemoryLog_IOCount.MemoryLogging(ACCEPT_RECVRTN, GetCurrentThreadId(), newSession->_ID, newSession->_IOCount, (int64_t)newSession->_Socket, (int64_t)newSession, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL);
 	if (recvRtn == SOCKET_ERROR)
 	{
 		int errorCode = WSAGetLastError();
@@ -704,17 +628,6 @@ void MMOGameLib::CreateNewSession(ConnectInfo* conInfo)
 			newSession->_IOFail = true;
 
 			DWORD tempIOCount = InterlockedDecrement(&newSession->_IOCount);
-
-#if MEMORYLOG_USE ==1 
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::ACCEPT_AFTER_RECV, GetCurrentThreadId(), newSession->_Socket, newSession->_IOCount, (int64_t)newSession, newSession->_ID, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL, newSession->_SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::ACCEPT_AFTER_RECV, GetCurrentThreadId(), newSession->_Socket, newSession->_IOCount, (int64_t)newSession, newSession->_ID, (int64_t)&newSession->_RecvOL, (int64_t)&newSession->_SendOL, newSession->_SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-			newSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 
 			SpecialErrorCodeCheck(errorCode);
 			if (0 == tempIOCount)
@@ -732,9 +645,6 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 	//-----------------------------------------
 	if ((int)transferByte > curSession->_RecvRingQ.GetFreeSize())
 	{
-#if DISCONLOG_USE ==1
-		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"RecvRingQ 초과사이즈 들어옴 [Session ID:%llu] [transferByte:%d]", curSession->_ID, transferByte);
-#endif
 		curSession->Disconnect();
 
 		return false;
@@ -764,10 +674,9 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			//----------------------------------------
 			// 헤더의 코드가 다를 경우 유저를 끊는다.
 			//----------------------------------------
-#if DISCONLOG_USE ==1
 			_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"헤더 코드가 다름 [Session ID:%llu] [Code:%d]", curSession->_ID, header._Code);
 			_LOG->WriteLogHex(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"Recv RingQ Hex", (BYTE*)curSession->_RecvRingQ.GetFrontBufferPtr(), curSession->_RecvRingQ.GetDirectDequeueSize());
-#endif
+
 			curSession->Disconnect();
 			return false;
 		}
@@ -776,9 +685,8 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			//----------------------------------------
 			// 헤더안에 표기된 Len이 0보다 같거나 작으면 역시 끊는다.
 			//----------------------------------------
-#if DISCONLOG_USE ==1
+
 			_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"헤더의 Len :0  [Session ID:%llu] [Code:%d]", curSession->_ID, header._Len);
-#endif
 			curSession->Disconnect();
 
 			return false;
@@ -791,9 +699,6 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			//-------------------------------------
 			if (header._Len > curSession->_RecvRingQ.GetFreeSize())
 			{
-#if DISCONLOG_USE ==1
-				_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"RingQ사이즈보다 큰 패킷이들어옴 [Session ID:%llu] [Header Len:%d] [My RingQ FreeSize:%d]", curSession->_ID, header._Len, curSession->_RecvRingQ.GetFreeSize());
-#endif
 				curSession->Disconnect();
 				return false;
 			}
@@ -801,9 +706,7 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 		}
 		curSession->_RecvRingQ.MoveFront(sizeof(header));
 
-
 		packet = NetPacket::Alloc();
-	/*	InterlockedIncrement(&g_AllocMemoryCount);*/
 
 		int deQRtn = curSession->_RecvRingQ.Dequeue((*packet).GetPayloadPtr(), header._Len);
 
@@ -824,10 +727,6 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 			//-----------------------------------
 			// Decoding 실패시, 유저를 끊는다.
 			//-----------------------------------
-#if DISCONLOG_USE ==1
-			_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"Decoding 실패 [Session ID:%llu] ", curSession->_ID);
-#endif
-		/*	InterlockedIncrement(&g_FreeMemoryCount);*/
 			packet->Free(packet);
 			curSession->Disconnect();
 			return false;
@@ -849,30 +748,12 @@ bool MMOGameLib::RecvPacket(MMOSession* curSession, DWORD transferByte)
 }
 bool MMOGameLib::RecvPost(MMOSession* curSession)
 {
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-	IOCP_Log log;
-#endif
-
 	//SendFlag_Log sendFlagLog;
 	//-------------------------------------------------------------
 	// Recv 걸기
 	//-------------------------------------------------------------
 	if (curSession->_RecvRingQ.GetFreeSize() <= 0)
 	{
-#if DISCONLOG_USE ==1
-		_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"RecvPost시, 링버퍼 여유사이즈없음 [Session ID:%llu] ", curSession->_ID);
-#endif
-#if MEMORYLOG_USE ==1 
-		log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECVPOST_FREESIZE_NON, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-		g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-		log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECVPOST_FREESIZE_NON, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-		g_MemoryLog_IOCP.MemoryLogging(log);
-		curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
 		curSession->Disconnect();
 		return false;
 	}
@@ -880,9 +761,6 @@ bool MMOGameLib::RecvPost(MMOSession* curSession)
 	{
 		MMOGameLib::Crash();
 	}
-
-	//sendFlagLog.DataSettiong(InterlockedIncrement64(&m_SendFlagNo), eSendFlag::RECVPOST, GetCurrentThreadId(), curSession->_Socket, (int64_t)curSession, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag, curSession->_SendQ.GetQCount());
-	//curSession->_MemoryLog_SendFlag.MemoryLogging(sendFlagLog);
 
 	DirectData directData;
 	int bufCount = 0;
@@ -914,23 +792,6 @@ bool MMOGameLib::RecvPost(MMOSession* curSession)
 	}
 
 	InterlockedIncrement(&curSession->_IOCount);
-#if IOCOUNT_CHECK ==1
-	InterlockedIncrement(&g_IOPostCount);
-	InterlockedIncrement(&g_IOIncDecCount);
-#endif
-
-
-#if MEMORYLOG_USE ==1 
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECVPOST_BEFORE_RECV, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECVPOST_BEFORE_RECV, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-	curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
 
 	ZeroMemory(&curSession->_RecvOL, sizeof(curSession->_RecvOL));
 
@@ -958,7 +819,6 @@ bool MMOGameLib::RecvPost(MMOSession* curSession)
 	{
 		MMOGameLib::Crash();
 	}
-	//g_MemoryLog_IOCount.MemoryLogging(RECVPOST_RECVRTN, GetCurrentThreadId(), curSession->_ID, curSession->_IOCount, (int64_t)curSession->_Socket, (int64_t)curSession, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL);
 
 	if (recvRtn == SOCKET_ERROR)
 	{
@@ -968,16 +828,6 @@ bool MMOGameLib::RecvPost(MMOSession* curSession)
 			curSession->_IOFail = true;
 			int tempIOCount = InterlockedDecrement(&curSession->_IOCount);
 
-#if MEMORYLOG_USE ==1 
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECVPOST_AFTER_RECV, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECVPOST_AFTER_RECV, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-			curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 			SpecialErrorCodeCheck(errorCode);
 			if (0 == tempIOCount)
 			{
@@ -1072,9 +922,7 @@ void MMOGameLib::SetSessionArray(MMOSession* sessionArray,DWORD maxUserCount)
 {
 	for (DWORD i = 0; i < maxUserCount; ++i)
 	{
-
 		m_SessionArray[i] = sessionArray+i;
-
 	}
 }
 unsigned int __stdcall MMOGameLib::AcceptThread(LPVOID param)
@@ -1136,9 +984,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 			curSession->_ErrorCode = errorCode;
 		}
 
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-		IOCP_Log log;
-#endif
 		//----------------------------------------------
 		// GQCS에서 나온 오버랩이 nullptr이면, 타임아웃, IOCP자체가 에러 , 아니면 postQ로 NULL을 넣었을때이다
 		//----------------------------------------------
@@ -1157,16 +1002,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 				mmoServer->MMOGameLib::Crash();
 			}
 			curSession->_GQCSRtn = gqcsRtn;
-#if MEMORYLOG_USE ==1 
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::GQCS, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::GQCS, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-			curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 
 			uint64_t sessionID = curSession->_ID;
 
@@ -1180,16 +1015,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 						mmoServer->MMOGameLib::Crash();
 					}
 					curSession->_TransferZero = 5;
-#if MEMORYLOG_USE ==1 
-					log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::TRANSFER_ZERO_RECV, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, sessionID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-					g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-					log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::TRANSFER_ZERO_RECV, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-					g_MemoryLog_IOCP.MemoryLogging(log);
-					curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 				}
 				else if (curOverlap == &curSession->_SendOL)
 				{
@@ -1198,16 +1023,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 						mmoServer->MMOGameLib::Crash();
 					}
 					curSession->_TransferZero = 6;
-#if MEMORYLOG_USE ==1 
-					log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::TRANSFER_ZERO_SEND, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, sessionID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-					g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-					log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::TRANSFER_ZERO_SEND, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-					g_MemoryLog_IOCP.MemoryLogging(log);
-					curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 				}
 				//----------------------------------------------
 				// 작업 실패시 close socket을 해준다
@@ -1217,18 +1032,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 
 			if (curOverlap == &curSession->_RecvOL)
 			{
-
-#if MEMORYLOG_USE ==1 
-				log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECV_COMPLETE, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, sessionID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-				g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-				log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::RECV_COMPLETE, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-				g_MemoryLog_IOCP.MemoryLogging(log);
-				curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
 				if (curSession->_IOCount <= 0)
 				{
 					mmoServer->MMOGameLib::Crash();
@@ -1237,22 +1040,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 			}
 			else if (curOverlap == &curSession->_SendOL)
 			{
-				/*		if (curSession->_SendFlag != 1)
-						{
-							MMOGameLib::Crash();
-						}*/
-
-
-#if MEMORYLOG_USE ==1 
-				log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SEND_COMPLETE, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, sessionID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-				g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-				log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SEND_COMPLETE, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-				g_MemoryLog_IOCP.MemoryLogging(log);
-				curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 				if (curSession->_IOCount <= 0)
 				{
 					mmoServer->MMOGameLib::Crash();
@@ -1272,8 +1059,6 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 				InterlockedExchange(&curSession->_SendFlag, 0);
 
 				InterlockedAdd(&mmoServer->m_NetworkTraffic, transferByte + 40);
-
-
 			}
 			else
 			{
@@ -1295,23 +1080,8 @@ unsigned int __stdcall MMOGameLib::WorkerThread(LPVOID param)
 		//-------------------------------------------------------------
 		// 완료통지로 인한 IO 차감
 		//-------------------------------------------------------------
-
-#if MEMORYLOG_USE ==1 
-		log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::LAST_COMPLETE, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-		g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-		log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::LAST_COMPLETE, GetCurrentThreadId(), curSession->_Socket, curSession->_IOCount, (int64_t)curSession, curSession->_ID, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag);
-		g_MemoryLog_IOCP.MemoryLogging(log);
-		curSession->_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
 		int tempIOCount = InterlockedDecrement(&curSession->_IOCount);
-#if IOCOUNT_CHECK ==1
-		InterlockedIncrement(&g_IOCompleteCount);
-		InterlockedDecrement(&g_IOIncDecCount);
-#endif
+
 		if (0 == tempIOCount)
 		{
 			curSession->_bReleaseReady = true;
@@ -1633,24 +1403,8 @@ void MMOGameLib::Crash()
 
 bool MMOSession::Disconnect()
 {
-#if MEMORYLOG_USE ==1 
-	IOCP_Log log;
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::DISCONNECT_CLIENT, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-	IOCP_Log log;
-	log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::DISCONNECT_CLIENT, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-	g_MemoryLog_IOCP.MemoryLogging(log);
-	_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-	//InterlockedIncrement(&g_DisconnectCount);
-
 	_bIOCancel = true;
 	IO_Cancel();
-
 	return true;
 }
 
@@ -1665,9 +1419,6 @@ void MMOSession::IO_Cancel()
 bool MMOSession::SendPost()
 {
 	int loopCount = 0;
-
-	//sendFlagLog.DataSettiong(InterlockedIncrement64(&m_SendFlagNo), eSendFlag::SENDPOST_ENTRY, GetCurrentThreadId(), curSession->_Socket, (int64_t)curSession, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag, curSession->_SendQ.GetQCount());
-	//curSession->_MemoryLog_SendFlag.MemoryLogging(sendFlagLog);
 
 	do
 	{
@@ -1700,20 +1451,6 @@ bool MMOSession::SendPost()
 				CRASH();
 			}
 
-#if MEMORYLOG_USE ==1 ||   MEMORYLOG_USE ==2
-			IOCP_Log log;
-#endif
-
-#if MEMORYLOG_USE ==1 
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPOST_BEFORE_SEND, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPOST_BEFORE_SEND, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-			_MemoryLog_IOCP.MemoryLogging(log);
-#endif
 			////-----------------------------------------------------------------------------------------------------------------------
 			//// SendQ에 있는 LanPackt* 포인터들을 뽑아서 WSABUF를 세팅해준다
 			////-----------------------------------------------------------------------------------------------------------------------
@@ -1738,16 +1475,6 @@ bool MMOSession::SendPost()
 				{
 					MMOGameLib::Crash();
 				}
-				////---------------------------------------------------------------
-				//// For Debug
-				////---------------------------------------------------------------
-				//NetHeader tempHeader;
-				//memcpy(&tempHeader, deQPacket->GetBufferPtr(), sizeof(NetHeader));
-
-				//if (tempHeader._Code != dfPACKET_CODE)
-				//{
-				//	MMOGameLib::Crash();
-				//}
 
 				if (deQPacket->GetPayloadSize() <= 0)
 				{
@@ -1795,21 +1522,6 @@ bool MMOSession::SendPost()
 
 			int sendRtn = WSASend(_Socket, wsaSendBuf, _DeQArraySize, NULL, 0, &_SendOL, NULL);
 
-#if MEMORYLOG_USE ==1 
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPOST_SENDRTN, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-#if MEMORYLOG_USE  ==2
-			log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPOST_SENDRTN, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-			g_MemoryLog_IOCP.MemoryLogging(log);
-			_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
-			//sendFlagLog.DataSettiong(InterlockedIncrement64(&m_SendFlagNo), eSendFlag::AFTER_SEND, GetCurrentThreadId(), curSession->_Socket, (int64_t)curSession, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag, curSession->_SendQ.GetQCount());
-			//curSession->_MemoryLog_SendFlag.MemoryLogging(sendFlagLog);
-
-
 			if (_IOCount <= 0)
 			{
 				MMOGameLib::Crash();
@@ -1829,26 +1541,10 @@ bool MMOSession::SendPost()
 					//---------------------------------------------------------
 					int tempIOCount = InterlockedDecrement(&_IOCount);
 
-#if MEMORYLOG_USE ==1 
-					log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPOST_AFTER_SEND, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-					g_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-#if MEMORYLOG_USE  ==2
-					log.DataSettiong(InterlockedIncrement64(&g_IOCPMemoryNo), eIOCP_LINE::SENDPOST_AFTER_SEND, GetCurrentThreadId(), _Socket, _IOCount, (int64_t)this, _ID, (int64_t)&_RecvOL, (int64_t)&_SendOL, _SendFlag);
-					g_MemoryLog_IOCP.MemoryLogging(log);
-					_MemoryLog_IOCP.MemoryLogging(log);
-#endif
-
 					if (0 == tempIOCount)
 					{
 						_bReleaseReady = true;
 					}
-
-				}
-				else
-				{
-					/*	sendFlagLog.DataSettiong(InterlockedIncrement64(&m_SendFlagNo), eSendFlag::IO_PENDING, GetCurrentThreadId(), curSession->_Socket, (int64_t)curSession, (int64_t)&curSession->_RecvOL, (int64_t)&curSession->_SendOL, curSession->_SendFlag, curSession->_SendQ.GetQCount());
-						curSession->_MemoryLog_SendFlag.MemoryLogging(sendFlagLog);*/
 				}
 			}
 

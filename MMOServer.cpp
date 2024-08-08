@@ -326,21 +326,6 @@ bool MyMMOServer::MMOServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, 
 
     ServerStart(ip,port, runningThread,option,workerThreadCount,maxUserCount, timeOutOption, (MMOSession**)clientPointerArray);
 
-    //-------------------------------------------------------------
-    // 	   Monitor 서버와 연결할 클라이언트 생성 및 Connect
-    //-------------------------------------------------------------
-    m_MonitorClient = new MonitorLanClient();
-    SocketOption clientSockOption;
-
-    clientSockOption._KeepAliveOption.onoff = 0;
-    clientSockOption._Linger = true;
-    clientSockOption._TCPNoDelay = false;
-    clientSockOption._SendBufferZero = false;
-
-    if (!m_MonitorClient->Connect(L"127.0.0.1", 7777, 1, 1, clientSockOption))
-    {
-        CRASH();
-    }
 
     m_bServerOn = true;
 
