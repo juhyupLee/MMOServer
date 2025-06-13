@@ -12,6 +12,7 @@
 #include <fstream>
 #include <ostream>
 #include <conio.h>
+#include <memory>
 
 //스레드관련
 
@@ -56,6 +57,7 @@
 #include <Dbghelp.h>
 
 //개인라이브러리
+#include "../../flatbuffers/ProtocoID.h"
 #include "../Memory/Global.h"
 
 #include "../Dump/MemoryDump.h"
@@ -68,6 +70,7 @@
 #include "../Memory/SerializeBuffer.h"
 #include "../Network/TemplateQ.h"
 #include "../Network/NetworkSession.h"
+
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 

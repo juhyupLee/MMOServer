@@ -4,6 +4,7 @@
 
 void CRASH();
 
+
 class MyLock
 {
 public:
@@ -22,4 +23,12 @@ public:
 private:
 	SRWLOCK m_Lock;
 };
+template<typename T> concept PacketConcept = std::is_base_of_v<flatbuffers::NativeTable, T>;
 
+template<PacketConcept T>
+std::shared_ptr<MessageHolderT> CreatePacketHolder(const T& message)
+{
+	auto messageHolder = std::make_shared<MessageHolderT>();
+	messageHolder->message.Set(const_cast<T&>(message));
+	return messageHolder;
+}

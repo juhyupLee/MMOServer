@@ -1,0 +1,5 @@
+enum EDefineID: int {
+	E_UNKNOWN = 0,
+	E_UNKNOWN_DEFINE = 1,
+	E_ITEM_MAX_COUNT = 1000,
+}

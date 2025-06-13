@@ -1,0 +1,14 @@
+
+
+table CLGS_AUTHEN_REQ {
+	seq: int;
+	accounttoken: string;
+	reconnect: bool;
+	connectSessionKey: string;
+}
+
+table CLGS_AUTHEN_ACK {
+	seq: int;
+	result: int;
+}
+

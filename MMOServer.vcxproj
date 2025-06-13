@@ -125,6 +125,7 @@
       <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PCH_MMOServer.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>.\PCH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

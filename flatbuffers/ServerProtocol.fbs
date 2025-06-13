@@ -1,0 +1,8 @@
+
+table DBGS_Authentication_REQ {
+	seq: int;
+	sessionID: int;
+	accountToken: string;
+	reconnect: bool;
+	connectSessionKey: string;
+}
