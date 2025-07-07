@@ -45,9 +45,9 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -122,9 +122,15 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>.\PCH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -138,13 +144,15 @@
     <ClCompile Include="Memory\FreeList.cpp" />
     <ClCompile Include="Memory\Global.cpp" />
     <ClCompile Include="Memory\LockFreeQ.cpp" />
+    <ClCompile Include="Memory\MemoryPool.cpp" />
     <ClCompile Include="Memory\RingBuffer.cpp" />
-    <ClCompile Include="Memory\SerializeBuffer.cpp" />
     <ClCompile Include="NetworkSession.cpp" />
     <ClCompile Include="PCH\PCH_ServerCore.cpp" />
     <ClCompile Include="Test\Test_LockFreeQ.cpp" />
     <ClCompile Include="Test\Test_LockFreeStack.cpp" />
+    <ClCompile Include="Test\Test_MemoryPool.cpp" />
     <ClCompile Include="Test\Test_MemoryPoolTLS.cpp" />
+    <ClCompile Include="Utill\Log.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\flatbuffers\MessageID.h" />
@@ -153,15 +161,18 @@
     <ClInclude Include="Memory\Global.h" />
     <ClInclude Include="Memory\LockFreeQ.h" />
     <ClInclude Include="Memory\LockFreeStack.h" />
+    <ClInclude Include="Memory\MemoryPool.h" />
     <ClInclude Include="Memory\MemoryPool_TLS.h" />
     <ClInclude Include="Memory\Protocol.h" />
     <ClInclude Include="Memory\RingBuffer.h" />
-    <ClInclude Include="Memory\SerializeBuffer.h" />
-    <ClInclude Include="NetworkSession.h" />
+    <ClInclude Include="Network\NetworkSession.h" />
     <ClInclude Include="PCH\PCH_ServerCore.h" />
     <ClInclude Include="Test\Test_LockFreeQ.h" />
     <ClInclude Include="Test\Test_LockFreeStack.h" />
+    <ClInclude Include="Test\Test_MemoryPool.h" />
     <ClInclude Include="Test\Test_MemoryPoolTLS.h" />
+    <ClInclude Include="TimeUtill.h" />
+    <ClInclude Include="Utill\Log.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\flatbuffers\Enum.fbs" />

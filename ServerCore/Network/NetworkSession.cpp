@@ -174,38 +174,38 @@ bool NetworkSession::SendPost()
 
 }
 
-bool NetworkSession::SendPacket(NetPacket* packet)
-{
-	(*packet).HeaderSettingAndEncoding();
-
-	if (packet->GetPayloadSize() <= 0)
-	{
-		CRASH();
-	}
-	if (!_SendQ.EnQ(packet))
-	{
-		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SendQ ÃÑ°¹¼ö ÃÊ°ú(LockFreeQ Qcount ÃÊ°úÇÔ)");
-		CRASH();
-	}
-
-	return true;
-}
-
-void NetworkSession::SendUnicast(NetPacket* packet)
-{
-	packet->IncrementRefCount();
-
-	if (!SendPacket(packet))
-	{
-		if (packet->DecrementRefCount() == 0)
-		{
-			packet->Free(packet);
-		}
-		return;
-	}
-
-	if (packet->DecrementRefCount() == 0)
-	{
-		packet->Free(packet);
-	}
-}
+//bool NetworkSession::SendPacket(NetPacket* packet)
+//{
+//	(*packet).HeaderSettingAndEncoding();
+//
+//	if (packet->GetPayloadSize() <= 0)
+//	{
+//		CRASH();
+//	}
+//	if (!_SendQ.EnQ(packet))
+//	{
+//		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SendQ ÃÑ°¹¼ö ÃÊ°ú(LockFreeQ Qcount ÃÊ°úÇÔ)");
+//		CRASH();
+//	}
+//
+//	return true;
+//}
+//
+//void NetworkSession::SendUnicast(NetPacket* packet)
+//{
+//	packet->IncrementRefCount();
+//
+//	if (!SendPacket(packet))
+//	{
+//		if (packet->DecrementRefCount() == 0)
+//		{
+//			packet->Free(packet);
+//		}
+//		return;
+//	}
+//
+//	if (packet->DecrementRefCount() == 0)
+//	{
+//		packet->Free(packet);
+//	}
+//}

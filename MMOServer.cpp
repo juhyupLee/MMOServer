@@ -1,21 +1,19 @@
 #include "MMOServer.h"
 
-#include "Log.h"
+//#include "Log.h"
 
-#include "CommonProtocol2.h"
-#include "PacketProcess.h"
-
-#include "CPUUsage.h"
-#include "MonitorPDH.h"
-#include "MonitorLanClient.h"
+//#include "CommonProtocol2.h"
+//#include "PacketProcess.h"
+//#include "MonitorPDH.h"
+//#include "MonitorLanClient.h"
 
 
 //CPUUsage g_CPUUsage;
-MonitorPDH g_MonitorPDH;
+//MonitorPDH g_MonitorPDH;
 
 MyMMOServer::MyMMOServer()
-    :
-    m_ClientPool(500,true)
+    //:
+    //m_ClientPool(500,true)
 {
     wcscpy_s(m_BlackIPList[0], L"185.216.140.27"); // 네덜란드 블랙 IP
 
@@ -284,25 +282,9 @@ bool MyMMOServer::OnConnectionRequest(WCHAR* ip, uint16_t port)
             return true;
         }
     }
-    _LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_SYSTEM, L"외부 IP:%s", ip);
+    //_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_SYSTEM, L"외부 IP:%s", ip);
     return false;
 }
-
-
-Client* MyMMOServer::FindClient(uint64_t sessionID)
-{
-    Client* findClient = nullptr;
-
-    auto iter = m_ClientMap.find(sessionID);
-    if (iter == m_ClientMap.end())
-    {
-        return nullptr;
-    }
-    findClient = (*iter).second;
-
-    return findClient;
-}
-
 
 
 
@@ -313,18 +295,18 @@ bool MyMMOServer::MMOServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, 
     // 세팅하도록 넘긴다.
     // 해제의 책임도 저 라이브러리한테있다.
     //-------------------------------------------------------------------
-    Client* clientArr = new Client[maxUserCount];
-    Client** clientPointerArray = new Client * [maxUserCount];
+    //Client* clientArr = new Client[maxUserCount];
+    //Client** clientPointerArray = new Client * [maxUserCount];
 
-    for (size_t i = 0; i < maxUserCount; ++i)
-    {
-        clientPointerArray[i] = &clientArr[i];
-    }
+    //for (size_t i = 0; i < maxUserCount; ++i)
+    //{
+    //    clientPointerArray[i] = &clientArr[i];
+    //}
     //-------------------------------------------------------------------
     // 워커스레드, Accept Thread  , Monitoring 스레드 가동
     //-------------------------------------------------------------------
 
-    ServerStart(ip,port, runningThread,option,workerThreadCount,maxUserCount, timeOutOption, (NetworkSession**)clientPointerArray);
+    //ServerStart(ip,port, runningThread,option,workerThreadCount,maxUserCount, timeOutOption, (NetworkSession**)clientPointerArray);
 
 
     m_bServerOn = true;
@@ -337,164 +319,8 @@ bool MyMMOServer::MMOServerStop()
     //-------------------------------------------------------------------
     // Update Thread 중지
     //-------------------------------------------------------------------
-    ServerStop();
+   // ServerStop();
     m_bServerOn = false;
 
     return true;
 }
-
-
-
-
-
-void Client::OnClientJoin_Auth(WCHAR* ip, uint16_t port)
-{
-}
-
-void Client::OnClientLeave_Auth()
-{
-}
-
-void Client::OnAuthPacket(NetPacket* packet)
-{
-    PacketProc(packet);
-}
-
-void Client::OnClientJoin_Game(WCHAR* ip, uint16_t port)
-{
-}
-
-void Client::OnClientLeave_Game()
-{
-}
-
-void Client::OnGamePacket(NetPacket* packet)
-{
-    PacketProc(packet);
-}
-
-void Client::OnError(int errorcode, WCHAR* errorMessage)
-{
-}
-
-void Client::OnTimeOut()
-{
-}
-
-void Client::PacketProc(NetPacket* packet)
-{
-//    WORD type;
-//    if ((*packet).GetPayloadSize() < sizeof(WORD))
-//    {
-//        CRASH();
-//    }
-//
-//    (*packet) >> type;
-//
-//
-//    switch (type)
-//    {
-//    case en_PACKET_CS_GAME_REQ_LOGIN:
-//        PacketProcess_en_PACKET_CS_GAME_REQ_LOGIN(packet);
-//        break;
-//    case en_PACKET_CS_GAME_REQ_ECHO:
-//        PacketProcess_en_PACKET_CS_GAME_REQ_ECHO(packet);
-//        break;
-//    case en_PACKET_CS_GAME_REQ_HEARTBEAT:
-//        CRASH();
-//        break;
-//    default:
-//#if DISCONLOG_USE ==1
-//        _LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"메시지마샬링: 존재하지않는 메시지타입 [Session ID:%llu] [Type:%d]", curSession->_ID, type);
-//#endif
-//        //InterlockedIncrement(&g_FreeMemoryCount);
-//        packet->Free(packet);
-//        Disconnect();
-//        break;
-//    }
-}
-
-//void Client::PacketProcess_en_PACKET_CS_GAME_REQ_LOGIN(NetPacket* netPacket)
-//{
-//
-//    if (_SessionStatus != eSessionStatus::AUTH)
-//    {
-//        CRASH();
-//    }
-//    if (netPacket->GetPayloadSize() != sizeof(int64_t) + (sizeof(char)*64)  +sizeof(int32_t))
-//    {
-//#if DISCONLOG_USE ==1
-//        _LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SectorMove: 직렬화패킷 규격에 안맞는 메시지 [Session ID:%llu] [PayloadSize:%d]", sessionID, netPacket->GetPayloadSize());
-//#endif
-//        //InterlockedIncrement(&g_FreeMemoryCount);
-//        netPacket->Free(netPacket);
-//        Disconnect();
-//        return;
-//    }
-//
-//    (*netPacket) >> _AccountNo;
-//
-//    (*netPacket).GetData(_SessionKey, sizeof(char) * 64);
-//
-//    (*netPacket) >> _Version;
-//
-//    if (_Version != 1)
-//    {
-//        CRASH();
-//    }
-//
-//    //--------------------------------------------------------
-//    // 확인용 메시지를 Client에 전송.
-//    //--------------------------------------------------------
-//    netPacket->Clear();
-//    
-//   // MakePacket_en_PACKET_CS_GAME_RES_LOGIN(netPacket, en_PACKET_CS_GAME_RES_LOGIN, 1, _AccountNo);
-//    SendUnicast(netPacket);
-//
-//}
-
-//void Client::PacketProcess_en_PACKET_CS_GAME_REQ_ECHO(NetPacket* netPacket)
-//{
-//       //------------------------------------------------------------
-//       // 테스트용 에코 요청
-//       //
-//       //	{
-//       //		WORD		Type
-//       //
-//       //		INT64		AccountoNo
-//       //		LONGLONG	SendTick
-//       //	}
-//       //
-//       //------------------------------------------------------------	
-//
-//    if (_SessionStatus != eSessionStatus::GAME)
-//    {
-//        CRASH();
-//    }
-//    if (netPacket->GetPayloadSize() != sizeof(int64_t) + sizeof(int64_t))
-//    {
-//#if DISCONLOG_USE ==1
-//        _LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SectorMove: 직렬화패킷 규격에 안맞는 메시지 [Session ID:%llu] [PayloadSize:%d]", sessionID, netPacket->GetPayloadSize());
-//#endif
-//        //InterlockedIncrement(&g_FreeMemoryCount);
-//        netPacket->Free(netPacket);
-//        Disconnect();
-//        return;
-//    }
-//    int64_t tempAccountNo = -1;
-//    int64_t tempSendTick;
-//
-//    (*netPacket) >> tempAccountNo >> tempSendTick;
-//
-//    if (tempAccountNo != _AccountNo)
-//    {
-//        CRASH();
-//    }
-//
-//    //--------------------------------------------------------
-//    // 확인용 메시지를 Client에 전송.
-//    //--------------------------------------------------------
-//    netPacket->Clear();
-//    //MakePacket_en_PACKET_CS_GAME_RES_ECHO(netPacket, en_PACKET_CS_GAME_RES_ECHO, _AccountNo, tempSendTick);
-//    SendUnicast(netPacket);
-//}

@@ -17,62 +17,7 @@
 
 class LanClient
 {
-	struct Session
-	{
-		enum
-		{
-			//------------------------------------
-			// 한 세션이 한 섹터를 기준으로 몇개의 메시지를 받는지 추정해서 
-			// 세팅해야된다.
-			//------------------------------------
-			DEQ_PACKET_ARRAY_SIZE = 100
-
-		};
-		Session()
-			:_SendQ(50000) 
-		{
-			_Socket = 0;
-			_IOCount = 1;
-			ZeroMemory(&_RecvOL, sizeof(WSAOVERLAPPED));
-			ZeroMemory(&_SendOL, sizeof(WSAOVERLAPPED));
-			_SendByte = 0;
-			_DeQArraySize = 0;
-			_LastRecvTime = 0;
-			_TransferZero = 0;
-
-			_IOFail = false;
-			_bIOCancel = false;
-
-		}
-		SOCKET _Socket;
-		RingQ _RecvRingQ;
-		LockFreeQ<LanPacket*> _SendQ;
-		LanPacket* _DeQPacketArray[DEQ_PACKET_ARRAY_SIZE];
-
-		int32_t _DeQArraySize;
-		WSAOVERLAPPED _RecvOL;
-		WSAOVERLAPPED _SendOL;
-		DWORD _IOCount;
-		DWORD _CloseFlag;
-		LONG _SendFlag;
-		bool _bIOCancel;
-
-		DWORD _SendByte;
-		DWORD _LastRecvTime;
-
-		//------------------------------------------
-		// For Debug
-		//------------------------------------------
-		int _ErrorCode;
-		BOOL _GQCSRtn;
-		bool _IOFail;
-		int _TransferZero;  //5 Recv 0  6 Send 0
-
-
-#if MEMORYLOG_USE == 2
-		MemoryLogging_New<IOCP_Log, 1500> _MemoryLog_IOCP;
-#endif
-	};
+	
 public:
 	LanClient(LanClient* contents);
 	virtual ~LanClient();
@@ -178,6 +123,6 @@ protected:
 
 	HANDLE m_MonitorEvent;
 
-	MyLock m_PrintLock;
+	//MyLock m_PrintLock;
 
 };

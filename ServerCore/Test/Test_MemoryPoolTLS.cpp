@@ -53,19 +53,11 @@ struct TestData_MemoryPool
 
 };
 
-
-CrashDump memoryDump;
-
 HANDLE g_Thread_MemoryPoolTLS[THREAD_NUM];
-bool g_Exit = false;
+bool g_ExitMemoryPoolTls = false;
 
-MemoryPool_TLS<TestData_MemoryPool> g_MemoryPool(10000,true);
+MemoryPool_TLS<TestData_MemoryPool> g_MemoryPool(10000);
 
-void Crash()
-{
-	int* p = nullptr;
-	*p = 10;
-}
 unsigned int __stdcall TestThread_NewDeleteVSAllocFree(LPVOID param)
 {
 	int count = 0;
@@ -229,7 +221,7 @@ unsigned int __stdcall TestThread_Pool(LPVOID param)
 	int count = 0;
 	while (true)
 	{
-		if (g_Exit)
+		if (g_ExitMemoryPoolTls)
 		{
 			break;
 		}
@@ -246,11 +238,11 @@ unsigned int __stdcall TestThread_Pool(LPVOID param)
 		{
 			if (dataArray[i]->_Data != INIT_DATA + 1)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i]->_RefCount != INIT_COUNT + 1)
 			{
-				Crash();
+				CRASH();
 			}
 		}
 		//Sleep(0);
@@ -266,11 +258,11 @@ unsigned int __stdcall TestThread_Pool(LPVOID param)
 		{
 			if (dataArray[i]->_Data != INIT_DATA)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i]->_RefCount != INIT_COUNT)
 			{
-				Crash();
+				CRASH();
 			}
 		}
 
@@ -300,11 +292,11 @@ unsigned int __stdcall TestThread_Pool(LPVOID param)
 
 			if (dataArray[i]->_Data != INIT_DATA)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i]->_RefCount != INIT_COUNT)
 			{
-				Crash();
+				CRASH();
 			}
 		}
 		//g_Profiler.ProfileEnd(L"PoolAlloc");
@@ -314,15 +306,15 @@ unsigned int __stdcall TestThread_Pool(LPVOID param)
 		{
 			if (dataArray[i] == nullptr)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i]->_Data != INIT_DATA)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i]->_RefCount != INIT_COUNT)
 			{
-				Crash();
+				CRASH();
 			}
 		}
 		//g_Profiler.ProfileEnd(L"Pool");
@@ -353,15 +345,15 @@ void StartMemoryPoolTLS()
 
 			if (dataArray[i][j] == nullptr)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i][j]->_Data != INIT_DATA)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i][j]->_RefCount != INIT_COUNT)
 			{
-				Crash();
+				CRASH();
 			}
 		}
 
@@ -377,7 +369,7 @@ void StartMemoryPoolTLS()
 	{
 		if (GetAsyncKeyState(VK_F4))
 		{
-			g_Exit = true;
+			g_ExitMemoryPoolTls = true;
 			break;
 		}
 		wprintf(L"Chunk Count:%d\n", g_MemoryPool.GetChunkCount());
@@ -400,15 +392,15 @@ void StartMemoryPoolTLS()
 
 			if (dataArray[i][j] == nullptr)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i][j]->_Data != INIT_DATA)
 			{
-				Crash();
+				CRASH();
 			}
 			if (dataArray[i][j]->_RefCount != INIT_COUNT)
 			{
-				Crash();
+				CRASH();
 			}
 		}
 

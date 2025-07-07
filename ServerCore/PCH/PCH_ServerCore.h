@@ -4,7 +4,10 @@
 #define NOMINMAX
 //Windows 헤더 파일:
 
-
+#pragma comment ( lib, "mimalloc.lib" )
+//국가 관련
+#include <locale>
+#include <stdint.h>
 //표준
 #include <stdio.h>
 #include <iostream>
@@ -13,11 +16,11 @@
 #include <ostream>
 #include <conio.h>
 #include <memory>
-
+#include <cstdint>
+#include <clocale>
 //스레드관련
 
-//국가 관련
-#include <locale>
+
 
 //STL 컨테이너
 #include <map>
@@ -26,7 +29,7 @@
 #include <queue>
 #include <set>
 #include <unordered_set>
-
+#include <stack>
 //문자열관련
 
 #include <tchar.h>
@@ -56,20 +59,30 @@
 #include <psapi.h>
 #include <Dbghelp.h>
 
+#include "../../mimalloc.h"
+
 //개인라이브러리
+#include "../Utill/TimeUtill.h"
+#include "../Utill/Log.h"
+
 #include "../../flatbuffers/ProtocoID.h"
 #include "../Memory/Global.h"
 
 #include "../Dump/MemoryDump.h"
 
+#include "../Memory/FreeList.h"
+#include "../Memory/MemoryPool.h"
 #include "../Memory/LockFreeQ.h"
 #include "../Memory/LockFreeStack.h"
 #include "../Memory/RingBuffer.h"
 #include "../Memory/Protocol.h"
 #include "../Memory/MemoryPool_TLS.h"
-#include "../Memory/SerializeBuffer.h"
+
+#include "../Network/Option.h"
 #include "../Network/TemplateQ.h"
 #include "../Network/NetworkSession.h"
+
+#include "../Test/Test_MemoryPool.h"
 
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.

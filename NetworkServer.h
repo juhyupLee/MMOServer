@@ -14,8 +14,6 @@
 
 #define SERVER_NAME L"MMOGameServer"
 
-#include "Option.h"
-
 
 enum eSessionStatus
 {
@@ -32,7 +30,7 @@ enum eSessionStatus
 class NetworkSession;
 
 
-class MMOGameLib
+class NetworkServer
 {
 public:
 
@@ -44,12 +42,12 @@ public:
 	};
 
 public:
-	MMOGameLib();
-	~MMOGameLib();
+	NetworkServer();
+	~NetworkServer();
 
 public:
 	bool ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption, NetworkSession** sessionArray);
-	void ServerStop();
+	//void ServerStop();
 	bool NetworkInit(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption option);
 	bool EventInit();
 	bool ThreadInit(DWORD workerThreadCount);
@@ -77,7 +75,7 @@ public:
 	//-----------------------------------------------------------------------------
 	void SetTimeOut(NetworkSession* session);
 	void SetTimeOut(NetworkSession* session, DWORD timeOut);
-	void SendNDiscon(NetworkSession* session, NetPacket* packet);
+	//void SendNDiscon(NetworkSession* session, NetPacket* packet);
 
 public:
 
@@ -99,7 +97,7 @@ public:
 	LONG GetNetworkTraffic();
 	LONG GetNetworkRecvTraffic();
 	LONG GetSessionCount();
-	int32_t GetMemoryAllocCount();
+	//int32_t GetMemoryAllocCount();
 	LONG GetSendQMeomryCount();
 	LONG GetLockFreeStackMemoryCount();
 	DWORD GetAuthFPS();
@@ -114,12 +112,11 @@ private:
 	//-----------------------------------------------------------------------
 	// MMOG GameLib에서 관리하는 스레드 
 	//-----------------------------------------------------------------------
-	static unsigned int __stdcall AcceptThread(LPVOID param);
-	static unsigned int __stdcall WorkerThread(LPVOID param);
-	static unsigned int __stdcall MonitorThread(LPVOID param);
-	static unsigned int __stdcall GameLogicThread(LPVOID param);
-	static unsigned int __stdcall AuthThread(LPVOID param);
-	static unsigned int __stdcall SendThread(LPVOID param);
+	//static unsigned int __stdcall AcceptThread(LPVOID param);
+	//static unsigned int __stdcall WorkerThread(LPVOID param);
+	//static unsigned int __stdcall MonitorThread(LPVOID param);
+	//static unsigned int __stdcall AuthThread(LPVOID param);
+	//static unsigned int __stdcall SendThread(LPVOID param);
 
 
 public:
@@ -190,16 +187,11 @@ private:
 
 	int64_t m_AcceptCount;
 
-	MMOGameLib* m_Contents;
+	NetworkServer* m_Contents;
 
 	HANDLE m_MonitorEvent;
 	HANDLE m_GameThreadEvent;
 	HANDLE m_AuthTreadEvent;
 	HANDLE m_SendThreadEvent;
-
-	MyLock m_PrintLock;
-
-
-
 
 };

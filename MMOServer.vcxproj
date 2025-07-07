@@ -83,6 +83,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>./;../;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -123,7 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
-      <ForcedIncludeFiles>PCH_MMOServer.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>.\PCH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
@@ -140,7 +141,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <Optimization>Disabled</Optimization>
+      <Optimization>MaxSpeed</Optimization>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>.\PCH;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -151,30 +157,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CommonProtocol2.h" />
-    <ClInclude Include="CPUUsage.h" />
-    <ClInclude Include="LanClientLib.h" />
-    <ClInclude Include="Log.h" />
-    <ClInclude Include="MMOGameLib.h" />
+    <ClInclude Include="NetworkServer.h" />
     <ClInclude Include="MMOServer.h" />
-    <ClInclude Include="MonitorLanClient.h" />
     <ClInclude Include="MonitorPDH.h" />
-    <ClInclude Include="PacketProcess.h" />
     <ClInclude Include="PCH\PCH_MMOServer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CPUUsage.cpp" />
-    <ClCompile Include="LanClientLib.cpp" />
-    <ClCompile Include="Log.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="MMOGameLib.cpp" />
+    <ClCompile Include="NetworkServer.cpp" />
     <ClCompile Include="MMOServer.cpp" />
-    <ClCompile Include="MonitorLanClient.cpp" />
     <ClCompile Include="MonitorPDH.cpp" />
-    <ClCompile Include="PacketProcess.cpp" />
     <ClCompile Include="PCH\PCH_MMOServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="ServerCore\ServerCore.vcxproj">
+      <Project>{7fc149a4-e78b-4d2b-beb4-31f38342d0c5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

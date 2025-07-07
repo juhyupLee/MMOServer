@@ -12,7 +12,7 @@ public:
 
 	};
 	NetworkSession()
-		:_SendQ(50000)
+		
 	{
 		_Socket = INVALID_SOCKET;
 		_IOCount = 1;
@@ -51,9 +51,9 @@ public:
 	bool _USED;
 	RingQ _RecvRingQ;
 #if SMART_PACKET_USE ==0
-	LockFreeQ<NetPacket*> _SendQ;
-	TemplateQ<NetPacket*> _CompleteRecvPacketQ;
-	NetPacket* _DeQPacketArray[DEQ_PACKET_ARRAY_SIZE];
+	//LockFreeQ<NetPacket*> _SendQ;
+	//TemplateQ<NetPacket*> _CompleteRecvPacketQ;
+	//NetPacket* _DeQPacketArray[DEQ_PACKET_ARRAY_SIZE];
 #endif
 #if SMART_PACKET_USE ==1
 	LockFreeQ<SmartNetPacket> _SendQ;
@@ -95,12 +95,12 @@ public:
 	//------------------------------------------
 	virtual void OnClientJoin_Auth(WCHAR* ip, uint16_t port) = 0;
 	virtual void OnClientLeave_Auth() = 0;
-	virtual void OnAuthPacket(NetPacket* packet) = 0;
+	//virtual void OnAuthPacket(NetPacket* packet) = 0;
 
 
 	virtual void OnClientJoin_Game(WCHAR* ip, uint16_t port) = 0;
 	virtual void OnClientLeave_Game() = 0;
-	virtual void OnGamePacket(NetPacket* packet) = 0;
+	//virtual void OnGamePacket(NetPacket* packet) = 0;
 
 	virtual void OnError(int errorcode, WCHAR* errorMessage) = 0;
 	virtual void OnTimeOut() = 0;
@@ -113,9 +113,9 @@ public:
 	//---------------------------------------------------
 	// Send관련함수
 	//---------------------------------------------------
-	bool SendPost();
-	bool SendPacket(NetPacket* packet);
-	void SendUnicast(NetPacket* packet);
+	//bool SendPost();
+	//bool SendPacket(NetPacket* packet);
+	//void SendUnicast(NetPacket* packet);
 
 
 };
