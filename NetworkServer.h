@@ -126,7 +126,7 @@ private:
 	
 
 	TimeOutOption m_TimeOutOption;
-	MemoryPool_TLS<ConnectInfo> m_ConInfoPool;
+	ObjectPool<ConnectInfo> m_ConInfoPool;
 	TemplateQ<ConnectInfo*> m_SocketQ;
 
 	uint64_t m_SessionID;

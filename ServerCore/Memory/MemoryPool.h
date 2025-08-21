@@ -1,9 +1,7 @@
 ﻿#pragma once
-//#include "../../mimalloc.h"
-#include "../Test/Test_LockFreeQ.h"
 
 class FreeListBase;
-class MemoryPool_TLS_Base;
+class ObjectPoolBase;
 class MemoryPool
 {
 	enum
@@ -17,8 +15,7 @@ public:
 	void Free(void* ptr);
 
 private:
-//	std::vector<FreeListBase*> m_memory;
-	std::vector<MemoryPool_TLS_Base*> m_memory;
+	ObjectPoolBase* m_memory[PAGE_SIZE + 1];
 };
 
 extern MemoryPool gMemoryPool;
@@ -59,15 +56,13 @@ public:
 
 	T* allocate(size_t n)
 	{
-		return static_cast<T*>(gMemoryPool.Alloc((int)n * sizeof(T)));
-		//return static_cast<T*>(mi_malloc((int)n * sizeof(T)));
+		return static_cast<T*>(gMemoryPool.Alloc(static_cast<int>(n) * sizeof(T)));
 	}
 
 	void deallocate(T* ptr, size_t n)
 	{
 		n;
 		gMemoryPool.Free(ptr);
-		//mi_free(ptr);
 	}
 
 	template<class U>

@@ -9,4 +9,8 @@ public:
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
         std::cout << label << ": " << duration.count() / 1000.0 << " ms\n";
     }
+
+    void Start() {
+        start = Clock::now();
+    }
 };

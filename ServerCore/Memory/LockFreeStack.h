@@ -1,11 +1,7 @@
 #pragma once
-
-#define TEST_COUNT 1000000
-
 template <typename T>
 class LockFreeStack
 {
-
 public:
 	LockFreeStack();
 	~LockFreeStack();
@@ -36,8 +32,8 @@ public:
 
 	int32_t GetMemoryAllocCount();
 public:
-	TopCheck* m_TopCheck;
-	LONG m_Count;
+	alignas(64) TopCheck* m_TopCheck;
+	alignas(64) std::atomic<int32_t> m_Count{ 0 };
 
 	FreeList<Node> m_MemoryPool;
 
@@ -46,9 +42,9 @@ public:
 template<typename T>
 inline LockFreeStack<T>::LockFreeStack()
 {
-	m_Count=0;
+	m_Count =0;
 
-	m_TopCheck = (TopCheck*)_aligned_malloc(sizeof(TopCheck), 16);
+	m_TopCheck = static_cast<TopCheck*>(_aligned_malloc(sizeof(TopCheck), 16));
 	m_TopCheck->_TopPtr = nullptr;
 	m_TopCheck->_ID = -1;
 
@@ -57,7 +53,6 @@ inline LockFreeStack<T>::LockFreeStack()
 template<typename T>
 inline LockFreeStack<T>::~LockFreeStack()
 {
-
 	Node* curNode = m_TopCheck->_TopPtr;
 	Node* delNode = nullptr;
 
@@ -82,23 +77,42 @@ inline bool LockFreeStack<T>::Push(T data)
 	
 	tempTop._TopPtr = m_TopCheck->_TopPtr;
 	tempTop._ID = m_TopCheck->_ID;
+	int64_t spinCount = 0;
 	do
 	{
 		newNode->_Next = tempTop._TopPtr;
+		if(InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_TopCheck), static_cast<LONG64>(tempTop._ID) + 1, reinterpret_cast<LONG64>(newNode), reinterpret_cast<LONG64*>(&tempTop)))
+		{
+			break;
+		}
+		else
+		{
+			++spinCount;
+			YieldProcessor();
+		}
 
-	} while (!InterlockedCompareExchange128((LONG64*)m_TopCheck, (LONG64)tempTop._ID+1, (LONG64)newNode, (LONG64*)&tempTop));
+		if (spinCount >= YIELD_TRY_MAX)
+		{
+			std::this_thread::yield();
+		}
+		else if (spinCount >= MAX_SLEEP_ITERATION)
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(1));
+		}
 
-	InterlockedIncrement(&m_Count);
-	
+	} while (true);
+
+	spinCount = 0;
+	m_Count++;
 	return true;
 }
 
 template<typename T>
 inline bool LockFreeStack<T>::Pop(T* outData)
 {
-	if (InterlockedDecrement(&m_Count) < 0)
+	if (--m_Count < 0)
 	{
-		InterlockedIncrement(&m_Count);
+		++m_Count;
 		return false;
 	}
 
@@ -106,13 +120,33 @@ inline bool LockFreeStack<T>::Pop(T* outData)
 
 	tempTop._TopPtr = m_TopCheck->_TopPtr;
 	tempTop._ID = m_TopCheck->_ID;
+	int64_t spinCount = 0;
 	do
 	{
-	} while (!InterlockedCompareExchange128((LONG64*)m_TopCheck, (LONG64)tempTop._ID+1, (LONG64)tempTop._TopPtr->_Next, (LONG64*)&tempTop));
+		if (InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_TopCheck), static_cast<LONG64>(tempTop._ID) + 1, reinterpret_cast<LONG64>(tempTop._TopPtr->_Next), reinterpret_cast<LONG64*>(&tempTop)))
+		{
+			break;
+		}
+		else
+		{
+			++spinCount;
+			YieldProcessor();
+		}
+
+		if (spinCount >= YIELD_TRY_MAX)
+		{
+			std::this_thread::yield();
+		}
+		else if (spinCount >= MAX_SLEEP_ITERATION)
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(1));
+		}
+
+	} while (true);
+
+	spinCount = 0;
 	*outData = tempTop._TopPtr->_Data;
-
 	m_MemoryPool.Free(tempTop._TopPtr);
-
 	return true;
 }
 

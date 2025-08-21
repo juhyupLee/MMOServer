@@ -162,7 +162,7 @@
     <ClInclude Include="Memory\LockFreeQ.h" />
     <ClInclude Include="Memory\LockFreeStack.h" />
     <ClInclude Include="Memory\MemoryPool.h" />
-    <ClInclude Include="Memory\MemoryPool_TLS.h" />
+    <ClInclude Include="Memory\ObjectPool.h" />
     <ClInclude Include="Memory\Protocol.h" />
     <ClInclude Include="Memory\RingBuffer.h" />
     <ClInclude Include="Network\NetworkSession.h" />
@@ -173,6 +173,7 @@
     <ClInclude Include="Test\Test_MemoryPoolTLS.h" />
     <ClInclude Include="TimeUtill.h" />
     <ClInclude Include="Utill\Log.h" />
+    <ClInclude Include="Utill\PointerStack.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\flatbuffers\Enum.fbs" />

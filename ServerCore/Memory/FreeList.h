@@ -42,7 +42,6 @@ private:
 	{
 		MemHeader _FrontMark;
 		Node _Node;
-		MemHeader _RearMark;
 	};
 
 public:
@@ -158,20 +157,14 @@ inline T* FreeList<T>::AllocateMemoryFromHeap(size_t size)
 	//--------------------------------------------------------------------------
 	// 언더플로우 체크용 mark ID  + data(Payload)  + 오버플로우 체크용 mark ID  할당
 	//--------------------------------------------------------------------------
-
 	AllocMemory* allocMemory = static_cast<AllocMemory*>(_aligned_malloc(sizeof(AllocMemory), 16));
-	std::construct_at(&allocMemory->_Node);
 	allocMemory->_FrontMark._FreeFlag = false;
 	allocMemory->_FrontMark._Size = size;
 	allocMemory->_FrontMark._MarkID = m_FreeListUID;
 	allocMemory->_FrontMark._MarkValue = MARK_FRONT;
-	allocMemory->_RearMark._MarkID = m_FreeListUID;
-	allocMemory->_RearMark._MarkValue = MARK_REAR;
 
-
-	//InterlockedIncrement(&m_AllocCount);
-	//InterlockedIncrement(&m_UseCount);
-
+	//생성자 호출해줘야함 (제거금지)
+	std::construct_at(&allocMemory->_Node);
 	return reinterpret_cast<T*>(&allocMemory->_Node);
 }
 
@@ -190,14 +183,6 @@ bool FreeList<T>::Free(T* data)
 		return false;
 	}
 	//----------------------------------------------------
-	// 반납된 포인터가 오버플로우 한 경우
-	//----------------------------------------------------
-	if (allocMemory->_RearMark._MarkID != m_FreeListUID || allocMemory->_RearMark._MarkValue != MARK_REAR)
-	{
-		throw(FreeListException(L"Overflow Violation", __LINE__));
-		return false;
-	}
-	//----------------------------------------------------
 	// 두번 반납된 경우
 	//----------------------------------------------------
 	if (allocMemory->_FrontMark._FreeFlag.exchange(true) == true)
@@ -206,12 +191,10 @@ bool FreeList<T>::Free(T* data)
 		return false;
 	}
 
-	//std::destroy_at(&freeNode->_Data);
 	TopCheck tempTop;
-
 	tempTop._TopPtr = m_TopCheck->_TopPtr;
 	tempTop._ID = m_TopCheck->_ID;
-	int64_t tryCount = 0;
+	int64_t spinCount = 0;
 	do
 	{
 		//-------------------------------------------------------------------------------------------
@@ -226,24 +209,22 @@ bool FreeList<T>::Free(T* data)
 		}
 		else
 		{
-			++tryCount;
+			++spinCount;
 			YieldProcessor();
 		}
 
-		if (tryCount >= MAX_SLEEP_ITERATION)
+		if(spinCount >= YIELD_TRY_MAX)
 		{
-			Sleep(0);
+			std::this_thread::yield();
 		}
-		if(tryCount >= YIELD_TRY_MAX)
+		else if (spinCount >= MAX_SLEEP_ITERATION)
 		{
-			SwitchToThread();
+			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
+
 	} while (true);
 
-	/*if(tryCount>0)
-	{
-		std::cout << "Free TryCount:" << tryCount << std::endl;
-	}*/
+	spinCount = 0;
 	return true;
 }
 
@@ -254,7 +235,7 @@ T* FreeList<T>::Alloc(size_t size)
 
 	tempTop._TopPtr = m_TopCheck->_TopPtr;
 	tempTop._ID = m_TopCheck->_ID;
-	int64_t tryCount = 0;
+	int64_t spinCount = 0;
 	do
 	{
 		if (tempTop._TopPtr == nullptr)
@@ -268,24 +249,23 @@ T* FreeList<T>::Alloc(size_t size)
 		}
 		else
 		{
-			++tryCount;
+			++spinCount;
 			YieldProcessor();
 		}
 
-		if (tryCount >= MAX_SLEEP_ITERATION)
+		if (spinCount >= YIELD_TRY_MAX)
 		{
-			Sleep(0);
+			std::this_thread::yield();
 		}
-
-		if (tryCount >= YIELD_TRY_MAX)
+		else if(spinCount >= MAX_SLEEP_ITERATION)
 		{
-			SwitchToThread();
+			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
-
 		
 
 	} while (true);
 
+	spinCount = 0;
 	auto allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(tempTop._TopPtr) - sizeof(MemHeader));
 	allocMemory->_FrontMark._FreeFlag.exchange(false);
 

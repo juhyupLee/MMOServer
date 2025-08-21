@@ -1,5 +1,7 @@
 ﻿
 
+#include "ServerCore/Test/Test_LockFreeStack.h"
+
 class TempPlayer
 {
 public:
@@ -15,7 +17,7 @@ int main()
 	//auto temp = mi_malloc(1);
 	//auto temp = std::allocate_shared<TempPlayer>(MyAllocator<TempPlayer>());
 	StartMemoryPool();
-
+	//Start_LockFreeStack();
 	//MemoryPool mem;
 	//mem.Alloc(10);
 	//MemoryPool temp;

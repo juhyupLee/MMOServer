@@ -3,7 +3,7 @@
 #define INIT_DATA 0x0000000055555555
 #define INIT_COUNT  0
 #define DATA_COUNT 1000
-#define THREAD_NUM 8
+#define THREAD_NUM 16
 
 struct TestData_LockFreeQ
 {
@@ -143,7 +143,7 @@ void Start_LockFreeStack()
 	while (true)
 	{
 
-		wprintf(L"Stack Count %d\n", g_Stack.m_Count);
+		wprintf(L"Stack Count %d\n", g_Stack.m_Count.load());
 		//wprintf(L"Push Count %d\n", g_Stack.m_PushCount);
 		//wprintf(L"Pop Count %d\n", g_Stack.m_PopCount);
 		Sleep(500);
