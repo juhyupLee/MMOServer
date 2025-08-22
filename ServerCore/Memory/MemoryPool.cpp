@@ -55,7 +55,7 @@ void* MemoryPool::Alloc(size_t size)
 	}
 	else
 	{
-		return m_memory[size]->AllocMem(size);
+		return m_memory[size]->AllocFromChunk(size);
 	}
 }
 
@@ -68,7 +68,7 @@ void MemoryPool::Free(void* ptr)
 	}
 	else
 	{
-		m_memory[header->_Size]->FreeMem(ptr);
+		m_memory[header->_Size]->FreeToChunk(ptr);
 	}
 }
 

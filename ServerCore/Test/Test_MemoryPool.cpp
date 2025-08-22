@@ -171,10 +171,10 @@ void StartMemoryPool()
 		vectorThread.push_back(std::thread(TestThread_Alloc));
 	}
 
-	//for (int i = 0; i < THREAD_NUM ; ++i)
-	//{
-	//	vectorThread.push_back(std::thread(TestThread_Shared));
-	//}
+	for (int i = 0; i < THREAD_NUM ; ++i)
+	{
+		vectorThread.push_back(std::thread(TestThread_Shared));
+	}
 
 	
 

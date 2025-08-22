@@ -77,7 +77,9 @@
 #include "../Memory/LockFreeStack.h"
 #include "../Memory/RingBuffer.h"
 #include "../Memory/Protocol.h"
+#include "../Memory/Chunk.h"
 #include "../Memory/ObjectPool.h"
+
 
 #include "../Network/Option.h"
 #include "../Network/TemplateQ.h"

@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="..\flatbuffers\MessageID.h" />
     <ClInclude Include="Dump\MemoryDump.h" />
+    <ClInclude Include="Memory\Chunk.h" />
     <ClInclude Include="Memory\FreeList.h" />
     <ClInclude Include="Memory\Global.h" />
     <ClInclude Include="Memory\LockFreeQ.h" />

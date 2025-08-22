@@ -6,166 +6,55 @@ public:
 	ObjectPoolBase() = default;
 	virtual ~ObjectPoolBase() = default;
 
-	virtual void* AllocMem(size_t size) = 0;
-	virtual bool FreeMem(void* ptr) = 0;
-};
-
-
-struct ChunkMark
-{
-	void* _ChunkPtr;
-	int64_t _MarkValue;
-	size_t _Size;
-	size_t _ThreadID;
+	virtual void* AllocFromChunk(size_t size) = 0;
+	virtual void FreeToChunk(void* ptr) = 0;
 };
 
 template <typename T>
 class ObjectPool : public ObjectPoolBase
 {
-	struct ChunkMemoryHeader
-	{
-	public:
-		ChunkMemoryHeader() = default;
-		~ChunkMemoryHeader() = default;
-		ChunkMark _FrontMark;
-		T _Data;
-	};
-	class ChunkMemory
-	{
-	public:
-
-	public:
-		ChunkMemory() = default;
-		~ChunkMemory() = default;
-	public:
-		T* Alloc(size_t size = 0);
-		void Free(T* data);
-
-
-	public:
-		void AllocInit(DWORD objectCount, ObjectPool<T>* centerPool);
-	public:
-		PointerStack<ChunkMemoryHeader*>* m_localChunk;
-		LockFreeStack<ChunkMemoryHeader*> m_globalChunk;
-		ObjectPool<T>* m_CenterMemoryPool;
-		DWORD m_ObjectCount;
-	};
 public:
 	ObjectPool();
 	ObjectPool(DWORD objectCount);
 	~ObjectPool();
-public:
 
-	virtual void* AllocMem(size_t size) override;
-	virtual bool FreeMem(void* ptr) override;
-	void FreeLoal(ChunkMemory* data);
+public:
+	virtual void* AllocFromChunk(size_t size) override;
+	virtual void FreeToChunk(void* ptr) override;
 	T* Alloc(size_t size = 0);
 	bool Free(T* data);
 
-	ChunkMemory* ChunkAlloc()
-	{
-		auto chunkPtr = m_ChunkMemoryPool.AllocateMemoryFromHeap();
-		chunkPtr->m_localChunk = new PointerStack<ChunkMemoryHeader*>(m_ObjectCount);
-		chunkPtr->AllocInit(m_ObjectCount, this);
-		TlsSetValue(m_TLSChunkIndex, chunkPtr);
-
-		return chunkPtr;
-	}
+	ChunkMemory<T>* ChunkSetting();
 	int32_t GetChunkCount();
 	int32_t GetPoolCount();
 	int32_t GetUseCount();
 
 public:
-
-	FreeList<ChunkMemory> m_ChunkMemoryPool;
+	FreeList<ChunkMemory<T>> m_chunkPool;
 	DWORD m_TLSChunkIndex;
 	DWORD m_ObjectCount;
 };
 
-
-template<typename T>
-inline T* ObjectPool<T>::ChunkMemory::Alloc(size_t size)
+template <typename T>
+void* ObjectPool<T>::AllocFromChunk(size_t size)
 {
-	//-------------------------------------
-	// Chunk의 Mark부분을 제외한 진짜  T타입의 포인터를 던져준다.
-	//------------------------------------
-	auto chunkHeader = m_localChunk->Pop();
-	T* rtnData = reinterpret_cast<T*>(reinterpret_cast<char*>(chunkHeader) + sizeof(ChunkMark));
-	chunkHeader->_FrontMark._Size = size;
-	chunkHeader->_FrontMark._ThreadID = GetCurrentThreadId();
-
-	if(m_localChunk->Empty())
+	auto chunk = static_cast<ChunkMemory<T>*>(TlsGetValue(m_TLSChunkIndex));
+	if (chunk == nullptr)
 	{
-		ChunkMemoryHeader* data = nullptr;
-		if(m_globalChunk.Pop(&data) == true)
-		{
-			m_localChunk->Push(data);
-		}
-		else
-		{
-			AllocInit(m_ObjectCount, m_CenterMemoryPool);
-		}
+		chunk = ChunkSetting();
 	}
-
-	return rtnData;
-}
-
-template<typename T>
-inline void ObjectPool<T>::ChunkMemory::Free(T* data)
-{
-	ChunkMemoryHeader* dataPtr = reinterpret_cast<ChunkMemoryHeader*>(reinterpret_cast<char*>(data) - sizeof(ChunkMark));
-	//----------------------------------------------------
-	// 반납된 포인터가 언더플로우 한 경우
-	//----------------------------------------------------
-	if (dataPtr->_FrontMark._MarkValue != MARK_FRONT || dataPtr->_FrontMark._ChunkPtr != this)
-	{
-		throw(FreeListException(L"Underflow Violation", __LINE__));
-		return;
-	}
-
-	if(dataPtr->_FrontMark._ThreadID == GetCurrentThreadId())
-	{
-		m_localChunk->Push(dataPtr);
-	}
-	else
-	{
-		m_globalChunk.Push(dataPtr);
-	}
+	return chunk->Alloc(size);
 }
 
 template <typename T>
-void* ObjectPool<T>::AllocMem(size_t size)
+void ObjectPool<T>::FreeToChunk(void* ptr)
 {
-	return reinterpret_cast<void*>(Alloc(size));
-}
-
-template <typename T>
-bool ObjectPool<T>::FreeMem(void* ptr)
-{
-	return Free(static_cast<T*>(ptr));
+	ChunkMemoryHeader<T>* dataPtr = reinterpret_cast<ChunkMemoryHeader<T>*>(static_cast<char*>(ptr) - sizeof(ChunkMark));
+	reinterpret_cast<ChunkMemory<T>*>(dataPtr->_FrontMark._ChunkPtr)->Free(ptr);
 }
 
 template<typename T>
-void ObjectPool<T>::ChunkMemory::AllocInit(DWORD objectCount, ObjectPool<T>* centerPool)
-{
-	if (m_localChunk->Empty())
-	{
-		m_CenterMemoryPool = centerPool;
-		m_ObjectCount = objectCount;
-
-		auto chunkHeader = static_cast<ChunkMemoryHeader*>(malloc(sizeof(ChunkMemoryHeader) * m_ObjectCount));
-		for (size_t i = 0; i < m_ObjectCount; ++i)
-		{
-			chunkHeader[i]._FrontMark._ThreadID = GetCurrentThreadId();
-			chunkHeader[i]._FrontMark._ChunkPtr = this;
-			chunkHeader[i]._FrontMark._MarkValue = MARK_FRONT;
-			m_localChunk->Push(&chunkHeader[i]);
-		}
-	}
-}
-
-template<typename T>
-inline ObjectPool<T>::ObjectPool()
+ObjectPool<T>::ObjectPool()
 {
 	m_ObjectCount = 50000;
 	m_TLSChunkIndex = TlsAlloc();
@@ -173,7 +62,7 @@ inline ObjectPool<T>::ObjectPool()
 	{
 		CRASH();
 	}
-	ChunkAlloc();
+	ChunkSetting();
 }
 
 template<typename T>
@@ -185,7 +74,7 @@ inline ObjectPool<T>::ObjectPool(DWORD objectCount)
 	{
 		CRASH();
 	}
-	ChunkAlloc();
+	ChunkSetting();
 }
 
 template<typename T>
@@ -197,10 +86,10 @@ inline ObjectPool<T>::~ObjectPool()
 template<typename T>
 inline T* ObjectPool<T>::Alloc(size_t size)
 {
-	auto chunkPtr = static_cast<ChunkMemory*>(TlsGetValue(m_TLSChunkIndex));
+	auto chunkPtr = static_cast<ChunkMemory<T>*>(TlsGetValue(m_TLSChunkIndex));
 	if (chunkPtr == nullptr)
 	{
-		chunkPtr = ChunkAlloc();
+		chunkPtr = ChunkSetting();
 	}
 	return chunkPtr->Alloc(size);
 	
@@ -209,26 +98,35 @@ inline T* ObjectPool<T>::Alloc(size_t size)
 template<typename T>
 inline bool ObjectPool<T>::Free(T* data)
 {
-	ObjectPool<T>::ChunkMemoryHeader* dataPtr= reinterpret_cast<ObjectPool<T>::ChunkMemoryHeader*>(reinterpret_cast<char*>(data) - sizeof(ChunkMark));
-	reinterpret_cast<ChunkMemory*>(dataPtr->_FrontMark._ChunkPtr)->Free(data);
+	ChunkMemoryHeader<T>* dataPtr= reinterpret_cast<ChunkMemoryHeader<T>*>(reinterpret_cast<char*>(data) - sizeof(ChunkMark));
+	reinterpret_cast<ChunkMemory<T>*>(dataPtr->_FrontMark._ChunkPtr)->Free(data);
 
 	return true;
+}
+
+template <typename T>
+ChunkMemory<T>* ObjectPool<T>::ChunkSetting()
+{
+	auto chunkPtr = m_chunkPool.Alloc();
+	chunkPtr->ChunkInit(m_ObjectCount);
+	TlsSetValue(m_TLSChunkIndex, chunkPtr);
+	return chunkPtr;
 }
 
 template<typename T>
 inline int32_t ObjectPool<T>::GetChunkCount()
 {
-	return m_ChunkMemoryPool.GetAllocCount();
+	return m_chunkPool.GetAllocCount();
 }
 
 template<typename T>
 inline int32_t ObjectPool<T>::GetPoolCount()
 {
-	return m_ChunkMemoryPool.GetPoolCount();
+	return m_chunkPool.GetPoolCount();
 }
 
 template<typename T>
 inline int32_t ObjectPool<T>::GetUseCount()
 {
-	return m_ChunkMemoryPool.GetUseCount();
+	return m_chunkPool.GetUseCount();
 }
