@@ -1,27 +1,22 @@
 #pragma once
-template <typename T> requires std::is_pointer_v<T>
+template <typename T, int32_t DEFAULT_SIZE = 5000> requires std::is_pointer_v<T>
 class PointerStack
 {
 public:
-	PointerStack(int32_t size)
-		:m_size(size)
-	{
-		m_stack = new T[size];
-	}
+	PointerStack() {};
+	~PointerStack() {};
 
-	~PointerStack()
-	{
-		delete[] m_stack;
-	}
 public:
-	void Push(T data)
+	bool Push(T data)
 	{
-		if(m_top > m_size - 1)
+		if(Full())
 		{
-			return;
+			return false;
 		}
 
 		m_stack[m_top++] = data;
+
+		return true;
 	}
 
 	T Pop()
@@ -37,8 +32,19 @@ public:
 	{
 		return m_top == 0;
 	}
+
+
+	bool Full()
+	{
+		return m_top > DEFAULT_SIZE - 1;
+	}
+
+
+	int32_t Size()
+	{
+		return m_top;
+	}
 private:
 	int32_t m_top{0};
-	int32_t m_size;
-	T* m_stack;
+	T m_stack[DEFAULT_SIZE];
 };

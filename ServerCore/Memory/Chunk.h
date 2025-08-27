@@ -1,112 +1,145 @@
 #pragma once
 
-struct ChunkMark
-{
-	void* _ChunkPtr;
-	int64_t _MarkValue;
-	size_t _Size;
-	size_t _ThreadID;
-};
 template <typename T>
-struct ChunkMemoryHeader
-{
-public:
-	ChunkMemoryHeader() = default;
-	~ChunkMemoryHeader() = default;
-	ChunkMark _FrontMark;
-	T _Data;
-};
+class ObjectPool;
 
+struct ChunkMetadata
+{
+	void* m_chunkOwner;
+	int64_t m_markValue;
+	size_t m_size;
+	size_t m_allocThread;
+};
 template <typename T>
-class ChunkMemory
+struct ChunkSlot
+{
+
+public:
+	ChunkSlot() = default;
+	~ChunkSlot() = default;
+	ChunkMetadata m_metaData;
+	T m_data;
+};
+template <typename T, int32_t DEFAULT_SIZE = 5000>
+class ChunkPage
 {
 public:
-	ChunkMemory() = default;
-	~ChunkMemory() = default;
+	ChunkPage();
+	~ChunkPage() = default;
 public:
 	T* Alloc(size_t size = 0);
 	void Free(void* data);
 
+	void SetOwner(ObjectPool<T>* center);
+
+	T* PopFromFreshSlot(size_t size);
+	T* PopFromRecyledSlots(size_t size);
+
+	PointerStack<ChunkSlot<T>*, DEFAULT_SIZE>* GetRecycledSlots();
 public:
-	void ChunkInit(DWORD objectCount);
-public:
-	PointerStack<ChunkMemoryHeader<T>*>* m_localChunk{nullptr};
-	LockFreeStack<ChunkMemoryHeader<T>*> m_globalChunk;
-	DWORD m_ObjectCount;
+	ObjectPool<T>* m_owner;
+	PointerStack<ChunkSlot<T>*, DEFAULT_SIZE> m_freshSlots;
+	PointerStack<ChunkSlot<T>*, DEFAULT_SIZE>* m_recycledSlots{nullptr};
+	FreeList<PointerStack<ChunkSlot<T>*, DEFAULT_SIZE>> m_recycledStackPool;
+
+	ChunkSlot<T> m_data[DEFAULT_SIZE];
+	static thread_local size_t m_cachedThreadID;
 };
 
-template<typename T>
- T* ChunkMemory<T>::Alloc(size_t size)
-{
-	//-------------------------------------
-	// Chunk의 Mark부분을 제외한 진짜  T타입의 포인터를 던져준다.
-	//------------------------------------
-	auto chunkHeader = m_localChunk->Pop();
-	T* rtnData = reinterpret_cast<T*>(reinterpret_cast<char*>(chunkHeader) + sizeof(ChunkMark));
-	chunkHeader->_FrontMark._Size = size;
-	chunkHeader->_FrontMark._ThreadID = GetCurrentThreadId();
+template<typename T, int DEFAULT_SIZE>
+thread_local size_t ChunkPage<T, DEFAULT_SIZE>::m_cachedThreadID = std::hash<std::thread::id>{}(std::this_thread::get_id());
 
-	if(m_localChunk->Empty())
+template <typename T, int32_t DEFAULT_SIZE>
+ChunkPage<T, DEFAULT_SIZE>::ChunkPage()
+{
+	if (m_freshSlots.Empty())
 	{
-		ChunkMemoryHeader<T>* data = nullptr;
-		if(m_globalChunk.Pop(&data) == true)
+		for (size_t i = 0; i < DEFAULT_SIZE; ++i)
 		{
-			m_localChunk->Push(data);
-		}
-		else
-		{
-			ChunkInit(m_ObjectCount);
+			m_data[i].m_metaData.m_allocThread = m_cachedThreadID;
+			m_data[i].m_metaData.m_chunkOwner = this;
+			m_data[i].m_metaData.m_markValue = MARK_FRONT;
+			m_freshSlots.Push(&m_data[i]);
 		}
 	}
 
-	return rtnData;
+	m_recycledSlots = m_recycledStackPool.Alloc();
+}
+template <typename T, int32_t DEFAULT_SIZE>
+ T* ChunkPage<T, DEFAULT_SIZE>::Alloc(size_t size)
+{
+	if(auto rtnData = PopFromFreshSlot(size); rtnData != nullptr)
+	{
+		return rtnData;
+	}
+
+	if (auto rtnData = PopFromRecyledSlots(size); rtnData != nullptr)
+	{
+		return rtnData;
+	}
+
+	if (m_owner->TryStealFromGlobal(m_freshSlots))
+	{
+		if (auto rtnData = PopFromFreshSlot(size); rtnData != nullptr)
+		{
+			return rtnData;
+		}
+	}
+
+	return m_owner->ChunkAlloc()->Alloc(size);
 }
 
-template<typename T>
-void ChunkMemory<T>::Free(void* data)
+ template <typename T, int32_t DEFAULT_SIZE>
+void ChunkPage<T, DEFAULT_SIZE>::Free(void* data)
 {
-	ChunkMemoryHeader<T>* dataPtr = reinterpret_cast<ChunkMemoryHeader<T>*>(reinterpret_cast<char*>(data) - sizeof(ChunkMark));
+	ChunkSlot<T>* dataPtr = reinterpret_cast<ChunkSlot<T>*>(reinterpret_cast<char*>(data) - offsetof(ChunkSlot<T>, m_data));
 	//----------------------------------------------------
 	// 반납된 포인터가 언더플로우 한 경우
 	//----------------------------------------------------
-	if (dataPtr->_FrontMark._MarkValue != MARK_FRONT || dataPtr->_FrontMark._ChunkPtr != this)
+	if (dataPtr->m_metaData.m_markValue != MARK_FRONT || dataPtr->m_metaData.m_chunkOwner != this)
 	{
 		throw(FreeListException(L"Underflow Violation", __LINE__));
 	}
 
-	if(dataPtr->_FrontMark._ThreadID == GetCurrentThreadId())
+	if (dataPtr->m_metaData.m_allocThread == m_cachedThreadID)
 	{
-		m_localChunk->Push(dataPtr);
+		m_freshSlots.Push(dataPtr);
 	}
 	else
 	{
-		m_globalChunk.Push(dataPtr);
-		if(m_ObjectCount <=  m_globalChunk.GetStackCount())
-		{
-			//m_centerPool->Alloc()
-		}
+		m_owner->RecycledToMyLocalPool(dataPtr);
 	}
 }
 
-
-template <typename T>
-void ChunkMemory<T>::ChunkInit(DWORD objectCount)
+template <typename T, int32_t DEFAULT_SIZE>
+void ChunkPage<T, DEFAULT_SIZE>::SetOwner(ObjectPool<T>* center)
 {
-	m_ObjectCount = objectCount;
-	if(m_localChunk == nullptr)
+	m_owner = center;
+}
+
+template <typename T, int32_t DEFAULT_SIZE>
+T* ChunkPage<T, DEFAULT_SIZE>::PopFromFreshSlot(size_t size)
+{
+	if(m_freshSlots.Empty())
 	{
-		m_localChunk = new PointerStack<ChunkMemoryHeader<T>*>(m_ObjectCount);
+		return nullptr;
+	}
+	auto chunkHeader = m_freshSlots.Pop();
+	chunkHeader->m_metaData.m_size = size;
+	chunkHeader->m_metaData.m_allocThread = m_cachedThreadID;
+	return &(chunkHeader->m_data);
+}
+
+template <typename T, int32_t DEFAULT_SIZE>
+T* ChunkPage<T, DEFAULT_SIZE>::PopFromRecyledSlots(size_t size)
+{
+	if (m_recycledSlots->Empty())
+	{
+		return nullptr;
 	}
 
-	if (m_localChunk->Empty())
-	{
-		auto chunkHeader = static_cast<ChunkMemoryHeader<T>*>(malloc(sizeof(ChunkMemoryHeader<T>) * m_ObjectCount));
-		for (size_t i = 0; i < m_ObjectCount; ++i)
-		{
-			chunkHeader[i]._FrontMark._ThreadID = GetCurrentThreadId();
-			chunkHeader[i]._FrontMark._ChunkPtr = this;
-			chunkHeader[i]._FrontMark._MarkValue = MARK_FRONT;
-			m_localChunk->Push(&chunkHeader[i]);
-		}
-	}
+	auto chunkHeader = m_recycledSlots->Pop();
+	chunkHeader->m_metaData.m_size = size;
+	chunkHeader->m_metaData.m_allocThread = m_cachedThreadID;
+	return &(chunkHeader->m_data);
 }

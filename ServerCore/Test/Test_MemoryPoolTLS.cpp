@@ -56,7 +56,7 @@ struct TestData_MemoryPool
 HANDLE g_Thread_MemoryPoolTLS[THREAD_NUM];
 bool g_ExitMemoryPoolTls = false;
 
-ObjectPool<TestData_MemoryPool> g_MemoryPool(10000);
+ObjectPool<TestData_MemoryPool> g_MemoryPool;
 
 unsigned int __stdcall TestThread_NewDeleteVSAllocFree(LPVOID param)
 {

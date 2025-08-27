@@ -172,7 +172,7 @@ template<typename T>
 bool FreeList<T>::Free(T* data)
 {
 	Node* freeNode = reinterpret_cast<Node*>(data);
-	AllocMemory* allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(data) - sizeof(MemHeader));
+	AllocMemory* allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(data) - offsetof(AllocMemory,_Node));
 
 	//----------------------------------------------------
 	// 반납된 포인터가 언더플로우 한 경우
@@ -266,7 +266,7 @@ T* FreeList<T>::Alloc(size_t size)
 	} while (true);
 
 	spinCount = 0;
-	auto allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(tempTop._TopPtr) - sizeof(MemHeader));
+	auto allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(tempTop._TopPtr) - offsetof(AllocMemory, _Node));
 	allocMemory->_FrontMark._FreeFlag.exchange(false);
 
 	//InterlockedIncrement(&m_UseCount);

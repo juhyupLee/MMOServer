@@ -2,7 +2,7 @@
 #include "NetworkServer.h"
 
 NetworkServer::NetworkServer()
-	:m_ConInfoPool(500)
+	:m_ConInfoPool()
 {
 	setlocale(LC_ALL, "");
 
