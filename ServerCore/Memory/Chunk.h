@@ -1,6 +1,28 @@
 #pragma once
 
-template <typename T>
+constexpr size_t TargetChunkSize = 128 * 1024; // 64KB
+
+template<typename T>
+constexpr size_t CalcSlotCount()
+{
+
+	constexpr size_t s = sizeof(T);
+	// 2MB를 기본 정렬/상한 축으로 활용
+	constexpr size_t KB = 1024;
+	constexpr size_t MB = 1024 * KB;
+
+	if (s <= 64)    return (256 * KB) / s;     // 32B→8,192 slots
+	if (s <= 128)   return (1 * MB) / s;     // 128B→8,192
+	if (s <= 256)   return (1 * MB) / s;     // 256B→4,096
+	if (s <= 512)   return (2 * MB) / s;     // 512B→4,096
+	if (s <= 1024)  return (2 * MB) / s;     // 1KB→2,048
+
+	// 큰 객체: 2MB 상한 + 최소 슬롯 보장
+	constexpr size_t n = (2 * MB) / s;
+	return n >= 64 ? n : 64;
+}
+
+template<typename T, int SLOT_COUNT = CalcSlotCount<T>()>
 class ObjectPool;
 
 struct ChunkMetadata
@@ -20,7 +42,9 @@ public:
 	ChunkMetadata m_metaData;
 	T m_data;
 };
-template <typename T, int32_t DEFAULT_SIZE = 5000>
+
+
+template <typename T, int32_t SLOT_COUNT = CalcSlotCount<T>()>
 class ChunkPage
 {
 public:
@@ -35,19 +59,19 @@ public:
 	T* PopFromFreshSlot(size_t size);
 	T* PopFromRecyledSlots(size_t size);
 
-	PointerStack<ChunkSlot<T>*, DEFAULT_SIZE>* GetRecycledSlots();
+	PointerStack<ChunkSlot<T>*, SLOT_COUNT>* GetRecycledSlots();
 public:
 	ObjectPool<T>* m_owner;
-	PointerStack<ChunkSlot<T>*, DEFAULT_SIZE> m_freshSlots;
-	PointerStack<ChunkSlot<T>*, DEFAULT_SIZE>* m_recycledSlots{nullptr};
-	FreeList<PointerStack<ChunkSlot<T>*, DEFAULT_SIZE>> m_recycledStackPool;
+	PointerStack<ChunkSlot<T>*, SLOT_COUNT> m_freshSlots;
+	PointerStack<ChunkSlot<T>*, SLOT_COUNT>* m_recycledSlots{nullptr};
+	FreeList<PointerStack<ChunkSlot<T>*, SLOT_COUNT>> m_recycledStackPool;
 
-	ChunkSlot<T> m_data[DEFAULT_SIZE];
+	ChunkSlot<T> m_data[SLOT_COUNT];
 	static thread_local size_t m_cachedThreadID;
 };
 
-template<typename T, int DEFAULT_SIZE>
-thread_local size_t ChunkPage<T, DEFAULT_SIZE>::m_cachedThreadID = std::hash<std::thread::id>{}(std::this_thread::get_id());
+template<typename T, int SLOT_COUNT>
+thread_local size_t ChunkPage<T, SLOT_COUNT>::m_cachedThreadID = std::hash<std::thread::id>{}(std::this_thread::get_id());
 
 template <typename T, int32_t DEFAULT_SIZE>
 ChunkPage<T, DEFAULT_SIZE>::ChunkPage()
@@ -65,8 +89,8 @@ ChunkPage<T, DEFAULT_SIZE>::ChunkPage()
 
 	m_recycledSlots = m_recycledStackPool.Alloc();
 }
-template <typename T, int32_t DEFAULT_SIZE>
- T* ChunkPage<T, DEFAULT_SIZE>::Alloc(size_t size)
+template <typename T, int32_t SLOT_COUNT>
+ T* ChunkPage<T, SLOT_COUNT>::Alloc(size_t size)
 {
 	if(auto rtnData = PopFromFreshSlot(size); rtnData != nullptr)
 	{
@@ -89,8 +113,8 @@ template <typename T, int32_t DEFAULT_SIZE>
 	return m_owner->ChunkAlloc()->Alloc(size);
 }
 
- template <typename T, int32_t DEFAULT_SIZE>
-void ChunkPage<T, DEFAULT_SIZE>::Free(void* data)
+ template <typename T, int32_t SLOT_COUNT>
+void ChunkPage<T, SLOT_COUNT>::Free(void* data)
 {
 	ChunkSlot<T>* dataPtr = reinterpret_cast<ChunkSlot<T>*>(reinterpret_cast<char*>(data) - offsetof(ChunkSlot<T>, m_data));
 	//----------------------------------------------------
@@ -111,14 +135,14 @@ void ChunkPage<T, DEFAULT_SIZE>::Free(void* data)
 	}
 }
 
-template <typename T, int32_t DEFAULT_SIZE>
-void ChunkPage<T, DEFAULT_SIZE>::SetOwner(ObjectPool<T>* center)
+template <typename T, int32_t SLOT_COUNT>
+void ChunkPage<T, SLOT_COUNT>::SetOwner(ObjectPool<T>* center)
 {
 	m_owner = center;
 }
 
-template <typename T, int32_t DEFAULT_SIZE>
-T* ChunkPage<T, DEFAULT_SIZE>::PopFromFreshSlot(size_t size)
+template <typename T, int32_t SLOT_COUNT>
+T* ChunkPage<T, SLOT_COUNT>::PopFromFreshSlot(size_t size)
 {
 	if(m_freshSlots.Empty())
 	{
@@ -130,8 +154,8 @@ T* ChunkPage<T, DEFAULT_SIZE>::PopFromFreshSlot(size_t size)
 	return &(chunkHeader->m_data);
 }
 
-template <typename T, int32_t DEFAULT_SIZE>
-T* ChunkPage<T, DEFAULT_SIZE>::PopFromRecyledSlots(size_t size)
+template <typename T, int32_t SLOT_COUNT>
+T* ChunkPage<T, SLOT_COUNT>::PopFromRecyledSlots(size_t size)
 {
 	if (m_recycledSlots->Empty())
 	{

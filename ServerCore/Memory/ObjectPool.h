@@ -17,7 +17,7 @@ public:
 	virtual void FreeToChunk(void* ptr) = 0;
 };
 
-template <typename T>
+template <typename T, int32_t SLOT_COUNT>
 class ObjectPool : public ObjectPoolBase
 {
 public:
@@ -39,15 +39,15 @@ public:
 
 
 	void RecycledToMyLocalPool(ChunkSlot<T>* memory);
-	bool TryStealFromGlobal(PointerStack<ChunkSlot<T>*>& localChunk);
+	bool TryStealFromGlobal(PointerStack<ChunkSlot<T>*, SLOT_COUNT>& localChunk);
 public:
 	FreeList<ChunkPage<T>> m_chunkPool;
-	LockFreeStack<GlobalBatch<T,5000>> m_globalBatchStack;
+	LockFreeStack<GlobalBatch<T, SLOT_COUNT>> m_globalBatchStack;
 	DWORD m_TLSChunkIndex;
 };
 
-template <typename T>
-void* ObjectPool<T>::AllocFromChunk(size_t size)
+template<typename T, int32_t SLOT_COUNT >
+void* ObjectPool<T, SLOT_COUNT>::AllocFromChunk(size_t size)
 {
 	auto chunk = GetCurrentTLSChunk();
 	if (chunk == nullptr)
@@ -57,15 +57,15 @@ void* ObjectPool<T>::AllocFromChunk(size_t size)
 	return chunk->Alloc(size);
 }
 
-template <typename T>
-void ObjectPool<T>::FreeToChunk(void* ptr)
+template<typename T, int32_t SLOT_COUNT>
+void ObjectPool<T, SLOT_COUNT>::FreeToChunk(void* ptr)
 {
 	ChunkSlot<T>* dataPtr = reinterpret_cast<ChunkSlot<T>*>(static_cast<char*>(ptr) - offsetof(ChunkSlot<T>, m_data));
 	reinterpret_cast<ChunkPage<T>*>(dataPtr->m_metaData.m_chunkOwner)->Free(ptr);
 }
 
-template<typename T>
-ObjectPool<T>::ObjectPool()
+template<typename T, int32_t SLOT_COUNT>
+ObjectPool<T, SLOT_COUNT>::ObjectPool()
 {
 	m_TLSChunkIndex = TlsAlloc();
 	if (m_TLSChunkIndex == TLS_OUT_OF_INDEXES)
@@ -75,14 +75,14 @@ ObjectPool<T>::ObjectPool()
 	ChunkAlloc();
 }
 
-template<typename T>
-inline ObjectPool<T>::~ObjectPool()
+template<typename T, int32_t SLOT_COUNT>
+inline ObjectPool<T, SLOT_COUNT>::~ObjectPool()
 {
 	TlsFree(m_TLSChunkIndex);
 }
 
-template<typename T>
-inline T* ObjectPool<T>::Alloc(size_t size)
+template<typename T, int32_t SLOT_COUNT>
+inline T* ObjectPool<T, SLOT_COUNT>::Alloc(size_t size)
 {
 	auto chunkPtr = static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
 	if (chunkPtr == nullptr)
@@ -92,8 +92,8 @@ inline T* ObjectPool<T>::Alloc(size_t size)
 	return chunkPtr->Alloc(size);
 }
 
-template<typename T>
-inline bool ObjectPool<T>::Free(T* data)
+template<typename T, int32_t SLOT_COUNT>
+inline bool ObjectPool<T, SLOT_COUNT>::Free(T* data)
 {
 	ChunkSlot<T>* dataPtr= reinterpret_cast<ChunkSlot<T>*>(reinterpret_cast<char*>(data) - offsetof(ChunkSlot<T>,m_data));
 	reinterpret_cast<ChunkPage<T>*>(dataPtr->m_metaData.m_chunkOwner)->Free(data);
@@ -101,14 +101,14 @@ inline bool ObjectPool<T>::Free(T* data)
 	return true;
 }
 
-template <typename T>
-ChunkPage<T>*  ObjectPool<T>::GetCurrentTLSChunk()
+template<typename T, int32_t SLOT_COUNT>
+ChunkPage<T>*  ObjectPool<T, SLOT_COUNT>::GetCurrentTLSChunk()
 {
 	return static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
 }
 
-template <typename T>
-ChunkPage<T>* ObjectPool<T>::ChunkAlloc()
+template<typename T, int32_t SLOT_COUNT>
+ChunkPage<T>* ObjectPool<T, SLOT_COUNT>::ChunkAlloc()
 {
 	ChunkPage<T>* chunkPtr = m_chunkPool.Alloc();
 	chunkPtr->SetOwner(this);
@@ -117,32 +117,32 @@ ChunkPage<T>* ObjectPool<T>::ChunkAlloc()
 	return chunkPtr;
 }
 
-template <typename T>
-void ObjectPool<T>::ChunkFree(ChunkPage<T>* chunk)
+template<typename T, int32_t SLOT_COUNT>
+void ObjectPool<T, SLOT_COUNT>::ChunkFree(ChunkPage<T>* chunk)
 {
 	m_chunkPool.Free(chunk);
 }
 
-template<typename T>
-inline int32_t ObjectPool<T>::GetChunkCount()
+template<typename T, int32_t SLOT_COUNT>
+inline int32_t ObjectPool<T, SLOT_COUNT>::GetChunkCount()
 {
 	return m_chunkPool.GetAllocCount();
 }
 
-template<typename T>
-inline int32_t ObjectPool<T>::GetPoolCount()
+template<typename T, int32_t SLOT_COUNT>
+inline int32_t ObjectPool<T, SLOT_COUNT>::GetPoolCount()
 {
 	return m_chunkPool.GetPoolCount();
 }
 
-template<typename T>
-inline int32_t ObjectPool<T>::GetUseCount()
+template<typename T, int32_t SLOT_COUNT>
+inline int32_t ObjectPool<T, SLOT_COUNT>::GetUseCount()
 {
 	return m_chunkPool.GetUseCount();
 }
 
-template <typename T>
-void ObjectPool<T>::RecycledToMyLocalPool(ChunkSlot<T>* memory)
+template<typename T, int32_t SLOT_COUNT>
+void ObjectPool<T, SLOT_COUNT>::RecycledToMyLocalPool(ChunkSlot<T>* memory)
 {
 	auto tlsChunk = GetCurrentTLSChunk();
 	if(tlsChunk == nullptr)
@@ -158,10 +158,10 @@ void ObjectPool<T>::RecycledToMyLocalPool(ChunkSlot<T>* memory)
 	}
 }
 
-template <typename T>
-bool ObjectPool<T>::TryStealFromGlobal(PointerStack<ChunkSlot<T>*>& localChunk)
+template<typename T, int32_t SLOT_COUNT>
+bool ObjectPool<T, SLOT_COUNT>::TryStealFromGlobal(PointerStack<ChunkSlot<T>*, SLOT_COUNT>& localChunk)
 {
-	GlobalBatch<T,5000> globalBatch;
+	GlobalBatch<T, SLOT_COUNT> globalBatch;
 	if(m_globalBatchStack.Pop(&globalBatch) == true)
 	{
 		std::swap(localChunk, *(globalBatch.m_slotStack));
