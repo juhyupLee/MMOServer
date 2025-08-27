@@ -294,7 +294,8 @@ static constexpr long long DELAY_SMALL_NS = 5'000;     // 5 us
 static constexpr long long DELAY_MEDIUM_NS = 50'000;    // 50 us
 
 // ===== Utility: memory usage ===============================================
-static size_t GetMemoryUsageBytes() {
+static size_t GetMemoryUsageBytes()
+{
     PROCESS_MEMORY_COUNTERS pmc{};
     if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
         return pmc.WorkingSetSize;
@@ -340,7 +341,8 @@ private:
     mutable std::mutex _m; std::condition_variable _cv; std::deque<T> _q;
 };
 
-static void busy_wait_ns(long long ns) {
+static void busy_wait_ns(long long ns)
+{
     if (ns <= 0) return;
     auto t0 = std::chrono::high_resolution_clock::now();
     while (true) {
@@ -360,7 +362,8 @@ struct TestData {
     std::atomic<int64_t> tag{ 0 };
     char                  buf[OBJECT_PAD];
 
-    TestData() {
+    TestData()
+	{
         // simple pattern to catch obvious corruption in sampling
         for (int i = 0; i < OBJECT_PAD; i += 31) buf[i] = static_cast<char>(i & 0x7f);
         s_live.fetch_add(1, std::memory_order_relaxed);
@@ -541,9 +544,13 @@ static Result Bench_SameThread_make_shared(const char* label, int workers, int o
             });
     }
 
-    timer.start(); for (auto& t : ts) t.join(); timer.stop();
+    timer.start();
+    for (auto& t : ts)
+    {
+        t.join();
+    }
+	timer.stop();
     auto mem_after = GetMemoryUsageBytes();
-
     std::sort(samples_us.begin(), samples_us.end());
     auto q = [&](double p) { if (samples_us.empty()) return 0.0; size_t idx = size_t(p * (samples_us.size() - 1)); return samples_us[idx]; };
 
@@ -553,7 +560,8 @@ static Result Bench_SameThread_make_shared(const char* label, int workers, int o
     r.mem_mb = double(mem_after) / (1024.0 * 1024.0);
     r.p50_us = q(0.50); r.p99_us = q(0.99);
 
-    if (T::s_live.load(std::memory_order_relaxed) != 0) {
+    if (T::s_live.load(std::memory_order_relaxed) != 0)
+    {
         std::cerr << "[ERROR] Leak detected (SameThread/" << label << ") live=" << T::s_live.load() << "\n";
     }
 
@@ -580,27 +588,34 @@ static Result Bench_CrossThread_allocate_shared(const char* label, int producers
 
     for (int i = 0; i < producers; ++i) {
         prod.emplace_back([&] {
-            latch.arrive(); latch.wait();
-            for (int j = 0; j < ops_per_producer; ++j) {
-                auto sp = std::allocate_shared<T, AllocT>(AllocT{});
-                if ((j & (VERIFY_SAMPLE_RATE - 1)) == 0) sp->tag.fetch_add(1, std::memory_order_relaxed);
-                q.push(std::move(sp));
-                produced.fetch_add(1, std::memory_order_relaxed);
-            }
+        		latch.arrive(); latch.wait();
+	            for (int j = 0; j < ops_per_producer; ++j) 
+	            {
+	                auto sp = std::allocate_shared<T, AllocT>(AllocT{});
+                    if ((j & (VERIFY_SAMPLE_RATE - 1)) == 0)
+                    {
+                        sp->tag.fetch_add(1, std::memory_order_relaxed);
+                    }
+	                q.push(std::move(sp));
+	                produced.fetch_add(1, std::memory_order_relaxed);
+	            }
             });
     }
     for (int i = 0; i < consumers; ++i) 
     {
-
         cons.emplace_back([&] {
-            latch.arrive(); latch.wait();
+            latch.arrive();
+        	latch.wait();
             while (true) 
             {
                 if (consumed.load(std::memory_order_relaxed) >= 1LL * producers * ops_per_producer) break;
                 std::shared_ptr<T> sp;
                 if (q.try_pop(sp))
                 {
-                    if (delay_free_ns > 0) busy_wait_ns(delay_free_ns);
+                    if (delay_free_ns > 0)
+                    {
+                        busy_wait_ns(delay_free_ns);
+                    }
                     sp.reset();
                     consumed.fetch_add(1, std::memory_order_relaxed);
                 }
@@ -614,8 +629,14 @@ static Result Bench_CrossThread_allocate_shared(const char* label, int producers
     }
 
     timer.start();
-    for (auto& t : prod) t.join();
-    for (auto& t : cons) t.join();
+    for (auto& t : prod)
+    {
+        t.join();
+    }
+    for (auto& t : cons)
+    {
+        t.join();
+    }
     timer.stop();
 
     auto mem_after = GetMemoryUsageBytes();
@@ -625,14 +646,16 @@ static Result Bench_CrossThread_allocate_shared(const char* label, int producers
     r.throughput = double(r.total_ops) / r.seconds;
     r.mem_mb = double(mem_after) / (1024.0 * 1024.0);
 
-    if (T::s_live.load(std::memory_order_relaxed) != 0) {
+    if (T::s_live.load(std::memory_order_relaxed) != 0) 
+    {
         std::cerr << "[ERROR] Leak detected (CrossThread/" << label << ") live=" << T::s_live.load() << "\n";
     }
     return r;
 }
 
 template<int OBJECT_PAD>
-static Result Bench_CrossThread_make_shared(const char* label, int producers, int consumers, int ops_per_producer, long long delay_free_ns) {
+static Result Bench_CrossThread_make_shared(const char* label, int producers, int consumers, int ops_per_producer, long long delay_free_ns)
+{
     using T = TestData<OBJECT_PAD>;
     Result r; r.object_pad = std::to_string(OBJECT_PAD); r.threads = producers + consumers; r.label = label; r.scenario = "CrossThread";
 
@@ -651,13 +674,17 @@ static Result Bench_CrossThread_make_shared(const char* label, int producers, in
             for (int j = 0; j < ops_per_producer; ++j)
             {
                 auto sp = std::make_shared<T>();
-                if ((j & (VERIFY_SAMPLE_RATE - 1)) == 0) sp->tag.fetch_add(1, std::memory_order_relaxed);
+                if ((j & (VERIFY_SAMPLE_RATE - 1)) == 0)
+                {
+                    sp->tag.fetch_add(1, std::memory_order_relaxed);
+                }
+                
                 q.push(std::move(sp));
                 produced.fetch_add(1, std::memory_order_relaxed);
-            }
-            });
+            }});
     }
-    for (int i = 0; i < consumers; ++i) {
+    for (int i = 0; i < consumers; ++i) 
+    {
         cons.emplace_back([&] {
             latch.arrive(); latch.wait();
             while (true) 
@@ -666,12 +693,19 @@ static Result Bench_CrossThread_make_shared(const char* label, int producers, in
                 std::shared_ptr<T> sp;
                 if (q.try_pop(sp)) 
                 {
-                    if (delay_free_ns > 0) busy_wait_ns(delay_free_ns);
+                    if (delay_free_ns > 0)
+                    {
+                        busy_wait_ns(delay_free_ns);
+                    }
                     sp.reset();
                     consumed.fetch_add(1, std::memory_order_relaxed);
                 }
-                else {
-                    if (produced.load(std::memory_order_relaxed) >= 1LL * producers * ops_per_producer && q.empty()) break;
+                else 
+                {
+                    if (produced.load(std::memory_order_relaxed)>= 1LL * producers * ops_per_producer && q.empty())
+                    {
+                        break;
+                    }
                     std::this_thread::yield();
                 }
             }
@@ -679,18 +713,24 @@ static Result Bench_CrossThread_make_shared(const char* label, int producers, in
     }
 
     timer.start();
-    for (auto& t : prod) t.join();
-    for (auto& t : cons) t.join();
+    for (auto& t : prod)
+    {
+        t.join();
+    }
+    for (auto& t : cons)
+    {
+        t.join();
+    }
     timer.stop();
 
     auto mem_after = GetMemoryUsageBytes();
-
     r.total_ops = 1LL * producers * ops_per_producer;
     r.seconds = timer.sec();
     r.throughput = double(r.total_ops) / r.seconds;
     r.mem_mb = double(mem_after) / (1024.0 * 1024.0);
 
-    if (T::s_live.load(std::memory_order_relaxed) != 0) {
+    if (T::s_live.load(std::memory_order_relaxed) != 0) 
+    {
         std::cerr << "[ERROR] Leak detected (CrossThread/" << label << ") live=" << T::s_live.load() << "\n";
     }
     return r;
@@ -704,7 +744,8 @@ void RunForPad(std::ofstream& csv,
     int same_ops_per_thread,
     int cross_ops_per_alloc,
     int same_batch,
-    bool run_delays) {
+    bool run_delays)
+{
     using T = TestData<OBJECT_PAD>;
 
     std::cout << "\n===== OBJECT_PAD=" << OBJECT_PAD << " =====\n";
@@ -743,7 +784,8 @@ void RunForPad(std::ofstream& csv,
         }
 
         // Reset live counters (safety) — should already be zero
-        if (T::s_live.load(std::memory_order_relaxed) != 0) {
+        if (T::s_live.load(std::memory_order_relaxed) != 0) 
+        {
             std::cerr << "[WARN] live counter non-zero after thr=" << thr << ": " << T::s_live.load() << "\n";
         }
         T::s_constructed.store(0, std::memory_order_relaxed);
@@ -760,17 +802,6 @@ void StartMemoryPool()
     int cross_ops = DEFAULT_CROSS_OPS_PER_ALLOC;
     int batch = DEFAULT_BATCH;    // batch free in SameThread
     bool delays = true;             // run CrossThread delay variants
-
-    //// Optional: parse tiny CLI (very simple)
-    //for (int i = 1; i < argc; ++i) 
-    //{
-    //    std::string a = argv[i];
-    //    auto eat = [&](const char* key) { return a.rfind(key, 0) == 0 ? std::optional<std::string>(a.substr(std::strlen(key))) : std::nullopt; };
-    //    if (auto v = eat("--same_ops="))   same_ops = std::stoi(*v);
-    //    else if (auto v = eat("--cross_ops=")) cross_ops = std::stoi(*v);
-    //    else if (auto v = eat("--batch="))     batch = std::stoi(*v);
-    //    else if (a == "--no-delays") delays = false;
-    //}
 
     std::ofstream csv("bench_results.csv");
     csv << "ObjectPad,Threads,Scenario,Allocator,Ops,Time(s),Throughput(op/s),Mem(MB),p50_us,p99_us\n";

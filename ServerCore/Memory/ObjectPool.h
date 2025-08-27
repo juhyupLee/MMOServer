@@ -60,8 +60,8 @@ void* ObjectPool<T, SLOT_COUNT>::AllocFromChunk(size_t size)
 template<typename T, int32_t SLOT_COUNT>
 void ObjectPool<T, SLOT_COUNT>::FreeToChunk(void* ptr)
 {
-	ChunkSlot<T>* dataPtr = reinterpret_cast<ChunkSlot<T>*>(static_cast<char*>(ptr) - offsetof(ChunkSlot<T>, m_data));
-	reinterpret_cast<ChunkPage<T>*>(dataPtr->m_metaData.m_chunkOwner)->Free(ptr);
+	ChunkSlot<T>* chunkSlot = reinterpret_cast<ChunkSlot<T>*>(static_cast<char*>(ptr) - offsetof(ChunkSlot<T>, m_data));
+	reinterpret_cast<ChunkPage<T>*>(chunkSlot->m_metaData.m_chunkOwner)->Free(ptr);
 }
 
 template<typename T, int32_t SLOT_COUNT>
@@ -84,25 +84,25 @@ inline ObjectPool<T, SLOT_COUNT>::~ObjectPool()
 template<typename T, int32_t SLOT_COUNT>
 inline T* ObjectPool<T, SLOT_COUNT>::Alloc(size_t size)
 {
-	auto chunkPtr = static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
-	if (chunkPtr == nullptr)
+	auto chunkPage = static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
+	if (chunkPage == nullptr)
 	{
-		chunkPtr = ChunkAlloc();
+		chunkPage = ChunkAlloc();
 	}
-	return chunkPtr->Alloc(size);
+	return chunkPage->Alloc(size);
 }
 
 template<typename T, int32_t SLOT_COUNT>
 inline bool ObjectPool<T, SLOT_COUNT>::Free(T* data)
 {
-	ChunkSlot<T>* dataPtr= reinterpret_cast<ChunkSlot<T>*>(reinterpret_cast<char*>(data) - offsetof(ChunkSlot<T>,m_data));
-	reinterpret_cast<ChunkPage<T>*>(dataPtr->m_metaData.m_chunkOwner)->Free(data);
+	ChunkSlot<T>* chunkSlot= reinterpret_cast<ChunkSlot<T>*>(reinterpret_cast<char*>(data) - offsetof(ChunkSlot<T>,m_data));
+	reinterpret_cast<ChunkPage<T>*>(chunkSlot->m_metaData.m_chunkOwner)->Free(data);
 
 	return true;
 }
 
 template<typename T, int32_t SLOT_COUNT>
-ChunkPage<T>*  ObjectPool<T, SLOT_COUNT>::GetCurrentTLSChunk()
+ChunkPage<T>* ObjectPool<T, SLOT_COUNT>::GetCurrentTLSChunk()
 {
 	return static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
 }
