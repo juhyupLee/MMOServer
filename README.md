@@ -16,23 +16,6 @@ Supports thread-local allocation, lock-free free-lists, and cross-thread dealloc
 - **Central Pool Management**: threads borrow chunks from global pool when local is empty
 - **Debug & Safety**: underflow/overflow markers, optional tracking
 
-### 🚀 Usage Example
-```cpp
-#include "MemoryPool.h"
-
-struct Player { int id; char name[32]; };
-
-int main()
-{
-    MemoryPool<Player> pool;
-    pool.ChunkInit(1000);
-
-    Player* p = pool.Alloc();
-    p->id = 1;
-
-    pool.Free(p);
-    return 0;
-}
 📊 Benchmark
 #### ObjectPad = 32
 - SameThread  
