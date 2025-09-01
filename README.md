@@ -1,6 +1,6 @@
 # Custom C++ Memory Pool
 
-🌐 [English](#english-version) | 🇰🇷 [한국어](#한국어-버전)
+🇰🇷 [한국어 문서 보기](README_KR.md)
 
 ---
 
