@@ -34,10 +34,29 @@ int main()
     return 0;
 }
 📊 Benchmark
-![Pad32 ST](MemoryPoolBenchmark/pad32_ST.png)
-Scenario	Alloc Count	Time (ms)	TPS
-new/delete	8,000,000	98432	~8.5 M/s
-MemoryPool Alloc/Free	8,000,000	26586	~30 M/s
+#### ObjectPad = 32
+- SameThread  
+  ![Pad32 ST](MemoryPoolBenchmark/pad32_ST.png)
+- CrossThread  
+  ![Pad32 CT](MemoryPoolBenchmark/pad32_CT.png)
+
+#### ObjectPad = 128
+- SameThread  
+  ![Pad128 ST](MemoryPoolBenchmark/pad128_ST.png)
+- CrossThread  
+  ![Pad128 CT](MemoryPoolBenchmark/pad128_CT.png)
+
+#### ObjectPad = 512
+- SameThread  
+  ![Pad512 ST](MemoryPoolBenchmark/pad512_ST.png)
+- CrossThread  
+  ![Pad512 CT](MemoryPoolBenchmark/pad512_CT.png)
+
+#### ObjectPad = 900
+- SameThread  
+  ![Pad900 ST](MemoryPoolBenchmark/pad900_ST.png)
+- CrossThread  
+  ![Pad900 CT](MemoryPoolBenchmark/pad900_CT.png)
 
 🔮 Future Improvements
 
