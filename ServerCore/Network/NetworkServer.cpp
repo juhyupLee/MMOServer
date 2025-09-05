@@ -14,20 +14,41 @@ NetworkServer::NetworkServer()
 	m_NetworkRecvTraffic = 0;
 	m_NetworkTraffic = 0;
 
+	WSAData wsaData;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+	{
+		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"WSAStartUp() Error:%d", WSAGetLastError());
+	}
+
 }
 
 NetworkServer::~NetworkServer()
 {
 }
-//
-//bool NetworkServer::ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption,NetworkSession** sessionArray)
+
+bool NetworkServer::Initialize()
+{
+	m_IOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 5);
+	if (m_IOCP == nullptr || m_IOCP == INVALID_HANDLE_VALUE)
+	{
+		//LOG_ERR("failed - CreateIoCompletionPort:%", GetLastError());
+		m_IOCP = INVALID_HANDLE_VALUE;
+		return false;
+	}
+
+	InitializeWorkerThread(5);
+	return true;
+}
+//}
+//bool NetworkServer::ServerStart()
 //{
 //	timeBeginPeriod(1);
 //
-//	if (!NetworkInit(ip, port, runningThread, option))
-//	{
-//		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"NetworkInit Fail");
-//	}
+//	WCHAR* ip, uint16_t port;
+//
+//
+//	//TimeOutOption timeOutOption;
+//	
 //
 //	//-----------------------------------------------------
 //	// 세션의 Index를 관리할 락프리 스택 생성 
@@ -36,17 +57,9 @@ NetworkServer::~NetworkServer()
 //	m_TimeOutOption = timeOutOption;
 //	m_IndexStack = new LockFreeStack<uint64_t>;
 //
-//	m_SessionArray = new NetworkSession*[maxUserCount];
-//	m_MaxUserCount = maxUserCount;
-//	for (uint64_t index = 0; index < m_MaxUserCount; ++index)
-//	{
-//		m_SessionArray[index] = sessionArray[index];
-// 		m_IndexStack->Push(index);
-//	}
-//
 //	EventInit();
 //
-//	ThreadInit(workerThreadCount);
+//	InitializeWorkerThread(5);
 //
 //	if (0 != listen(m_ListenSocket, SOMAXCONN))
 //	{
@@ -132,94 +145,7 @@ NetworkServer::~NetworkServer()
 //	m_RecvTPS_To_Main = 0;
 //}
 //
-//bool NetworkServer::NetworkInit(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption option)
-//{
-//	WSAData wsaData;
-//	SOCKADDR_IN serverAddr;
-//
-//	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-//	{
-//		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"WSAStartUp() Error:%d", WSAGetLastError());
-//		return false;
-//	}
-//	m_IOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, runningThread);
-//
-//	m_ListenSocket = socket(AF_INET, SOCK_STREAM, 0);
-//
-//	if (m_ListenSocket == INVALID_SOCKET)
-//	{
-//		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"socket() error:%d", WSAGetLastError());
-//		return false;
-//	}
-//
-//	if (option._SendBufferZero)
-//	{
-//		//----------------------------------------------------------------------------
-//		// 송신버퍼 Zero -->비동기 IO 유도
-//		//----------------------------------------------------------------------------
-//		int optVal = 0;
-//		int optLen = sizeof(optVal);
-//
-//		int rtnOpt = setsockopt(m_ListenSocket, SOL_SOCKET, SO_SNDBUF, (const char*)&optVal, optLen);
-//		if (rtnOpt != 0)
-//		{
-//			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
-//		}
-//	}
-//	if (option._Linger)
-//	{
-//		linger lingerOpt;
-//		lingerOpt.l_onoff = 1;
-//		lingerOpt.l_linger = 0;
-//
-//		int rtnOpt = setsockopt(m_ListenSocket, SOL_SOCKET, SO_LINGER, (const char*)&lingerOpt, sizeof(lingerOpt));
-//		if (rtnOpt != 0)
-//		{
-//			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
-//		}
-//
-//	}
-//	if (option._TCPNoDelay)
-//	{
-//		BOOL tcpNodelayOpt = true;
-//
-//		int rtnOpt = setsockopt(m_ListenSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&tcpNodelayOpt, sizeof(tcpNodelayOpt));
-//		if (rtnOpt != 0)
-//		{
-//			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
-//		}
-//	}
-//
-//	if (option._KeepAliveOption.onoff)
-//	{
-//		DWORD recvByte = 0;
-//
-//		if (0 != WSAIoctl(m_ListenSocket, SIO_KEEPALIVE_VALS, &option._KeepAliveOption, sizeof(tcp_keepalive), NULL, 0, &recvByte, NULL, NULL))
-//		{
-//			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
-//		}
-//	}
-//	ZeroMemory(&serverAddr, sizeof(SOCKADDR_IN));
-//	serverAddr.sin_family = AF_INET;
-//	serverAddr.sin_port = htons(port);
-//
-//	if (ip == nullptr)
-//	{
-//		serverAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-//	}
-//	else
-//	{
-//		InetPton(AF_INET, ip, &serverAddr.sin_addr.S_un.S_addr);
-//	}
-//
-//	if (0 != bind(m_ListenSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)))
-//	{
-//		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"bind() error:%d", WSAGetLastError());
-//		return false;
-//	}
-//
-//	return true;
-//}
+
 //
 //bool NetworkServer::EventInit()
 //{
@@ -231,24 +157,28 @@ NetworkServer::~NetworkServer()
 //	return true;
 //}
 //
-//bool NetworkServer::ThreadInit(DWORD workerThreadCount)
-//{
-//	m_WorkerThreadCount = workerThreadCount;
-//	m_WorkerThread = new HANDLE[workerThreadCount];
-//
-//	for (size_t i = 0; i < m_WorkerThreadCount; ++i)
-//	{
-//		m_WorkerThread[i] = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::WorkerThread, this, 0, NULL);
-//	}
-//
-//	m_AcceptThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::AcceptThread, this, 0, NULL);
-//	m_MonitoringThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::MonitorThread, this, 0, NULL);
-//	m_AuthThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::AuthThread, this, 0, NULL);
-//	m_GameThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::GameLogicThread, this, 0, NULL);
-//	m_SendThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::SendThread, this, 0, NULL);
-//
-//	return true;
-//}
+bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
+{
+	m_WorkerThreadCount = workerThreadCount;
+	m_WorkerThread = new HANDLE[workerThreadCount];
+
+	for (size_t i = 0; i < m_WorkerThreadCount; ++i)
+	{
+		m_workerThread.emplace_back([this]()
+		{
+			NetworkServer::WorkerThread(this);
+		});
+	}
+
+
+	//m_AcceptThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::AcceptThread, this, 0, NULL);
+	//m_MonitoringThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::MonitorThread, this, 0, NULL);
+	//m_AuthThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::AuthThread, this, 0, NULL);
+	//m_GameThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::GameLogicThread, this, 0, NULL);
+	//m_SendThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::SendThread, this, 0, NULL);
+
+	return true;
+}
 //
 //bool NetworkServer::DisconnectAllUser()
 //{
@@ -516,127 +446,31 @@ NetworkServer::~NetworkServer()
 //
 //	}
 //}
-//void NetworkServer::CreateNewSession(ConnectInfo* conInfo)
-//{
-//	NetworkSession* newSession = nullptr;
-//	uint64_t index = 0;
-//
-//	while (!m_IndexStack->Pop(&index))
-//	{
-//		wprintf(L"Pop Indexing\n");
-//	}
-//
-//	newSession = m_SessionArray[index];
-//
-//	if (newSession->_SessionStatus != eSessionStatus::NOT_USED)
-//	{
-//		Crash();
-//	}
-//	if (newSession == nullptr)
-//	{
-//		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"Session이 모두 사용중입니다");
-//		NetworkServer::Crash();
-//	}
-//	//-----------------------------------------------------------------
-//	// Accept한 유저의 기본 IOCount는 1이다
-//	//-----------------------------------------------------------------
-//
-//	newSession->_Index = index;
-//	newSession->_Socket = conInfo->_Socket;
-//
-//
-//	//-----------------------------------------------------------------
-//	// SessionID를 갱신 한후, 그때 RelaseFlag를 초기화해준다.
-//	//-----------------------------------------------------------------
-//	newSession->_ID = GetSessionID(index);
-//
-//	wcscpy_s(newSession->_IP, conInfo->_IP);
-//	newSession->_Port = conInfo->_Port;
-//	newSession->_USED = true;
-//	//--------------------------------------------
-//	if (m_TimeOutOption._OptionOn)
-//	{
-//		newSession->_TimeOut = m_TimeOutOption._LoginTimeOut;
-//	}
-//	newSession->_LastRecvTime = timeGetTime();
-//
-//	//--------------------------------------------
-//
-//	//------------------------------------------
-//	// For Debug
-//	//------------------------------------------
-//	uint64_t tempOrderIndex = (newSession->_OrderIndex++) % 3;
-//	newSession->_LastSessionID[tempOrderIndex][0] = newSession->_SessionOrder++;
-//	newSession->_LastSessionID[tempOrderIndex][1] = newSession->_ID;
-//	newSession->_LastSessionID[tempOrderIndex][2] = newSession->_Socket;
-//
-//
-//	m_ConInfoPool.Free(conInfo);
-//
-//	DWORD tempTransfer;
-//	DWORD tempFlag = 0;
-//	BOOL bResult = WSAGetOverlappedResult(newSession->_Socket, &newSession->_RecvOL, &tempTransfer, FALSE, &tempFlag);
-//	if (!bResult)
-//	{
-//		int error = WSAGetLastError();
-//		if (error == WSA_IO_INCOMPLETE)
-//		{
-//			NetworkServer::Crash();
-//		}
-//	}
-//
-//	if (m_SessionID > UINT64_MAX - 1)
-//	{
-//		NetworkServer::Crash();
-//	}
-//
-//	if (NULL == CreateIoCompletionPort((HANDLE)newSession->_Socket, m_IOCP, (ULONG_PTR)newSession, 0))
-//	{
-//		_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"소켓과 IOCP 연결실패:%d", GetLastError());
-//		newSession->_USED = false;
-//		return;
-//	}
-//
-//	//_LOG(LOG_LEVEL_DEBUG, L"Sesssion[%d]이 연결되었습니다", newSession->_ID);
-//
-//	InterlockedIncrement(&m_SessionCount);//m_SessionCount
-//
-//	newSession->OnClientJoin_Auth(newSession->_IP, newSession->_Port);
-//
-//
-//	WSABUF tempBuffer[1];
-//	DWORD flag = 0;
-//
-//	tempBuffer[0].buf = newSession->_RecvRingQ.GetRearBufferPtr();
-//	tempBuffer[0].len = newSession->_RecvRingQ.GetDirectEnqueueSize();
-//
-//	if (tempBuffer[0].len <= 0)
-//	{
-//		NetworkServer::Crash();
-//	}
-//
-//	int recvRtn = WSARecv(newSession->_Socket, tempBuffer, 1, NULL, &flag, &newSession->_RecvOL, NULL);
-//
-//	newSession->_SessionStatus = eSessionStatus::AUTH;
-//
-//	if (recvRtn == SOCKET_ERROR)
-//	{
-//		int errorCode = WSAGetLastError();
-//		if (errorCode != WSA_IO_PENDING)
-//		{
-//			newSession->_IOFail = true;
-//
-//			DWORD tempIOCount = InterlockedDecrement(&newSession->_IOCount);
-//
-//			SpecialErrorCodeCheck(errorCode);
-//			if (0 == tempIOCount)
-//			{
-//				//MMOGameLib::Crash();
-//				newSession->_bReleaseReady = true;
-//			}
-//		}
-//	}
-//}
+std::shared_ptr<NetworkSession> NetworkServer::CreateNewSession(JobDispatcher* jobDispatcher)
+{
+	auto newSession = std::make_shared<NetworkSession>(jobDispatcher);
+	return newSession;
+}
+
+void NetworkServer::Listen(int32_t port, JobDispatcher* jobDispatcher)
+{
+	auto task = new NetworkTaskListen;
+	task->m_jobDispatcher = jobDispatcher;
+	task->m_port = port;
+	WorkerPush(task);
+}
+
+bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
+{
+	if (CreateIoCompletionPort((HANDLE)socket, m_IOCP, 0, 0) == nullptr)
+	{
+		//LOG_ERR("CreateIoCompletionPort failed:%", GetLastError());
+		return false;
+	}
+	return true;
+}
+
+
 //bool NetworkServer::RecvPacket(NetworkSession* curSession, DWORD transferByte)
 //{
 //	//-----------------------------------------
@@ -648,7 +482,7 @@ NetworkServer::~NetworkServer()
 //
 //		return false;
 //	}
-//	curSession->_RecvRingQ.MoveRear(transferByte);
+//	curSession->_RecvRingQ.MoveRear(transferByte); b
 //
 //	curSession->_LastRecvTime = timeGetTime();
 //
@@ -960,133 +794,40 @@ DWORD NetworkServer::GetSendFPS()
 ////	return 0;
 ////}
 
-//unsigned int __stdcall NetworkServer::WorkerThread(LPVOID param)
-//{	
-//	NetworkServer* mmoServer = (NetworkServer*)param;
-//
-//	while (true)
-//	{
-//		DWORD transferByte = 0;
-//		OVERLAPPED* curOverlap = nullptr;
-//		NetworkSession* curSession = nullptr;
-//		BOOL gqcsRtn = GetQueuedCompletionStatus(mmoServer->m_IOCP, &transferByte, (PULONG_PTR)&curSession, (LPOVERLAPPED*)&curOverlap, INFINITE);
-//
-//		int errorCode;
-//
-//		if (gqcsRtn == FALSE)
-//		{
-//			errorCode = WSAGetLastError();
-//			curSession->_ErrorCode = errorCode;
-//		}
-//
-//		//----------------------------------------------
-//		// GQCS에서 나온 오버랩이 nullptr이면, 타임아웃, IOCP자체가 에러 , 아니면 postQ로 NULL을 넣었을때이다
-//		//----------------------------------------------
-//		if (curOverlap == NULL && curSession == NULL && transferByte == 0)
-//		{
-//			break;
-//		}
-//		do
-//		{
-//			if (curSession == nullptr)
-//			{
-//				mmoServer->NetworkServer::Crash();
-//			}
-//			if (curSession->_IOCount == 0)
-//			{
-//				mmoServer->NetworkServer::Crash();
-//			}
-//			curSession->_GQCSRtn = gqcsRtn;
-//
-//			uint64_t sessionID = curSession->_ID;
-//
-//			if (transferByte == 0)
-//			{
-//				if (curOverlap == &curSession->_RecvOL)
-//				{
-//
-//					if (gqcsRtn == TRUE)
-//					{
-//						mmoServer->NetworkServer::Crash();
-//					}
-//					curSession->_TransferZero = 5;
-//				}
-//				else if (curOverlap == &curSession->_SendOL)
-//				{
-//					if (gqcsRtn == TRUE)
-//					{
-//						mmoServer->NetworkServer::Crash();
-//					}
-//					curSession->_TransferZero = 6;
-//				}
-//				//----------------------------------------------
-//				// 작업 실패시 close socket을 해준다
-//				//----------------------------------------------
-//				break;
-//			}
-//
-//			if (curOverlap == &curSession->_RecvOL)
-//			{
-//				if (curSession->_IOCount <= 0)
-//				{
-//					mmoServer->NetworkServer::Crash();
-//				}
-//				mmoServer->RecvPacket(curSession, transferByte);
-//			}
-//			else if (curOverlap == &curSession->_SendOL)
-//			{
-//				if (curSession->_IOCount <= 0)
-//				{
-//					mmoServer->NetworkServer::Crash();
-//				}
-//
-//				if (curSession->_SendByte != transferByte)
-//				{
-//					mmoServer->NetworkServer::Crash();
-//				}
-//
-//				mmoServer->DeQPacket(curSession);
-//				curSession->_SendByte = 0;
-//
-//				////-------------------------------------------------------
-//				//// send 완료통지가 왔기때문에 SendFlag를 바꿔준다. 
-//				////-------------------------------------------------------
-//				InterlockedExchange(&curSession->_SendFlag, 0);
-//
-//				InterlockedAdd(&mmoServer->m_NetworkTraffic, transferByte + 40);
-//			}
-//			else
-//			{
-//				// 오버랩 들어온거비교
-//				//--------------------------------
-//				// For Devbug
-//				//--------------------------------
-//				mmoServer->NetworkServer::Crash();
-//			}
-//
-//		} while (0);
-//
-//
-//		if (curSession->_IOCount <= 0)
-//		{
-//			mmoServer->NetworkServer::Crash();
-//		}
-//
-//		//-------------------------------------------------------------
-//		// 완료통지로 인한 IO 차감
-//		//-------------------------------------------------------------
-//		int tempIOCount = InterlockedDecrement(&curSession->_IOCount);
-//
-//		if (0 == tempIOCount)
-//		{
-//			curSession->_bReleaseReady = true;
-//		}
-//
-//	}
-//	_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_SYSTEM, L"WorkerThread[%d] 종료", GetCurrentThreadId());
-//
-//	return 0;
-//}
+void NetworkServer::WorkerThread(LPVOID param)
+{	
+	while (true)
+	{
+		DWORD transferByte = 0;
+		LPOVERLAPPED overlapped = nullptr;
+		ULONG_PTR key = 0;
+		BOOL result = GetQueuedCompletionStatus(NetworkServer::GetInstance()->GetIOCP(),&transferByte, &key, &overlapped, INFINITE);
+		//----------------------------------------------
+		// GQCS에서 나온 오버랩이 nullptr이면, 타임아웃, IOCP자체가 에러 , 아니면 postQ로 NULL을 넣었을때이다
+		//----------------------------------------------
+		if (overlapped == nullptr  || result == FALSE)
+		{
+			break;
+		}
+		
+		CONTAINING_RECORD(overlapped, NetworkTask, m_overlapped)->Run(result, transferByte);
+
+	}
+	_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_SYSTEM, L"WorkerThread[%d] 종료", GetCurrentThreadId());
+
+	//return 0;
+}
+
+bool NetworkServer::WorkerPush(NetworkTask* networkTask)
+{
+	PostQueuedCompletionStatus(m_IOCP, 0, NULL, reinterpret_cast<LPOVERLAPPED>(&networkTask->m_overlapped));
+	return true;
+}
+
+HANDLE NetworkServer::GetIOCP()
+{
+	return m_IOCP;
+}
 
 //unsigned int __stdcall NetworkServer::MonitorThread(LPVOID param)
 //{

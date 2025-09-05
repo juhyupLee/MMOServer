@@ -7,8 +7,7 @@
 
 #include "../ServerCore/PCH/PCH_ServerCore.h"
 
-#include "../NetworkServer.h"
-#include "../MMOServer.h"
+//#include "../MMOServer.h"
 ////วฅมุ
 //#include <stdio.h>
 //#include <iostream>

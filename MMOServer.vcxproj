@@ -157,17 +157,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CommonProtocol2.h" />
-    <ClInclude Include="NetworkServer.h" />
     <ClInclude Include="MMOServer.h" />
     <ClInclude Include="MonitorPDH.h" />
     <ClInclude Include="PCH\PCH_MMOServer.h" />
+    <ClInclude Include="PlayServer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="NetworkServer.cpp" />
     <ClCompile Include="MMOServer.cpp" />
     <ClCompile Include="MonitorPDH.cpp" />
     <ClCompile Include="PCH\PCH_MMOServer.cpp" />
+    <ClCompile Include="PlayServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="NatvisFile.natvis" />

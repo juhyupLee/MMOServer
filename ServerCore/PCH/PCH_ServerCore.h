@@ -5,6 +5,8 @@
 //Windows 헤더 파일:
 
 #pragma comment ( lib, "mimalloc.lib" )
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Mswsock.lib")
 //국가 관련
 #include <locale>
 #include <stdint.h>
@@ -62,6 +64,7 @@
 #include "../../mimalloc.h"
 
 //개인라이브러리
+#include "../Utill/Singleton.h"
 #include "../Utill/TimeUtill.h"
 #include "../Utill/Log.h"
 #include "../Utill/PointerStack.h"
@@ -83,10 +86,13 @@
 
 #include "../Network/Option.h"
 #include "../Network/TemplateQ.h"
+#include "../Network/JobQueue.h"
+#include "../Network/JobDispatcher.h"
 #include "../Network/NetworkSession.h"
-
+#include "../Network/NetworkServer.h"
+#include "../Network/NetworkTask.h"
+#include "../Network/BaseServerApp.h"
 #include "../Test/Test_MemoryPool.h"
-
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 

@@ -14,7 +14,6 @@
 
 #define SERVER_NAME L"MMOGameServer"
 
-
 enum eSessionStatus
 {
 	NOT_USED,
@@ -28,9 +27,9 @@ enum eSessionStatus
 
 
 class NetworkSession;
+struct NetworkTask;
 
-
-class NetworkServer
+class NetworkServer : public Singleton<NetworkServer>
 {
 public:
 
@@ -44,48 +43,52 @@ public:
 public:
 	NetworkServer();
 	~NetworkServer();
+	bool Initialize();
 
 public:
-	bool ServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption, NetworkSession** sessionArray);
+	void Listen(int32_t port, JobDispatcher* jobDispatcher);
+	bool RegisterSocketToIOCP(SOCKET socket);
+	//bool Start(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption, NetworkSession** sessionArray);
 	//void ServerStop();
-	bool NetworkInit(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption option);
-	bool EventInit();
-	bool ThreadInit(DWORD workerThreadCount);
+	//bool NetworkInit(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption option);
+	//bool EventInit();
+	bool InitializeWorkerThread(DWORD workerThreadCount);
+	std::shared_ptr<NetworkSession> CreateNewSession(JobDispatcher* jobDispatcher);
 
-	bool DisconnectAllUser();
+	//bool DisconnectAllUser();
 
-	static void SpecialErrorCodeCheck(int32_t errorCode);
+	//static void SpecialErrorCodeCheck(int32_t errorCode);
 
 
-	uint64_t GetSessionID(uint64_t index);
-	uint16_t GetSessionIndex(uint64_t sessionID);
+	//uint64_t GetSessionID(uint64_t index);
+	//uint16_t GetSessionIndex(uint64_t sessionID);
 
 	//-----------------------------------------------------------------------------
 	// Release 관련 정리함수들
 	//-----------------------------------------------------------------------------
-	void ReleaseSession(NetworkSession* delSession);
-	void ReleaseSocket(NetworkSession* session);
-	void ReleasePacket(NetworkSession* session);
-	void DeQPacket(NetworkSession* session);
-	void SessionClear(NetworkSession* session);
+	//void ReleaseSession(NetworkSession* delSession);
+	//void ReleaseSocket(NetworkSession* session);
+	//void ReleasePacket(NetworkSession* session);
+	//void DeQPacket(NetworkSession* session);
+	//void SessionClear(NetworkSession* session);
 	
 
 	//-----------------------------------------------------------------------------
 	// Timeout, 보내고 끊기 함수들
 	//-----------------------------------------------------------------------------
-	void SetTimeOut(NetworkSession* session);
-	void SetTimeOut(NetworkSession* session, DWORD timeOut);
+	//void SetTimeOut(NetworkSession* session);
+	//void SetTimeOut(NetworkSession* session, DWORD timeOut);
 	//void SendNDiscon(NetworkSession* session, NetPacket* packet);
 
 public:
 
-	virtual bool OnConnectionRequest(WCHAR* ip, uint16_t port) = 0;
-	void AcceptUser(SOCKET socket, WCHAR* ip, uint16_t port);
-	void CreateNewSession(ConnectInfo* conInfo);
+	//virtual bool OnConnectionRequest(WCHAR* ip, uint16_t port) = 0;
+	//void AcceptUser(SOCKET socket, WCHAR* ip, uint16_t port);
 
 
-	bool RecvPacket(NetworkSession* curSession, DWORD transferByte);
-	bool RecvPost(NetworkSession* curSession);
+
+	//bool RecvPacket(NetworkSession* curSession, DWORD transferByte);
+	//bool RecvPost(NetworkSession* curSession);
 
 	//-----------------------------------------------------------------------------
 	// 모니터링 Getter
@@ -106,21 +109,23 @@ public:
 
 protected:
 
-	void SetSessionArray(NetworkSession* sessionArray,DWORD maxUserCount);
+	//void SetSessionArray(NetworkSession* sessionArray,DWORD maxUserCount);
 
 private:
 	//-----------------------------------------------------------------------
 	// MMOG GameLib에서 관리하는 스레드 
 	//-----------------------------------------------------------------------
 	//static unsigned int __stdcall AcceptThread(LPVOID param);
-	//static unsigned int __stdcall WorkerThread(LPVOID param);
+	static void WorkerThread(LPVOID param);
 	//static unsigned int __stdcall MonitorThread(LPVOID param);
 	//static unsigned int __stdcall AuthThread(LPVOID param);
 	//static unsigned int __stdcall SendThread(LPVOID param);
 
-
+	
 public:
 	static void Crash();
+	bool WorkerPush(NetworkTask* networkTask);
+	HANDLE GetIOCP();
 private:
 	LockFreeStack<uint64_t>* m_IndexStack;
 	
@@ -143,6 +148,7 @@ private:
 
 	SOCKET m_ListenSocket;
 	HANDLE* m_WorkerThread;
+	std::vector<std::thread> m_workerThread;
 	HANDLE m_AcceptThread;
 	HANDLE m_MonitoringThread;
 	HANDLE m_GameThread;
@@ -195,3 +201,4 @@ private:
 	HANDLE m_SendThreadEvent;
 
 };
+

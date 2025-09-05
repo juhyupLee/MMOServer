@@ -285,8 +285,8 @@ using PoolAlloc = MyAllocator<T>; // fallback so the file builds out of the box
 #endif
 
 // ===== Tunables =============================================================
-static constexpr int    DEFAULT_SAME_OPS_PER_THREAD = 50'000*10 ;   // per worker
-static constexpr int    DEFAULT_CROSS_OPS_PER_ALLOC = 50'000*10 ;   // per alloc thread
+static constexpr int    DEFAULT_SAME_OPS_PER_THREAD = 50'000*5 ;   // per worker
+static constexpr int    DEFAULT_CROSS_OPS_PER_ALLOC = 50'000*5 ;   // per alloc thread
 static constexpr int    DEFAULT_BATCH = 64;        // SameThread batch free
 static constexpr int    VERIFY_SAMPLE_RATE = 1024;      // every N ops, do a light check
 static constexpr long long DELAY_NONE_NS = 0;
@@ -430,7 +430,8 @@ static void AppendCSV(std::ofstream& fout, const Result& r) {
 // ===== Bench: SameThread ====================================================
 
 template<class AllocT, int OBJECT_PAD>
-static Result Bench_SameThread_allocate_shared(const char* label, int workers, int ops_per_worker, int batch) {
+static Result Bench_SameThread_allocate_shared(const char* label, int workers, int ops_per_worker, int batch)
+{
     using T = TestData<OBJECT_PAD>;
     Result r; r.object_pad = std::to_string(OBJECT_PAD); r.threads = workers; r.label = label; r.scenario = "SameThread";
 

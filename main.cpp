@@ -1,22 +1,18 @@
 ﻿
 
-#include "ServerCore/Test/Test_LockFreeStack.h"
-
-class TempPlayer
-{
-public:
-	int hp;
-	virtual void Testfunc()
-	{
-		std::cout << hp << std::endl;
-	}
-};
-//#include "./ServerCore/Test/Test_MemoryPool.h"
+//#include "ServerCore/PlayServer.h"
+//#include "ServerCore/Test/Test_LockFreeStack.h"
+#include "PlayServer.h"
 int main()
 {
-	//auto temp = mi_malloc(1);
+	PlayServer server;
+
+	server.Initialize();
+	server.Start();
+	server.Run();
+
 	//auto temp = std::allocate_shared<TempPlayer>(MyAllocator<TempPlayer>());
-	StartMemoryPool();
+	//StartMemoryPool();
 	//Start_LockFreeStack();
 	//MemoryPool mem;
 	//mem.Alloc(10);

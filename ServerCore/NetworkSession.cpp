@@ -2,7 +2,6 @@
 
 bool NetworkSession::Disconnect()
 {
-	_bIOCancel = true;
 	IO_Cancel();
 	return true;
 }
@@ -12,8 +11,161 @@ void NetworkSession::IO_Cancel()
 	//-----------------------------------------------
 	// Overlapped Pointer가 NULL일시 Send ,Recv 둘다 IO취소한다
 	//-----------------------------------------------
-	CancelIoEx((HANDLE)_Socket, NULL);
+	//CancelIoEx((HANDLE)_Socket, NULL);
 }
+
+void NetworkSession::Listen(int32_t port)
+{
+	SocketOption sockOption;
+	sockOption._KeepAliveOption.onoff = 0;
+	sockOption._Linger = true;
+	sockOption._TCPNoDelay = false;
+	sockOption._SendBufferZero = false;
+
+	SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
+	if (listenSocket == INVALID_SOCKET)
+	{
+		//LOG_ERR("failed - WSASocket:%", WSAGetLastError());
+		return;
+	}
+
+	if (sockOption._SendBufferZero)
+	{
+		//----------------------------------------------------------------------------
+		// 송신버퍼 Zero -->비동기 IO 유도
+		//----------------------------------------------------------------------------
+		int optVal = 0;
+		int optLen = sizeof(optVal);
+
+		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_SNDBUF, (const char*)&optVal, optLen);
+		if (rtnOpt != 0)
+		{
+			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+		}
+	}
+	if (sockOption._Linger)
+	{
+		linger lingerOpt;
+		lingerOpt.l_onoff = 1;
+		lingerOpt.l_linger = 0;
+
+		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_LINGER, (const char*)&lingerOpt, sizeof(lingerOpt));
+		if (rtnOpt != 0)
+		{
+			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+		}
+
+	}
+	if (sockOption._TCPNoDelay)
+	{
+		BOOL tcpNodelayOpt = true;
+
+		int rtnOpt = setsockopt(listenSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&tcpNodelayOpt, sizeof(tcpNodelayOpt));
+		if (rtnOpt != 0)
+		{
+			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+		}
+	}
+
+	if (sockOption._KeepAliveOption.onoff)
+	{
+		DWORD recvByte = 0;
+
+		if (0 != WSAIoctl(listenSocket, SIO_KEEPALIVE_VALS, &sockOption._KeepAliveOption, sizeof(tcp_keepalive), NULL, 0, &recvByte, NULL, NULL))
+		{
+			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+		}
+	}
+
+
+	NetworkServer::GetInstance()->RegisterSocketToIOCP(listenSocket);
+	SetSocket(listenSocket);
+
+	SOCKADDR_IN local = { };
+	local.sin_family = AF_INET;
+	local.sin_addr.s_addr = INADDR_ANY;
+	local.sin_port = htons((unsigned short)port);
+	if (bind(listenSocket, (SOCKADDR*)&local, sizeof(local)) == SOCKET_ERROR)
+	{
+		//LOG_ERR("failed - bind:%", WSAGetLastError());
+		return;
+	}
+
+	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR )
+	{
+		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"listen() error:%d", WSAGetLastError());
+		return;
+	}
+
+	for (int32_t n = 0; n < 1; ++n)
+	{
+		auto task = new NetworkTaskAcceptIO;
+		task->m_owner = shared_from_this();
+		if (!NetworkServer::GetInstance()->WorkerPush(task))
+		{
+			/*LOG_ERR("fail - NetworkTaskAcceptIO WorkerPush");
+			m_tasks.pop_back();
+			Close();*/
+			return;
+		}
+	}
+}
+
+void NetworkSession::SetSocket(SOCKET socket)
+{
+	m_socket = socket;
+}
+
+SOCKET NetworkSession::GetSocket()
+{
+	return m_socket;
+}
+
+JobDispatcher* NetworkSession::GetJobDispatcher()
+{
+	return m_jobQueue->GetJobDispatcher();
+}
+
+void NetworkSession::OnAccept(std::string ip, int32_t port, SOCKET sock)
+{
+	m_ip = ip;
+	m_port = port;
+
+	////타임아웃 적용하도록 셋팅
+	//m_ignoreTimeout = false;
+
+	//int64_t currentTime = TimeUtil::GetEpochTimeForNetwork();
+	//m_timeoutTime = currentTime + NETWORK_TIMEOUT_TIME;
+	//m_pingTime = currentTime + NETWORK_PING_TIME;
+
+	//소켓셋팅
+	SetSocket(sock);
+
+	//내부로 접속한 유저가 있다고 알려준다.
+	//FAcceptAckT msg1;
+	//msg1.ip = ip;
+	//msg1.port = port;
+	//ExecuteCallback((HANDLE)m_sessionID, msg1);
+
+	//접속한사람한테 알려준다.
+	//FConnectAckT msg2;
+	//msg2.result = EResultID::R_SUCCESS;
+	//NetworkSystem::GetInstance()->Send(m_sessionID, msg2);
+
+	//receive 요청
+	auto task = new NetworkTaskReceiveIO;
+	task->m_owner = this->shared_from_this();
+	NetworkServer::GetInstance()->WorkerPush(task);
+
+	//if (!NetworkSystem::GetInstance()->WorkerPush((LPOVERLAPPED)task.get()))
+	//{
+	//	LOG_ERR("fail - NetworkTaskReceiveIO WorkerPush");
+	//	m_tasks.pop_back();
+	//	Close();
+	//	return;
+	//}
+}
+
 //
 //bool NetworkSession::SendPost()
 //{

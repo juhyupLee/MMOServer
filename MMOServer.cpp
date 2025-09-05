@@ -306,7 +306,7 @@ bool MyMMOServer::MMOServerStart(WCHAR* ip, uint16_t port, DWORD runningThread, 
     // 워커스레드, Accept Thread  , Monitoring 스레드 가동
     //-------------------------------------------------------------------
 
-    //ServerStart(ip,port, runningThread,option,workerThreadCount,maxUserCount, timeOutOption, (NetworkSession**)clientPointerArray);
+    //Start(ip,port, runningThread,option,workerThreadCount,maxUserCount, timeOutOption, (NetworkSession**)clientPointerArray);
 
 
     m_bServerOn = true;
