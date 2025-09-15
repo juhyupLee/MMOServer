@@ -11,8 +11,6 @@ NetworkServer::NetworkServer()
 	m_AuthSessionCount = 0;
 	m_GameSessionCount = 0;
 
-	m_NetworkRecvTraffic = 0;
-	m_NetworkTraffic = 0;
 
 	WSAData wsaData;
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
@@ -38,6 +36,21 @@ bool NetworkServer::Initialize()
 
 	InitializeWorkerThread(5);
 	return true;
+}
+
+void NetworkServer::Convert(char* buffer, int32_t bufferSize)
+{
+	const std::string g_key = "MMORPG - MOBIRIX";
+
+	uint8_t* pos = (uint8_t*)buffer;
+	uint8_t key = 0;
+
+	for (int32_t n = 0; n < bufferSize; ++n)
+	{
+		key = (key + static_cast<uint8_t>(g_key.at(n % g_key.size()))) * 253 + 195;
+		*pos = (*pos) ^ key;
+		++pos;
+	}
 }
 //}
 //bool NetworkServer::ServerStart()
@@ -160,7 +173,6 @@ bool NetworkServer::Initialize()
 bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
 {
 	m_WorkerThreadCount = workerThreadCount;
-	m_WorkerThread = new HANDLE[workerThreadCount];
 
 	for (size_t i = 0; i < m_WorkerThreadCount; ++i)
 	{
@@ -169,14 +181,6 @@ bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
 			NetworkServer::WorkerThread(this);
 		});
 	}
-
-
-	//m_AcceptThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::AcceptThread, this, 0, NULL);
-	//m_MonitoringThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::MonitorThread, this, 0, NULL);
-	//m_AuthThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::AuthThread, this, 0, NULL);
-	//m_GameThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::GameLogicThread, this, 0, NULL);
-	//m_SendThread = (HANDLE)_beginthreadex(NULL, 0, NetworkServer::SendThread, this, 0, NULL);
-
 	return true;
 }
 //
@@ -448,8 +452,19 @@ bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
 //}
 std::shared_ptr<NetworkSession> NetworkServer::CreateNewSession(JobDispatcher* jobDispatcher)
 {
+	std::lock_guard guard(m_lock);
 	auto newSession = std::make_shared<NetworkSession>(jobDispatcher);
+	auto it = m_sessions.insert({ newSession->GetSessionID(), newSession });
+	if (it.second == false)
+		return nullptr;
 	return newSession;
+}
+
+bool NetworkServer::RemoveSession(int64_t sessionID)
+{
+	std::lock_guard guard(m_lock);
+	m_sessions.erase(sessionID);
+	return true;
 }
 
 void NetworkServer::Listen(int32_t port, JobDispatcher* jobDispatcher)
@@ -476,13 +491,13 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 //	//-----------------------------------------
 //	// Enqueue 확정
 //	//-----------------------------------------
-//	if ((int)transferByte > curSession->_RecvRingQ.GetFreeSize())
+//	if ((int)transferByte > curSession->_RecvRingQ.GetWriteSize())
 //	{
 //		//curSession->Disconnect();
 //
 //		return false;
 //	}
-//	curSession->_RecvRingQ.MoveRear(transferByte); b
+//	curSession->_RecvRingQ.MoveWitePosition(transferByte); b
 //
 //	curSession->_LastRecvTime = timeGetTime();
 //
@@ -494,7 +509,7 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 //		NetHeader header;
 //		NetPacket* packet;
 //
-//		int usedSize = curSession->_RecvRingQ.GetUsedSize();
+//		int usedSize = curSession->_RecvRingQ.GetReadSize();
 //
 //		if (usedSize < sizeof(NetHeader))
 //		{
@@ -508,7 +523,7 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 //			// 헤더의 코드가 다를 경우 유저를 끊는다.
 //			//----------------------------------------
 //			_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"헤더 코드가 다름 [Session ID:%llu] [Code:%d]", curSession->_ID, header._Code);
-//			_LOG->WriteLogHex(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"Recv RingQ Hex", (BYTE*)curSession->_RecvRingQ.GetFrontBufferPtr(), curSession->_RecvRingQ.GetDirectDequeueSize());
+//			_LOG->WriteLogHex(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_ERROR, L"Recv RingQ Hex", (BYTE*)curSession->_RecvRingQ.GetReadBufferPtr(), curSession->_RecvRingQ.GetDirectReadSize());
 //
 //			//curSession->Disconnect();
 //			return false;
@@ -530,14 +545,14 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 //			// 들어오려고하는패킷이, 내 링버퍼 현재 여유사이즈보다 크면 말이안되기때문에,
 //			// 그런 Session은 연결을 끊는다.
 //			//-------------------------------------
-//			if (header._Len > curSession->_RecvRingQ.GetFreeSize())
+//			if (header._Len > curSession->_RecvRingQ.GetWriteSize())
 //			{
 //				//curSession->Disconnect();
 //				return false;
 //			}
 //			break;
 //		}
-//		curSession->_RecvRingQ.MoveFront(sizeof(header));
+//		curSession->_RecvRingQ.MoveReadPosition(sizeof(header));
 //
 //		//packet = NetPacket::Alloc();
 //
@@ -585,7 +600,7 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 //	//-------------------------------------------------------------
 //	// Recv 걸기
 //	//-------------------------------------------------------------
-//	if (curSession->_RecvRingQ.GetFreeSize() <= 0)
+//	if (curSession->_RecvRingQ.GetWriteSize() <= 0)
 //	{
 //		//curSession->Disconnect();
 //		return false;
@@ -678,49 +693,11 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 //}
 
 
-
-
-
-int64_t NetworkServer::GetAcceptCount()
-{
-	return m_AcceptCount;
-}
-
-LONG NetworkServer::GetAcceptTPS()
-{
-	return m_AcceptTPS_To_Main;
-}
-
-LONG NetworkServer::GetSendTPS()
-{
-	return m_SendTPS_To_Main;
-}
-
-LONG NetworkServer::GetRecvTPS()
-{
-	return m_RecvTPS_To_Main;
-}
-
-LONG NetworkServer::GetNetworkTraffic()
-{
-	return m_NetworkTraffic_To_Main;
-}
-
-LONG NetworkServer::GetNetworkRecvTraffic()
-{
-	return m_NetworkRecvTraffic_To_Main;
-}
-
 LONG NetworkServer::GetSessionCount()
 {
 	return m_SessionCount;
 }
 
-
-LONG NetworkServer::GetSendQMeomryCount()
-{
-	return m_SendQMemory;
-}
 
 LONG NetworkServer::GetLockFreeStackMemoryCount()
 {
@@ -729,21 +706,6 @@ LONG NetworkServer::GetLockFreeStackMemoryCount()
 		return 0;
 	}
 	return m_IndexStack->GetMemoryAllocCount();
-}
-
-DWORD NetworkServer::GetAuthFPS()
-{
-	return m_AuthFPS_To_Main;
-}
-
-DWORD NetworkServer::GetGameFPS()
-{
-	return m_GameFPS_To_Main;
-}
-
-DWORD NetworkServer::GetSendFPS()
-{
-	return m_SendFPS_To_Main;
 }
 
 
@@ -809,8 +771,12 @@ void NetworkServer::WorkerThread(LPVOID param)
 		{
 			break;
 		}
-		
-		CONTAINING_RECORD(overlapped, NetworkTask, m_overlapped)->Run(result, transferByte);
+
+		auto networkTask = static_cast<NetworkTask*>(overlapped);
+		if(networkTask->Run(result, transferByte) == false)
+		{
+			delete networkTask;
+		}
 
 	}
 	_LOG->WriteLog(L"ChattingServer", SysLog::eLogLevel::LOG_LEVEL_SYSTEM, L"WorkerThread[%d] 종료", GetCurrentThreadId());
@@ -820,7 +786,7 @@ void NetworkServer::WorkerThread(LPVOID param)
 
 bool NetworkServer::WorkerPush(NetworkTask* networkTask)
 {
-	PostQueuedCompletionStatus(m_IOCP, 0, NULL, reinterpret_cast<LPOVERLAPPED>(&networkTask->m_overlapped));
+	PostQueuedCompletionStatus(m_IOCP, 0, NULL, static_cast<LPOVERLAPPED>(networkTask));
 	return true;
 }
 
@@ -941,7 +907,7 @@ HANDLE NetworkServer::GetIOCP()
 //				else
 //				{
 //					
-//					//wprintf(L"QCount:%d", curSession->_CompleteRecvPacketQ.GetUsedSize());
+//					//wprintf(L"QCount:%d", curSession->_CompleteRecvPacketQ.GetReadSize());
 //					while (true)
 //					{
 //						NetPacket* packet = nullptr;

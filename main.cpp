@@ -11,6 +11,10 @@ int main()
 	server.Start();
 	server.Run();
 
+	while(true)
+	{
+		
+	}
 	//auto temp = std::allocate_shared<TempPlayer>(MyAllocator<TempPlayer>());
 	//StartMemoryPool();
 	//Start_LockFreeStack();

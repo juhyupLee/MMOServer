@@ -12,8 +12,8 @@ enum
 RingQ::RingQ()
     :
     m_Buffer{ 0, },
-    m_Front(0),
-    m_Rear(0)
+    m_readPosition(0),
+    m_writePosition(0)
 {
     int a = 10;
 }
@@ -22,61 +22,11 @@ RingQ::~RingQ()
 {
 }
 
-int RingQ::Enqueue(char* buffer, int32_t size, Session* curSession)
-{
-    int32_t copyFront = m_Front;
-    int32_t copyRear = m_Rear;
-
-    int32_t copyFreeSize = GetFreeSize(copyFront,copyRear);
-
-    //-----------------------------------
-    // 링버퍼의 남은 사이즈가 들어온 사이즈보다 작다면 size를 프리사이즈로바꿈
-    //-----------------------------------
-    if (copyFreeSize < size)
-    {
-        size = copyFreeSize;
-        if (size <= 0)
-        {
-            return 0;
-        }
-    }
-    int32_t diff = 0;
-    int32_t directSize = GetDirectEnqueueSize(copyFront, copyRear);
-
-    //-----------------------------------
-    // Enqueue 들어오면 m_Rear는 쁠쁠 먼저하고, Enqeue를한다.
-    //-----------------------------------
-    copyRear = (copyRear + 1) % RING_BUFFER_SIZE;
-
-    //-----------------------------------
-    // 인자로 들어온 사이즈가  연속된 사이즈 보다 더 크다면, memcpy를 나눠서해야한다
-    //-----------------------------------
-    if (directSize < size)
-    {
-        memcpy(m_Buffer + copyRear, buffer, directSize);
-        copyRear = (copyRear +directSize-1) % RING_BUFFER_SIZE;
-        diff = size - directSize;
-
-        copyRear = (copyRear + 1) % RING_BUFFER_SIZE;
-        memcpy(m_Buffer + copyRear, buffer + directSize, diff);
-        copyRear = (copyRear + diff-1) % RING_BUFFER_SIZE;
-    }
-    else
-    {
-        memcpy(m_Buffer + copyRear, buffer, size);
-        copyRear = (copyRear +size-1) % RING_BUFFER_SIZE;
-    }
-
-    m_Rear = copyRear;
-
-    return size;
-}
-
 int RingQ::Enqueue(char* buffer, int32_t size)
 {
 
-    int32_t copyFront = m_Front;
-    int32_t copyRear = m_Rear;
+    int32_t copyFront = m_readPosition;
+    int32_t copyRear = m_writePosition;
 
     int32_t copyFreeSize = GetFreeSize(copyFront, copyRear);
 
@@ -118,15 +68,15 @@ int RingQ::Enqueue(char* buffer, int32_t size)
         copyRear = (copyRear + size - 1) % RING_BUFFER_SIZE;
     }
 
-    m_Rear = copyRear;
+    m_writePosition = copyRear;
 
     return size;
 }
 
 int RingQ::Dequeue(char* buffer, int32_t size)
 {
-    int copyRear = m_Rear;
-    int copyFront = m_Front;
+    int copyRear = m_writePosition;
+    int copyFront = m_readPosition;
     int copyUsedSize = GetUsedSize(copyFront, copyRear);
 
     //-------------------------------------------
@@ -166,53 +116,53 @@ int RingQ::Dequeue(char* buffer, int32_t size)
         copyFront = (copyFront +size -1 ) % RING_BUFFER_SIZE;
     }
 
-    m_Front = copyFront;
+    m_readPosition = copyFront;
  
     return size;
 }
 
-int32_t RingQ::GetFreeSize() const
+int32_t RingQ::GetWriteSize() const
 {
-    int32_t copyFront = m_Front;
-    int32_t copyRear = m_Rear;
+    int32_t copyReadPos = m_readPosition;
+    int32_t copyWritePos = m_writePosition;
 
     int freeSize = 0;
 
-    if ((copyRear + 1) % RING_BUFFER_SIZE == copyFront)
+    if ((copyWritePos + 1) % RING_BUFFER_SIZE == copyReadPos)
     {
         return 0;
     }
-    if (copyFront > copyRear)
+    if (copyReadPos > copyWritePos)
     {
-        freeSize = copyFront - copyRear -1;
+        freeSize = copyReadPos - copyWritePos -1;
     }
     else
     {
-        freeSize = copyFront + (RING_BUFFER_SIZE - 1) - copyRear;
+        freeSize = copyReadPos + (RING_BUFFER_SIZE - 1) - copyWritePos;
     }
     return freeSize;
 }
 
-int32_t RingQ::GetUsedSize() const
+int32_t RingQ::GetReadSize() const
 {
-    int32_t copyRear = m_Rear;
-    int32_t copyFront = m_Front;
+    int32_t copyWritePos = m_writePosition;
+    int32_t copyReadPos = m_readPosition;
 
-    int32_t usedSize = 0;
+    int32_t readSize = 0;
 
-    if (copyRear == copyFront)
+    if (copyWritePos == copyReadPos)
     {
         return 0;
     }
-    if (copyFront < copyRear)
+    if (copyReadPos < copyWritePos)
     {
-        usedSize = copyRear - copyFront;
+        readSize = copyWritePos - copyReadPos;
     }
     else
     {
-        usedSize = copyRear + (RING_BUFFER_SIZE - 1) - copyFront + 1;
+        readSize = copyWritePos + (RING_BUFFER_SIZE - 1) - copyReadPos + 1;
     }
-    return usedSize;
+    return readSize;
 }
 
 int32_t RingQ::GetFreeSize(int32_t front, int32_t rear) const
@@ -254,13 +204,13 @@ int32_t RingQ::GetUsedSize(int32_t front, int32_t rear) const
     return usedSize;
 }
 
-int32_t RingQ::GetDirectEnqueueSize() const
+int32_t RingQ::GetDirectWriteSize() const
 {
      //-----------------------------------
     // 링버퍼의 사이즈가 꽉찼다면, Direct Size를 구할수 없다. 0반환
     //-----------------------------------
-    int copyFront = m_Front;
-    int copyRear = m_Rear;
+    int copyFront = m_readPosition;
+    int copyRear = m_writePosition;
 
     if ((copyRear + 1) % RING_BUFFER_SIZE == copyFront)
     {
@@ -272,7 +222,7 @@ int32_t RingQ::GetDirectEnqueueSize() const
 
     //-----------------------------------
     // mRear < mFront < 인덱스 끝
-    // 이러면  연속된 인덱스는 m_Front 전까지다.
+    // 이러면  연속된 인덱스는 m_readPosition 전까지다.
     //-----------------------------------
 
     if (rearNext < copyFront)
@@ -280,7 +230,7 @@ int32_t RingQ::GetDirectEnqueueSize() const
         directSize = copyFront - rearNext;
     }
     //-----------------------------------
-    // 그것이 아니라면, m_Rear ~ 인덱스끝까지가 연속된 메모리 할당범위다.
+    // 그것이 아니라면, m_writePosition ~ 인덱스끝까지가 연속된 메모리 할당범위다.
     //-----------------------------------
     else
     {
@@ -290,72 +240,50 @@ int32_t RingQ::GetDirectEnqueueSize() const
     return directSize;
 }
 
-void RingQ::GetDirectEnQData(DirectData* directSize) 
+void RingQ::GetDirectEnQData(std::vector<WSABUF>& wsaBufs) 
 {
-    int32_t  copyFront = m_Front;
-    int32_t copyRear = m_Rear;
+    int32_t  copyFront = m_readPosition;
+    int32_t copyRear = m_writePosition;
 
+    for(int32_t i =0; i<2;++i)
+    {
+        auto buffer = GetWriteBufferPtr(copyFront, copyRear);
+        if(buffer == nullptr)
+        {
+            break;
+        }
 
-    (*directSize).bufferPtr1 = GetRearBufferPtr(copyFront, copyRear);
+        WSABUF wsaBuf;
+        auto directEnQSize = GetDirectEnqueueSize(copyFront, copyRear);
+        wsaBuf.buf = buffer;
+        wsaBuf.len = directEnQSize;
+        wsaBufs.emplace_back(wsaBuf);
 
-    int directEnQSize = GetDirectEnqueueSize(copyFront,copyRear);
+        copyRear = (copyRear + directEnQSize) % RING_BUFFER_SIZE;
+    }
+}
+void RingQ::GetDirectDeQData(std::vector<WSABUF>& wsaBufs)
+{
+    int32_t copyRear = m_writePosition;
+    int32_t  copyFront = m_readPosition;
 
-    (*directSize)._Direct1 = directEnQSize;
+    for(int i=0; i < 2; ++i)
+    {
+        auto buffer = GetFrontBufferPtr(copyFront, copyRear);
+        if(buffer == nullptr)
+        {
+            break;
+        }
 
-
-    copyRear = (copyRear +directEnQSize) % RING_BUFFER_SIZE;
-
-    (*directSize).bufferPtr2 = GetRearBufferPtr(copyFront, copyRear);
-    (*directSize)._Direct2 = GetDirectEnqueueSize(copyFront, copyRear);
- 
-
-  
+        int directDeQSize = GetDirectDequeueSize(copyFront, copyRear);
+        copyFront = (copyFront + directDeQSize) % RING_BUFFER_SIZE;
+    }
 }
 
-void RingQ::GetDirectDeQData(DirectData* directSize, Session* curSession)
+int32_t RingQ::GetDirectReadSize() const
 {
-    
-    int32_t copyRear = m_Rear;
-    int32_t  copyFront = m_Front;
-
-    (*directSize).bufferPtr1 = GetFrontBufferPtr(copyFront, copyRear);
-
-    int directDeQSize = GetDirectDequeueSize(copyFront, copyRear);
-
-  
-    (*directSize)._Direct1 = directDeQSize;
-
-
-    copyFront = (copyFront + directDeQSize ) % RING_BUFFER_SIZE;
-
-    (*directSize).bufferPtr2 = GetFrontBufferPtr(copyFront, copyRear);
-    (*directSize)._Direct2 = GetDirectDequeueSize(copyFront, copyRear);
-
-}
-
-void RingQ::GetDirectDeQData(DirectData* directSize)
-{
-    int32_t copyRear = m_Rear;
-    int32_t  copyFront = m_Front;
-
-    (*directSize).bufferPtr1 = GetFrontBufferPtr(copyFront, copyRear);
-
-    int directDeQSize = GetDirectDequeueSize(copyFront, copyRear);
-
-
-    (*directSize)._Direct1 = directDeQSize;
-
-
-    copyFront = (copyFront + directDeQSize) % RING_BUFFER_SIZE;
-
-    (*directSize).bufferPtr2 = GetFrontBufferPtr(copyFront, copyRear);
-    (*directSize)._Direct2 = GetDirectDequeueSize(copyFront, copyRear);
-}
-
-int32_t RingQ::GetDirectDequeueSize() const
-{
-    int32_t copyRear = m_Rear;
-    int32_t copyFront = m_Front;
+    int32_t copyRear = m_writePosition;
+    int32_t copyFront = m_readPosition;
     
     //------------------------------------------
     // 링버퍼가 비어있다면, 0을반환
@@ -383,40 +311,30 @@ int32_t RingQ::GetDirectDequeueSize() const
 
 void RingQ::ClearBuffer()
 {
-    m_Front = 0;
-    m_Rear = 0;
+    m_readPosition = 0;
+    m_writePosition = 0;
 }
 
-void RingQ::MoveRear(int size)
+void RingQ::MoveWitePosition(int size)
 {
     if (size < 0)
     {
         return;
     }
 
-    int copyRear = m_Rear;
-    m_Rear = (copyRear + size) % RING_BUFFER_SIZE;
+    int copyRear = m_writePosition;
+    m_writePosition = (copyRear + size) % RING_BUFFER_SIZE;
 }
 
-void RingQ::MoveFront(int size)
+void RingQ::MoveReadPosition(int size)
 {
     if (size < 0)
     {
         return;
     }
-    int copyFront = m_Front;
-    m_Front = (copyFront + size ) % RING_BUFFER_SIZE;
+    int copyFront = m_readPosition;
+    m_readPosition = (copyFront + size ) % RING_BUFFER_SIZE;
 
-}
-
-void RingQ::MoveFrontTest(int size, Session* curSession)
-{
-    if (size < 0)
-    {
-        return;
-    }
-    int copyFront = m_Front;
-    m_Front = (copyFront + size) % RING_BUFFER_SIZE;
 }
 
 char* RingQ::GetFrontBufferPtr(int32_t copyFront, int32_t copyRear)
@@ -428,7 +346,7 @@ char* RingQ::GetFrontBufferPtr(int32_t copyFront, int32_t copyRear)
     return m_Buffer + ((copyFront + 1) % RING_BUFFER_SIZE);
 }
 
-char* RingQ::GetFrontBufferPtr(void)
+char* RingQ::GetReadBufferPtr(void)
 {
     //--------------------------------------
     // FrontBufferPtr을 쓰려고하는것은 지금
@@ -436,8 +354,8 @@ char* RingQ::GetFrontBufferPtr(void)
     // null을반환
     //--------------------------------------
     
-    int32_t copyRear = m_Rear;
-    int32_t copyFront = m_Front;
+    int32_t copyRear = m_writePosition;
+    int32_t copyFront = m_readPosition;
 
     if (copyRear == copyFront)
     {
@@ -446,7 +364,7 @@ char* RingQ::GetFrontBufferPtr(void)
     return m_Buffer + ((copyFront+1)% RING_BUFFER_SIZE); 
 }
 
-char* RingQ::GetRearBufferPtr(int32_t copyFront, int32_t copyRear)
+char* RingQ::GetWriteBufferPtr(int32_t copyFront, int32_t copyRear)
 {
     if ((copyRear + 1) % RING_BUFFER_SIZE == copyFront)
     {
@@ -455,14 +373,14 @@ char* RingQ::GetRearBufferPtr(int32_t copyFront, int32_t copyRear)
     return m_Buffer + ((copyRear + 1) % RING_BUFFER_SIZE);
 }
 
-char* RingQ::GetRearBufferPtr(void)
+char* RingQ::GetWriteBufferPtr(void)
 {
     //--------------------------------------
     // Enqueue를하려는 상황인데, 큐가 꽉차있다면,
     // null을반환
     //--------------------------------------
-    int32_t copyFront = m_Front;
-    int32_t copyRear = m_Rear;
+    int32_t copyFront = m_readPosition;
+    int32_t copyRear = m_writePosition;
     
     if ((copyRear +1)%RING_BUFFER_SIZE == copyFront)
     {
@@ -478,8 +396,8 @@ int RingQ::Peek(char* dest, int size)
    //링버퍼에 사용중인 사이즈가 인자로 들어온 사이즈보다 작으면 현재 사용중인 사이즈로바꿈.
    // Peek이기때문에 프론트 사본 만듬.
    //-------------------------------------------
-    int32_t copyRear = m_Rear;
-    int32_t copyFront = m_Front;
+    int32_t copyRear = m_writePosition;
+    int32_t copyFront = m_readPosition;
     int tempUsedSize = GetUsedSize(copyFront,copyRear);
 
     if (tempUsedSize < size)
@@ -491,7 +409,7 @@ int RingQ::Peek(char* dest, int size)
         }
     }
 
-    int directSize = GetDirectDequeueSize();
+    int directSize = GetDirectReadSize();
 
 
     //-----------------------------------
@@ -519,14 +437,14 @@ int RingQ::Peek(char* dest, int size)
     return size;
 }
 
-int32_t RingQ::GetFront()
+int32_t RingQ::GetReadPosition()
 {
-    return m_Front;
+    return m_readPosition;
 }
 
-int32_t RingQ::GetRear()
+int32_t RingQ::GetwritePosition()
 {
-    return m_Rear;
+    return m_writePosition;
 }
 
 int32_t RingQ::GetDirectEnqueueSize(int32_t copyFront, int32_t copyRear) const
@@ -549,7 +467,7 @@ int32_t RingQ::GetDirectEnqueueSize(int32_t copyFront, int32_t copyRear) const
         directSize = copyFront - rearNext;
     }
     //-----------------------------------
-    // 그것이 아니라면, m_Rear ~ 인덱스끝까지가 연속된 메모리 할당범위다.
+    // 그것이 아니라면, m_writePosition ~ 인덱스끝까지가 연속된 메모리 할당범위다.
     //-----------------------------------
     else
     {

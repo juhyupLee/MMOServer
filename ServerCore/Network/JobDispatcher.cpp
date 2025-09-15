@@ -1,17 +1,16 @@
 #include "JobDispatcher.h"
 
+#include "BaseJob.h"
 
-JobDispatcher::JobDispatcher(int32_t threadCount)
+
+JobDispatcher::JobDispatcher(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t threadCount)
 {
 	for (int32_t n = 0; n < threadCount; ++n)
 	{
-		m_threads.emplace_back([this]
-			{
-				Run([]()
-				{
-					
-				});
-			});
+		m_threads.emplace_back([this, dispatch]
+		{
+			Run(dispatch);
+		});
 	}
 }
 
@@ -41,7 +40,7 @@ std::shared_ptr<JobQueue> JobDispatcher::PopJobQueue()
 	return jobQueue;
 }
 
-void JobDispatcher::Run(std::function<void()> dispatch)
+void JobDispatcher::Run(std::function<void(int64_t, MessageHolderPtr)> dispatch)
 {
 	while (true)
 	{
@@ -49,10 +48,10 @@ void JobDispatcher::Run(std::function<void()> dispatch)
 		std::deque<std::shared_ptr<BaseJob>> messages;
 		dbQueue->Pop(messages);
 
-		//for (auto& [entryID, messageHolder] : messages)
-		//{
-		//	dispatch(entryID, messageHolder);
-		//}
+		for (auto& messageJob : messages)
+		{
+			messageJob->Excute(dispatch);
+		}
 
 		if (0 < dbQueue->Decrement(static_cast<int32_t>(messages.size())))
 		{

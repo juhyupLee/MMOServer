@@ -1,43 +1,42 @@
 #pragma once
 
 class NetworkServer;
-struct NetworkTask 
+struct NetworkTask : OVERLAPPED
 {
-	OVERLAPPED m_overlapped;
 	std::shared_ptr<NetworkSession> m_owner{ nullptr };
 	EStep m_step{ EStep::None };
-	virtual void Run(bool result, DWORD transferred) = 0;
+	virtual bool Run(bool result, DWORD transferred) = 0;
 };
 
 struct NetworkTaskNotify : NetworkTask
 {
 	void* m_target{ nullptr };
 
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 struct NetworkTaskClose : NetworkTask
 {
 	std::unordered_set<SessionID> m_sessionIDs{ };
 
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 struct NetworkTaskListen : NetworkTask
 {
 	int32_t m_port{ 0 };
 	JobDispatcher* m_jobDispatcher{nullptr};
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 struct NetworkTaskAcceptIO : NetworkTask
 {
 	SOCKET m_clientSocket{ INVALID_SOCKET };
 	char m_address[MAX_ADDRESS_SIZE]{ };
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 
-	void Start();
-	void Complete(bool result);
+	bool Start();
+	bool Complete(bool result);
 };
 
 
@@ -47,7 +46,7 @@ struct NetworkTaskNewUser : NetworkTask
 	int32_t m_port{ 0 };
 	SOCKET m_socket{ INVALID_SOCKET };
 	JobDispatcher* m_jobDispatcher{ nullptr };
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 
@@ -56,7 +55,7 @@ struct NetworkTaskChange : NetworkTask
 	SessionID m_sessionID{ 0 };
 	HANDLE m_key{ INVALID_HANDLE_VALUE };
 
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 
@@ -64,55 +63,43 @@ struct NetworkTaskChange : NetworkTask
 
 struct NetworkTaskReceiveIO : NetworkTask
 {
-	std::vector<char> m_buffer{ };
-	int32_t m_writeSize{ 0 };
-	int32_t m_readSize{ 0 };
+	virtual bool Run(bool result, DWORD transferred) override;
 
-	virtual void Run(bool result, DWORD transferred) override;
+	bool Start();
+	bool Complete(bool result, DWORD transferred);
+};
 
-	void Start();
-	void Complete(bool result, DWORD transferred);
+//struct NetworkTaskSend : NetworkTask
+//{
+//	std::unordered_set<SessionID> m_sessionIDs{ };
+//	MessageHolderPtr m_messageHolder{ nullptr };
+//	volatile bool m_serialized{ false };
+//	//std::shared_ptr<NetworkPacket> m_packet{ nullptr };
+//
+//	//virtual bool Serializable() const override
+//	//{
+//	//	return true;
+//	//}
+//
+//	virtual bool Run(bool result, DWORD transferred) override;
+//};
 
-	char* GetData();
-	int32_t GetDataSize();
+struct NetworkTaskDirectSend : NetworkTask
+{
+	//std::unordered_set<SessionID> m_sessionIDs{ };
+	//std::shared_ptr<NetworkPacket> m_packet{ nullptr };
 
-	char* GetEmpty();
-	int32_t GetEmptySize();
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 struct NetworkTaskSend : NetworkTask
 {
-	std::unordered_set<SessionID> m_sessionIDs{ };
-	MessageHolderPtr m_messageHolder{ nullptr };
-	volatile bool m_serialized{ false };
-	//std::shared_ptr<NetworkPacket> m_packet{ nullptr };
-
-	//virtual bool Serializable() const override
-	//{
-	//	return true;
-	//}
-
-	virtual void Run(bool result, DWORD transferred) override;
-};
-
-struct NetworkTaskDirectSend : NetworkTask
-{
-	std::unordered_set<SessionID> m_sessionIDs{ };
-	//std::shared_ptr<NetworkPacket> m_packet{ nullptr };
-
-	virtual void Run(bool result, DWORD transferred) override;
-};
-
-struct NetworkTaskSendIO : NetworkTask
-{
-	//std::deque<std::shared_ptr<NetworkPacket>> m_packets{ };
-	std::vector<WSABUF> m_wsabufs{ };
 	DWORD m_totalSize{ 0 };
 
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 
-	void Start();
-	void Complete(bool result, DWORD transferred);
+	bool Start();
+	bool Complete(bool result, DWORD transferred);
 };
 
 struct NetworkTaskConnect : NetworkTask
@@ -120,15 +107,15 @@ struct NetworkTaskConnect : NetworkTask
 	std::string m_ip{ };
 	int32_t m_port{ 0 };
 
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 };
 
 struct NetworkTaskConnectIO : NetworkTask
 {
-	virtual void Run(bool result, DWORD transferred) override;
+	virtual bool Run(bool result, DWORD transferred) override;
 
-	void Start();
-	void Complete(bool result);
+	bool Start();
+	bool Complete(bool result);
 };
 
 

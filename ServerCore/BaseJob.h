@@ -3,5 +3,6 @@ class BaseJob
 {
 private:
 
-	virtual void Excute() = 0;
+public:
+	virtual void Excute(std::function<void(int64_t, MessageHolderPtr)>& dispatch) = 0;
 };

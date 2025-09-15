@@ -3,7 +3,7 @@
 
 
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskClose::Run(bool result, DWORD transferred)
+bool NetworkTaskClose::Run(bool result, DWORD transferred)
 {
 	for (auto sessionID : m_sessionIDs)
 	{
@@ -13,20 +13,24 @@ void NetworkTaskClose::Run(bool result, DWORD transferred)
 		////session 해제
 		//session->Close();
 	}
+
+	return true;
 }
 
-void NetworkTaskListen::Run(bool result, DWORD transferred)
+bool NetworkTaskListen::Run(bool result, DWORD transferred)
 {
 	auto session = NetworkServer::GetInstance()->CreateNewSession(m_jobDispatcher);
 	if (session == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	session->Listen(m_port);
+
+	return false;
 }
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskChange::Run(bool result, DWORD transferred)
+bool NetworkTaskChange::Run(bool result, DWORD transferred)
 {
 	//session 생성
 	//auto session = NetworkSystem::GetInstance()->FindSession(m_sessionID);
@@ -37,30 +41,32 @@ void NetworkTaskChange::Run(bool result, DWORD transferred)
 	//}
 
 	//session->SetKey(m_key);
+
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskAcceptIO::Run(bool result, DWORD transferred)
+bool NetworkTaskAcceptIO::Run(bool result, DWORD transferred)
 {
 	switch (m_step)
 	{
-	case EStep::None:		Start(); break;
-	case EStep::Running:	Complete(result); break;
+	case EStep::None:		return Start(); 
+	case EStep::Running:	return Complete(result); break;
 	}
 }
 
-void NetworkTaskAcceptIO::Start()
+bool NetworkTaskAcceptIO::Start()
 {
 	m_step = EStep::Running;
 	if (m_owner == nullptr)
 	{
 		//LOG_ERR("session null");
 		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-		return;
+		return false;
 	}
 
 	//초기화
-	ZeroMemory(&m_overlapped, sizeof(OVERLAPPED));
+	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
 	ZeroMemory(m_address, sizeof(m_address));
 
 	//소켓생성
@@ -69,33 +75,31 @@ void NetworkTaskAcceptIO::Start()
 	{
 		//LOG_ERR("WSASocket failed:%", WSAGetLastError());
 		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-		return;
+		return false;
 	}
-	//NetworkServer::GetInstance()->RegisterSocketToIOCP(m_clientSocket);
-
 	//accept 요청
 	DWORD bytes = 0;
-
-	
-	if (AcceptEx(m_owner->GetSocket(), m_clientSocket, m_address, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, reinterpret_cast<LPOVERLAPPED>(&m_overlapped)) == FALSE)
+	if (AcceptEx(m_owner->GetSocket(), m_clientSocket, m_address, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, static_cast<LPOVERLAPPED>(this)) == FALSE)
 	{
 		int32_t error = WSAGetLastError();
 		if (error != WSA_IO_PENDING)
 		{
 			//LOG_ERR("AcceptEx failed:%", error);
 			//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-			return;
+			return false;
 		}
 	}
+
+	return true;
 }
 
-void NetworkTaskAcceptIO::Complete(bool result)
+bool NetworkTaskAcceptIO::Complete(bool result)
 {
 	if (m_owner == nullptr)
 	{
 		//LOG_ERR("session null");
 		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-		return;
+		return false;
 	}
 
 	//요청결과 체크
@@ -104,7 +108,6 @@ void NetworkTaskAcceptIO::Complete(bool result)
 		//SO_UPDATE_ACCEPT_CONTEXT
 		SOCKET listener = m_owner->GetSocket();
 		setsockopt(m_clientSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&listener, sizeof(listener));
-
 		//접속주소 얻기
 		sockaddr_in* local = nullptr;
 		sockaddr_in* remote = nullptr;
@@ -138,347 +141,206 @@ void NetworkTaskAcceptIO::Complete(bool result)
 	m_clientSocket = INVALID_SOCKET;
 
 	//accept 요청
-	Start();
+	return Start();
 }
 
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskNewUser::Run(bool result, DWORD transferred)
+bool NetworkTaskNewUser::Run(bool result, DWORD transferred)
 {
 	//session 생성
 	auto session = NetworkServer::GetInstance()->CreateNewSession(m_jobDispatcher);
 	if (session == nullptr)
 	{
 //		LOG_ERR("CreateSession failed");
-		return;
+		return false;
 	}
 
 	session->OnAccept(m_ip, m_port, m_socket);
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskReceiveIO::Run(bool result, DWORD transferred)
+bool NetworkTaskReceiveIO::Run(bool result, DWORD transferred)
 {
-	//switch (m_step)
-	//{
-	//case EStep::None:		Start(); break;
-	//case EStep::Running:	Complete(result, transferred); break;
-	//}
+	switch (m_step)
+	{
+	case EStep::None:		return Start(); 
+	case EStep::Running:	return Complete(result, transferred);
+		\
+	}
 }
 
-void NetworkTaskReceiveIO::Start()
+bool NetworkTaskReceiveIO::Start()
 {
-	//m_step = EStep::Running;
+	m_step = EStep::Running;
+	if (m_owner == nullptr)
+	{
+		//LOG_ERR("session null");
+		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		return false;
+	}
+	if (m_owner->_RecvRingQ.GetWriteSize() <= 0)
+	{
+		return false;
+	}
 
-	//auto session = (NetworkSession*)m_owner;
-	//if (session == nullptr)
-	//{
-	//	LOG_ERR("session null");
+	std::vector<WSABUF> wsaBufs{ };
+	wsaBufs.reserve(2);
+	m_owner->_RecvRingQ.GetDirectEnQData(wsaBufs);
+
+	//receive 요청
+	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
+	DWORD bytes = 0;
+	DWORD flag = 0;
+
+	if (WSARecv(m_owner->GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), &bytes, &flag, static_cast<LPOVERLAPPED>(this), nullptr) == SOCKET_ERROR)
+	{
+		int32_t error = WSAGetLastError();
+		if (error != WSA_IO_PENDING)
+		{
+			//LOG_ERR("failed - WSARecv:%", error);
+			//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+			m_owner.reset();
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
+{
+	if (m_owner == nullptr)
+	{
+//		LOG_ERR("session null");
 	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
+		return false;
+	}
 
-	////버퍼가 없으면 생성
-	//if (m_buffer.size() <= 0)
-	//{
-	//	m_writeSize = 0;
-	//	m_readSize = 0;
-	//	m_buffer.resize(DEFAULT_CAPACITY_SIZE);
-	//}
+	//요청결과 체크
+	if (result == false || transferred <= 0)
+	{
+		//LOG_ERR("failed - result. transferred : % ", transferred);
+		//NetworkServer::GetInstance()->RemoveSession(m_owner->GetSessionID());
+		m_owner.reset();
+		return false;
+	}
 
-	////읽기와 쓰기가 같은지 체크
-	//if (m_readSize == m_writeSize)
-	//{
-	//	//버퍼 축소
-	//	if (m_buffer.size() > DEFAULT_CAPACITY_SIZE)
-	//	{
-	//		m_buffer.resize(DEFAULT_CAPACITY_SIZE);
-	//	}
+	//받은 사이즈 추가
+	m_owner->_RecvRingQ.MoveWitePosition(transferred);
 
-	//	//읽기,쓰기 초기화
-	//	m_writeSize = 0;
-	//	m_readSize = 0;
-	//}
+	//데이터 파싱
+	while (true)
+	{
+		int packetSize = m_owner->_RecvRingQ.GetReadSize();
+		if (packetSize >= PACKET_HEADER_SIZE)
+		{
+			char* packet = m_owner->_RecvRingQ.GetReadBufferPtr();
+			int32_t messageSize = flatbuffers::ReadScalar<flatbuffers::uoffset_t>(packet);
 
-	////빈공간 체크
-	//int32_t emptySize = GetEmptySize();
-	//if (emptySize < MIN_CAPACITY_SIZE)
-	//{
-	//	if (emptySize + m_readSize >= MIN_CAPACITY_SIZE)
-	//	{
-	//		//재정렬만 함
-	//		memmove(m_buffer.data(), m_buffer.data() + m_readSize, m_writeSize - m_readSize);
-	//		m_writeSize -= m_readSize;
-	//		m_readSize = 0;
-	//	}
-	//	else
-	//	{
-	//		//최대 사이즈를 넘어가는지 체크
-	//		if (m_buffer.size() >= MAX_CAPACITY_SIZE)
-	//		{
-	//			LOG_ERR("size over");
-	//			NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//			return;
+			//데이터 사이즈 예외 체크
+			if ( 0 <= messageSize && messageSize <= packetSize - PACKET_HEADER_SIZE)
+			{
+				//읽기 처리
+				m_owner->_RecvRingQ.MoveReadPosition(PACKET_HEADER_SIZE + messageSize);
+				NetworkServer::GetInstance()->Convert(packet + PACKET_HEADER_SIZE, messageSize);
+				m_owner->OnRecvMessage(packet , messageSize);
+				continue;
+			}
+		}
 
-	//		}
+		break;
+	}
 
-	//		//새버퍼를 생성하여 바꿔치기
-	//		std::vector<char> temp;
-	//		temp.resize(m_buffer.size() + DEFAULT_CAPACITY_SIZE);
-
-	//		memmove(temp.data(), m_buffer.data() + m_readSize, m_writeSize - m_readSize);
-	//		m_writeSize -= m_readSize;
-	//		m_readSize = 0;
-
-	//		m_buffer.swap(temp);
-	//	}
-	//}
-
-	////OVERLAPPED 초기화
-	//ZeroMemory((LPOVERLAPPED)this, sizeof(OVERLAPPED));
-
-	////receive 요청
-	//WSABUF wsabuf = { };
-	//DWORD bytes = 0;
-	//DWORD flag = 0;
-
-	//wsabuf.buf = GetEmpty();
-	//wsabuf.len = GetEmptySize();
-
-	//if (WSARecv(session->GetSocket(), &wsabuf, 1, &bytes, &flag, (LPOVERLAPPED)this, nullptr) == SOCKET_ERROR)
-	//{
-	//	int32_t error = WSAGetLastError();
-	//	if (error != WSA_IO_PENDING)
-	//	{
-	//		LOG_ERR("failed - WSARecv:%", error);
-	//		NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//		return;
-	//	}
-	//}
+	//receive 요청
+	return Start();
 }
 
-void NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
+
+////////////////////////////////////////////////////////////////////
+bool NetworkTaskSend::Run(bool result, DWORD transferred)
 {
-	//auto session = (NetworkSession*)m_owner;
-	//if (session == nullptr)
-	//{
-	//	LOG_ERR("session null");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
-
-	////요청결과 체크
-	//if (result == false || transferred <= 0)
-	//{
-	//	//LOG_ERR("failed - result. transferred : % ", transferred);
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
-
-	////받은 사이즈 추가
-	//m_writeSize += transferred;
-
-	////데이터 파싱
-	//while (true)
-	//{
-	//	char* packet = GetData();
-	//	int32_t packetSize = GetDataSize();
-
-	//	if (packetSize >= PACKET_HEADER_SIZE)
-	//	{
-	//		int32_t messageSize = flatbuffers::ReadScalar<flatbuffers::uoffset_t>(packet);
-
-	//		//데이터 사이즈 예외 체크
-	//		if (messageSize >= 0 && messageSize <= packetSize - PACKET_HEADER_SIZE)
-	//		{
-	//			//읽기 처리
-	//			m_readSize += PACKET_HEADER_SIZE + messageSize;
-
-	//			//받은 패킷 전달
-	//			NetworkSystem::Convert(packet + PACKET_HEADER_SIZE, messageSize);
-	//			session->Transfer(packet, messageSize);
-	//			continue;
-	//		}
-	//	}
-
-	//	break;
-	//}
-
-	////receive 요청
-	//Start();
+	switch (m_step)
+	{
+	case EStep::None:		return Start();
+	case EStep::Running:	return Complete(result, transferred);
+	}
 }
 
-char* NetworkTaskReceiveIO::GetData()
+bool NetworkTaskSend::Start()
 {
-	if (m_buffer.size() <= 0) return nullptr;
-	if (m_buffer.size() < m_writeSize) return nullptr;
-	if (m_writeSize <= 0 || m_writeSize <= m_readSize) return nullptr;
+	m_step = EStep::Running;
+	if (m_owner == nullptr)
+	{
+		return false;
+	}
 
-	return m_buffer.data() + m_readSize;
+	//OVERLAPPED 초기화
+	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
+	std::vector<WSABUF> wsaBufs{ };
+	wsaBufs.reserve(m_owner->GetSendQueue().GetQCount());
+	
+	m_totalSize = 0;
+
+	if(m_owner->m_isSending.exchange(true) == false)
+	{
+		NetworkPacket* networkPacket = nullptr;
+		while (m_owner->GetSendQueue().DeQ(&networkPacket) == true)
+		{
+			WSABUF wsabuf;
+			wsabuf.buf = reinterpret_cast<char*>(networkPacket->m_buffer.data());
+			wsabuf.len = static_cast<ULONG>(networkPacket->m_buffer.size());
+			wsaBufs.emplace_back(wsabuf);
+			m_totalSize += wsabuf.len;
+		}
+		//send 요청
+		DWORD bytes = 0;
+		DWORD flag = 0;
+		if (WSASend(m_owner->GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), &bytes, flag, static_cast<LPOVERLAPPED>(this), nullptr) == SOCKET_ERROR)
+		{
+			int32_t error = WSAGetLastError();
+			if (error != WSA_IO_PENDING)
+			{
+				//LOG_ERR("failed - WSASend:%", error);
+				//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+				m_owner.reset();
+				return false;
+			}
+		}
+	}
+
+	return true;
 }
 
-int32_t NetworkTaskReceiveIO::GetDataSize()
+bool NetworkTaskSend::Complete(bool result, DWORD transferred)
 {
-	/*if (m_buffer.size() <= 0) return 0;
-	if (m_buffer.size() < m_writeSize) return 0;
-	if (m_writeSize <= 0 || m_writeSize <= m_readSize) return 0;
+	if (m_owner == nullptr)
+	{
+		//이게 발생하면..애초에 구현을 잘못한것..로그만 남긴다
+		return false;
+	}
 
-	return m_writeSize - m_readSize;*/
-	return 0;
-}
+	m_owner->m_isSending.exchange(false);
 
-char* NetworkTaskReceiveIO::GetEmpty()
-{
-	/*if (m_buffer.size() <= 0) return nullptr;
-	if (m_buffer.size() <= m_writeSize) return nullptr;
+	//요청결과 체크
+	if (result == false || transferred <= 0)
+	{
+		//LOG_ERR("failed - result");
+		return false;
+	}
 
-	return m_buffer.data() + m_writeSize;*/
+	//다 보냈는지 체크
+	if (transferred != m_totalSize)
+	{
+		//LOG_ERR("transferred:%/%", transferred, m_totalSize);
+		return false;
+	}
 
-	return nullptr;
-}
-
-int32_t NetworkTaskReceiveIO::GetEmptySize()
-{
-	/*if (m_buffer.size() <= 0) return 0;
-	if (m_buffer.size() <= m_writeSize) return 0;
-
-	return (int32_t)m_buffer.size() - m_writeSize;*/
-
-	return 0;
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskSend::Run(bool result, DWORD transferred)
-{
-	//m_step = EStep::Running;
-
-	//while (m_serialized == false)
-	//{
-	//	std::this_thread::sleep_for(std::chrono::milliseconds{ 1 });
-	//}
-
-	//// session 체크
-	//for (auto sessionID : m_sessionIDs)
-	//{
-	//	auto session = NetworkSystem::GetInstance()->FindSession(sessionID);
-	//	if (session == nullptr) continue;
-
-	//	//리스트에 추가
-	//	session->Send(m_packet);
-	//}
-}
-
-////////////////////////////////////////////////////////////////////
-void NetworkTaskDirectSend::Run(bool result, DWORD transferred)
-{
-	//m_step = EStep::Running;
-
-	//// session 체크
-	//for (auto sessionID : m_sessionIDs)
-	//{
-	//	auto session = NetworkSystem::GetInstance()->FindSession(sessionID);
-	//	if (session == nullptr) continue;
-
-	//	//리스트에 추가
-	//	session->Send(m_packet);
-	//}
-}
-
-////////////////////////////////////////////////////////////////////
-void NetworkTaskSendIO::Run(bool result, DWORD transferred)
-{
-	//switch (m_step)
-	//{
-	//case EStep::None:		Start(); break;
-	//case EStep::Running:	Complete(result, transferred); break;
-	//}
-}
-
-void NetworkTaskSendIO::Start()
-{
-	//m_step = EStep::Running;
-
-	//auto session = (NetworkSession*)m_owner;
-	//if (session == nullptr)
-	//{
-	//	LOG_ERR("session null");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
-
-	////OVERLAPPED 초기화
-	//ZeroMemory((LPOVERLAPPED)this, sizeof(OVERLAPPED));
-
-	//m_wsabufs.reserve(m_packets.size());
-	//m_totalSize = 0;
-
-	//for (const auto& packet : m_packets)
-	//{
-	//	WSABUF wsabuf;
-	//	wsabuf.buf = (char*)packet->m_buffer.data();
-	//	wsabuf.len = (ULONG)packet->m_buffer.size();
-	//	m_wsabufs.emplace_back(wsabuf);
-
-	//	//패킷로그
-	//	if (!packet->m_json.empty())
-	//	{
-	//		if (LogManager::GetInstance()->GetPacketLogActivate())
-	//		{
-	//			LogManager::GetInstance()->PrintPacket(std::format("[session:{}]", session->GetSessionID()), packet->m_json);
-	//		}
-	//	}
-
-	//	// 보낼데이터의 총 사이즈 계산
-	//	m_totalSize += wsabuf.len;
-	//}
-
-	////send 요청
-	//DWORD bytes = 0;
-	//DWORD flag = 0;
-
-	//if (WSASend(session->GetSocket(), m_wsabufs.data(), (DWORD)m_wsabufs.size(), &bytes, flag, (LPOVERLAPPED)this, nullptr) == SOCKET_ERROR)
-	//{
-	//	int32_t error = WSAGetLastError();
-	//	if (error != WSA_IO_PENDING)
-	//	{
-	//		LOG_ERR("failed - WSASend:%", error);
-	//		NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//		return;
-	//	}
-	//}
-}
-
-void NetworkTaskSendIO::Complete(bool result, DWORD transferred)
-{
-	//auto session = (NetworkSession*)m_owner;
-	//if (session == nullptr)
-	//{
-	//	//이게 발생하면..애초에 구현을 잘못한것..로그만 남긴다
-	//	LOG_ERR("session null");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
-
-	////요청결과 체크
-	//if (result == false || transferred <= 0)
-	//{
-	//	LOG_ERR("failed - result");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
-
-	////다 보냈는지 체크
-	//if (transferred != m_totalSize)
-	//{
-	//	LOG_ERR("transferred:%/%", transferred, m_totalSize);
-	//	return;
-	//}
-
-	////send 완료 처리
-	//NetworkSystem::GetInstance()->Notify(EStep::SuccessSend, m_owner, this);
-}
-
-////////////////////////////////////////////////////////////////////
-void NetworkTaskConnect::Run(bool result, DWORD transferred)
+bool NetworkTaskConnect::Run(bool result, DWORD transferred)
 {
 	////session 생성
 	//auto session = NetworkSystem::GetInstance()->CreateSession(m_callback, m_proxyCallback);
@@ -489,19 +351,21 @@ void NetworkTaskConnect::Run(bool result, DWORD transferred)
 	//}
 
 	//session->Connect(m_ip, m_port);
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////
-void NetworkTaskConnectIO::Run(bool result, DWORD transferred)
+bool NetworkTaskConnectIO::Run(bool result, DWORD transferred)
 {
 	//switch (m_step)
 	//{
 	//case EStep::None:		Start(); break;
 	//case EStep::Running:	Complete(result); break;
 	//}
+	return true;
 }
 
-void NetworkTaskConnectIO::Start()
+bool NetworkTaskConnectIO::Start()
 {
 	//m_step = EStep::Running;
 
@@ -605,9 +469,11 @@ void NetworkTaskConnectIO::Start()
 	//		return;
 	//	}
 	//}
+
+return true;
 }
 
-void NetworkTaskConnectIO::Complete(bool result)
+bool NetworkTaskConnectIO::Complete(bool result)
 {
 	//auto session = (NetworkSession*)m_owner;
 	//if (session == nullptr)
@@ -627,5 +493,7 @@ void NetworkTaskConnectIO::Complete(bool result)
 
 	////시작 처리
 	//NetworkSystem::GetInstance()->Notify(EStep::SuccessConnect, m_owner, this);
+
+	return true;
 }
 

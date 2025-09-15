@@ -1,13 +1,5 @@
 #pragma once
 struct Session;
-
-struct DirectData
-{
-	int32_t _Direct1;
-	int32_t _Direct2;
-	char* bufferPtr1;
-	char* bufferPtr2;
-};
 class RingQ
 {
 public:
@@ -23,40 +15,37 @@ public:
 	//----------------------------------------------------------
 	// For Debug
 	//----------------------------------------------------------
-	int Enqueue(char* buffer, int32_t size, Session* curSession);
-	void GetDirectDeQData(DirectData* directSize, Session* curSession);
-	void MoveFrontTest(int size, Session* curSession);
+	//void GetDirectDeQData(DirectData* directSize, Session* curSession);
 	//----------------------------------------------------------
 
 	
 	int Enqueue(char* buffer, int32_t size);
 	int Dequeue(char* buffer, int32_t size);
 
-	int32_t GetFreeSize() const; 
-	int32_t GetUsedSize() const;
+	int32_t GetWriteSize() const; 
+	int32_t GetReadSize() const;
 
 
-	void GetDirectEnQData(DirectData* directSize);
-	
-	void GetDirectDeQData(DirectData* directSize);
+	void GetDirectEnQData(std::vector<WSABUF>& wsaBufs);
+	void GetDirectDeQData(std::vector<WSABUF>& wsaBufs);
 
-	int32_t GetDirectEnqueueSize()const;
-	int32_t GetDirectDequeueSize()const;
+	int32_t GetDirectWriteSize()const;
+	int32_t GetDirectReadSize()const;
 
 	void ClearBuffer();
 
-	void MoveRear(int size);
-	void MoveFront(int size);
+	void MoveWitePosition(int size);
+	void MoveReadPosition(int size);
 
 	
 	char* GetFrontBufferPtr(int32_t copyFront, int32_t copyRear);
-	char* GetRearBufferPtr(int32_t copyFront, int32_t copyRear);
-	char* GetFrontBufferPtr(void);
-	char* GetRearBufferPtr(void);
+	char* GetWriteBufferPtr(int32_t copyFront, int32_t copyRear);
+	char* GetReadBufferPtr(void);
+	char* GetWriteBufferPtr(void);
 	int Peek(char* dest, int size);
 
-	int32_t GetFront();
-	int32_t GetRear();
+	int32_t GetReadPosition();
+	int32_t GetwritePosition();
 
 	int32_t GetDirectEnqueueSize(int32_t copyFront, int32_t copyRear)const;
 	int32_t GetDirectDequeueSize(int32_t copyFront, int32_t copyRear)const;
@@ -66,7 +55,7 @@ private:
 	int32_t GetUsedSize(int32_t front, int32_t rear) const;
 
 private:
-	int32_t m_Front;
-	int32_t m_Rear;
+	int32_t m_readPosition;
+	int32_t m_writePosition;
 	char m_Buffer[RING_BUFFER_SIZE];
 };

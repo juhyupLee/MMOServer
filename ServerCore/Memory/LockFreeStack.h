@@ -88,7 +88,10 @@ inline bool LockFreeStack<T>::Push(T data)
 		else
 		{
 			++spinCount;
-			YieldProcessor();
+			for(auto i = 0; i < 1024; ++i)
+			{
+				YieldProcessor();
+			}
 		}
 
 		if (spinCount >= YIELD_TRY_MAX)
@@ -130,7 +133,10 @@ inline bool LockFreeStack<T>::Pop(T* outData)
 		else
 		{
 			++spinCount;
-			YieldProcessor();
+			for (auto i = 0; i < 1024; ++i)
+			{
+				YieldProcessor();
+			}
 		}
 
 		if (spinCount >= YIELD_TRY_MAX)

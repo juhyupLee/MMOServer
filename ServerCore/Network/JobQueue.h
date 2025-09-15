@@ -14,7 +14,7 @@ public:
 	JobQueue(JobDispatcher* jobDispatcher);
 public:
 	JobDispatcher* GetJobDispatcher();
-	void Push(std::shared_ptr<BaseJob>& job);
+	void Push(const std::shared_ptr<BaseJob>& job);
 	bool Pop(std::deque<std::shared_ptr<BaseJob>>& messages);
     int32_t Decrement(int32_t size);
 	//void Push(const T& message);

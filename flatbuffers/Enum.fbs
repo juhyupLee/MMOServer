@@ -3,3 +3,563 @@ enum EDefineID: int {
 	E_UNKNOWN_DEFINE = 1,
 	E_ITEM_MAX_COUNT = 1000,
 }
+
+enum EResultID: int {
+	R_NONE												= 0,		// 에러없음
+	R_SUCCESS											= 1,		// 성공
+	R_FAILED											= 2,		// 실패
+	R_TRY_AGAIN											= 3,		// 재접속 요청
+	R_INVALID_DATA_FORMAT								= 4,		// 플랫버퍼로 언마샬링한 데이터가 포맷에 맞지않음
+	R_GOTO_LOBBY										= 10,		// 로비로 이동
+	R_NOT_FIND_CHANNEL									= 11,		// 채널을 찾을 수 없음
+	R_INVALID_REQUEST									= 12,		// 잘못된 요청
+	R_MOVE_FIELD										= 13,		// 필드 이동(에러 아님)
+
+	R_DB_ITEM_ERROR										= 100,		// DB 아이템 에러
+	R_DB_QUEST_ERROR									= 101,		// DB 퀘스트 에러
+	R_DB_MAIL_ERROR										= 102,		// DB 메일 에러
+	R_DB_ACCOUNT_ERROR									= 103,		// DB 계정 에러
+	R_DB_CHARACTER_ERROR								= 104,		// DB 캐릭터 에러
+	R_DB_PLAYCHARACTER_ERROR							= 105,		// DB 플레이캐릭터 에러
+	R_DB_SKILL_ERROR									= 106,		// DB 스킬 에러
+	R_DB_SHOPITEM_ERROR									= 107,		// DB 상점아이템 에러
+	R_DB_QUICKSLOT_ERROR								= 108,		// DB 퀵슬롯 에러
+	R_DB_PET_ERROR										= 109,		// DB 펫 에러
+	R_DB_VEHICLE_ERROR									= 110,		// DB 탈것 에러
+	R_DB_HERO_ERROR										= 111,		// DB 히어로 에러
+	R_DB_LEVEL_ERROR									= 112,		// DB 레벨 에러
+	R_DB_COLLECTION_PROGRESS_ERROR						= 113,		// DB 컬렉션 진행도 에러
+	R_DB_COLLECTION_FAVORITE_ERROR						= 114,		// DB 컬렉션 즐겨찾기 에러
+	R_DB_DEAD_PENALTY_ERROR								= 115,		// DB 사망패널티 에러
+	R_DB_QUICKAUTO_ERROR								= 116,		// DB 퀵슬롯 에러
+	R_DB_GUILD_ERROR									= 117,		// DB 길드 에러
+	R_DB_DUNGEON_ERROR									= 118,		// DB 던전 에러
+	R_DB_ACHIEVEMENT_ERROR								= 119,		// DB 업적 에러
+	R_DB_FIRST_INSERT_ERROR								= 120,		// DB 최초 생성 에러
+	R_DB_GAME_OPTION_ERROR								= 121,		// DB 게임 옵션 에러
+	R_DB_DAILY_QUIEST_ERROR								= 122,		// DB 일일 퀘스트 에러
+	R_DB_SIEGE_ERROR									= 123,		// DB 공성전 에러
+	R_DB_COLLECTION_FILTER_ERROR						= 124,		// DB 컬렉션 필터 에러
+	R_DB_PRODUCT_ERROR									= 125,		// DB 제작 에러
+	R_DB_ATTENDANCE_ERROR								= 126,		// DB 출석부 에러
+	R_DB_PVP_ERROR										= 127,		// DB PVP 에러
+	// R_DB_FRIEND_ERROR									= 128,		// DB	친구 시스템 에러
+	R_DB_OPERATION_EVENT_ERROR							= 129,		// DB 운영툴 이벤트 시스템 에러
+	R_DB_PERIOD_EVENT_ERROR								= 130,		// DB 기간제 이벤트 시스템 에러
+    R_DB_INVENTORY_EXPAND_ERROR							= 131,		// DB 인벤토리 확장 카운트 업데이트 에러
+    R_DB_AUTO_BUY_LIST_ERROR							= 132,		// DB 상품 자동담기 시스템 에러
+	R_DB_CONTENT_DATA_ERROR								= 133,		// DB 컨텐츠 필터 에러
+	R_DB_PRESET_ERROR									= 134,		// DB 프리셋 에러
+	R_DB_SEASON_PASS_ERROR								= 135,		// DB 시즌 패스 에러
+	R_DB_PET_EXPLORE_ERROR								= 136,		// DB 펫 탐사 에러
+	R_DB_IN_PROGRESS									= 137,		// DB 처리가 진행중입니다.
+	R_DB_EVENT_EXHANGE_ERROR							= 138,		// DB 이벤트 교환소 에러
+	R_DB_BLESS											= 139,		// DB 여신의 축복 에러
+	R_DB_MONSTER_COLLECTION								= 140,		// DB 몬스터 콜렉션 에러
+	R_DB_AI_OPTION										= 141,		// DB AI Option 에러
+	R_DB_FIELD_MEMORY_PLACE_ERROR						= 142,		// DB 기억장소 에러
+	R_DB_EVENT_MISSION_ERROR							= 143,		// DB 기억장소 에러
+	R_DB_WORLD_LIST_ERROR								= 144,		// DB 월드 리스트 에러
+	R_DB_TERRITORY_DB_ERROR								= 145,		// DB 영지 에러
+
+    R_DB_SERVER_SELECT_ERROR							= 200,		// 서버 리스트 에러
+	
+	// 계정
+	R_ACCOUNT_CREATION_FAILED							= 1000,		// 계정 생성 에러
+	R_CHARACTER_LIST_LOADING_FAILED						= 1002,		// 캐릭터 리스트 로딩 실패
+	R_CHARACTER_CREATION_FAILED							= 1003,		// 캐릭터 생성 실패
+	R_NOT_FIND_THE_CONNECTED_SESSION					= 1004,		// 연결된 세션을 찾을 수 없습니다
+	R_NOT_FIND_PLAYER									= 1005,		// 플레이어를 찾을 수 없습니다
+	R_CHARACTER_LOAD_FAILED								= 1006,		// 캐릭터 로드 실패
+	R_CHARACTER_LOGINTIME_UPDATE_FAILED					= 1007,		// 캐릭터 로그인 업데이트 실패
+	R_CHARACTER_LOGOUTTIME_UPDATE_FAILED				= 1008,		// 캐릭터 로그아웃 업데이트 실패
+	R_DELETE_CHARACTER_IS_ALREADY_DELETED				= 1009,		// 삭제된 캐릭터
+	R_WRONG_TOKEN										= 1010,		// 계정 생성 에러
+	R_NOT_MATCH_SERVER_ID								= 1011,		// 매칭 되는 서버가 아님
+	R_SERVER_LIST_LOADING_FAILED						= 1012,		// 서버 리스트 로딩 실패
+	R_DUPLICATED_CHARACTER_NAME							= 1013,		// 중복된 캐릭터 이름이 있습니다.
+	R_NOT_MATCH_SESSION_KEY								= 1014,		// 세션키가 다름
+	R_NOT_WAITING_ORDER									= 1015,		// 대기 순서가 아닙니다.
+	R_ALREADY_CHARACTER_SLOT							= 1016,		// 이미 슬롯에 캐릭터가 있습니다.
+	R_NOT_FIND_RESERVATION_INTER						= 1017,		// 인터 서버 예약을 찾을 수 없습니다.
+	R_DUPLICATE_CONNECTION_SERVER						= 1018,		// 중복 접속된 서버가 있습니다.
+	R_CHARACTER_SLOT_IS_ALREADY_MAX						= 1019,		// 이미 캐릭터 슬롯이 MAX입니다.
+	R_DELETE_CHARACTER_LEVEL_IS_LOW						= 1020,		// 삭제할 캐릭터의 레벨이 부족합니다.
+	R_DELETE_CHARACTER_HAS_EXCHANGE_PRODUCT				= 1021,		// 삭제할 캐릭터가 거래소 상품이 존재합니다.
+	R_DELETE_CHARACTER_HAS_CASH_SHOP_REWARD				= 1022,		// 삭제할 캐릭터가 캐시샵에 받지못한 아이템이 있습니다.
+	R_DUPICATE_CONNECTION_CHARACTER						= 1023,		// 중복 접속된 캐릭터가 있습니다.
+	R_NOT_CONNECTED_PLAYER								= 1024,		// 연결된 세션을 찾을 수 없습니다
+
+	
+	// 액션
+	R_CHARACTER_OPERATION_FAILED						= 2000,		// 캐릭터 조작 실패
+	R_CHARACTER_MOVE_VERIFY_FAILED						= 2001,		// 캐릭터 이동 검증 실패
+	R_CHARACTER_UNABLE_TO_MOVE							= 2002,		// 캐릭터가 이동 할 수 없는 상태 입니다.
+	R_CHARACTER_UNABLE_TO_USE_ITEM						= 2003,		// 캐릭터가 아이템을 사용 할 수 없는 상태 입니다.
+	R_CHARACTER_UNABLE_TO_USE_SKILL						= 2004,		// 캐릭터가 스킬을 사용 할 수 없는 상태 입니다.
+	R_CHARACTER_BATTLE_STATE							= 2005,		// 전투 상태 입니다.
+	R_CHARACTER_CANNOT_MOVE_WHILE_SKILL					= 2006,		// 스킬사용 중 이동 할 수 없습니다.
+	R_CHARACTER_CANNOT_CROSS_BLOCKVOLUME				= 2007,		// 캐릭터가 블록볼륨을 넘어 갈 수 없습니다.
+	R_CHARACTER_CANNOT_MOVE_WHILE_EVADE					= 2008,		// 회피이동 중 이동 할 수 없습니다.
+	
+	R_INVALID_NAME_LENGTH								= 2050,		// 이름 길이가 맞지 않음.
+	R_INVALID_NAME_LETTER								= 2051,		// 사용할 수 없는 문자 포함.
+	
+	// 데이터
+	R_NOT_FIND_DATA										= 2100,		// 데이터를 찾을 수 없습니다.
+	R_NOT_FIND_GAME_OPTION								= 2101,		// 옵션정보를 찾을 수 없습니다.
+	R_ARRAY_LENGTH_EXCEEDED								= 2102,		// 사이즈가 맞지 않습니다.
+	
+	R_NOT_ENOUGH_CURRENCY_ERROR							= 10000,	// 재화가 부족합니다.
+	R_DESCRIPTION_LENGTH_MAX_OVER						= 10001,	// 디스크립션 길이가 최대값을 초과했습니다.
+	R_TITLE_LENGTH_MAX_OVER								= 10002,	// 타이틀 길이가 최대값을 초과했습니다.
+	R_NOT_EXIST_ACCOUNT_ERROR							= 10003,	// 계정이 존재하지 않습니다.
+	R_NOT_EXIST_CHARACTER_ERROR							= 10004,	// 캐릭터가 존재하지 않습니다.
+	R_CANNOT_SEND_MAIL_ERROR							= 10005,	// 메일 전송 에러.
+	R_CANNOT_SEND_HISTORY_REGIST_ERROR					= 10006,	// 메일 발신내역 저장 에러.
+	R_CONSUME_CURRENCY_FAIL_ERROR						= 10007,	// 재화 소모 실패.
+	R_NOT_EXIST_PLAYER_ERROR							= 10008,	// 플레이어가 존재하지 않습니다.
+	R_NOT_EXIST_MAIL_ERROR								= 10009,	// 메일이 존재하지 않습니다.
+	R_MAIL_RECEIVER_ACCOUNT_INCORRECT					= 10010,	// 메일 수령 계정이 올바르지 않습니다.
+	R_MAIL_RECEIVER_WORLD_INCORRECT						= 10011,	// 메일 수령 서버가 올바르지 않습니다.
+	R_MAIL_RECEIVER_CHARACTER_INCORRECT					= 10012,	// 메일 수령 캐릭터가 올바르지 않습니다.
+	R_MAIL_EXPIREDATE_OVER								= 10013,	// 메일 만료일이 경과했습니다.
+	R_INVALID_ITEM_ERROR								= 10014,	// 올바르지 않은 아이템 입니다.
+	R_MAIL_CANNOT_RECEIVE_ERROR							= 10015,	// 메일 수령 중 에러가 발생했습니다.
+	R_CANNOT_GET_REWARD_ERROR							= 10016,	// 보상을 받는 중 에러가 발생했습니다.
+	R_MAIL_STATUS_LOCK_ERROR							= 10017,	// 메일이 잠금 상태입니다.
+	R_MAIL_CANNOT_DELETE_ERROR							= 10018,	// 메일 삭제 중 에러가 발생했습니다.
+	R_MAIL_CANNOT_LOCK_ERROR							= 10019,	// 메일 잠금 중 에러가 발생했습니다.
+	R_DESCRIPTION_EMPTY_ERROR							= 10020,	// 디스크립션이 비어있습니다.
+	R_TITLE_EMPTY_ERROR									= 10021,	// 타이틀이 비어있습니다.
+	R_FAILED_ADD_ITEM									= 10022,	// 아이템 지급에 실패했습니다.
+
+	// 아이템
+	R_CANNOT_GET_DROP_ITEM								= 10100,	// 드랍 아이템을 획득 할 수 없습니다
+	R_CANNOT_USE_ITEM									= 10101,	// 아이템을 사용 할 수 없습니다
+	R_NOT_EXIST_ITERM_ERROR								= 10102,	// 아이템이 존재 하지 않습니다
+	R_ALREADY_EQUIPPED									= 10103,	// 이미 장착 되었습니다
+	R_NOT_MATCH_PLAYER_CLASS							= 10104,	// 플레이어 클래스가 일치하지 않습니다
+	R_ALREADY_UNEQUIPPED								= 10105,	// 이미 탈착 되었습니다
+	R_UIDS_DIFFERENT									= 10106,	// UID가 다릅니다
+	R_DO_NOT_HAVE_ITEM_ERROR							= 10107,	// 아이템을 소지하고 있지 않습니다
+	R_NOT_ENOUGH_COUNT									= 10108,	// 갯수가 충분하지 않습니다
+	R_NOT_FIND_QUICK_SLOT								= 10109,	// 퀵슬롯을 찾을 수 없습니다
+	R_EXCEED_QUICK_SLOT_RANGE							= 10110,	// 퀵슬롯 범위를 초과했습니다
+	R_CANNOT_AUTO_USE									= 10111,	// AUTO를 사용 할 수 없습니다
+	R_NOT_ENOUGHT_INVENTORY								= 10112,	// 인벤토리가 충분하지 않습니다
+	R_ALREADY_LEARN_SKILL								= 10113,	// 이미 습득한 스킬입니다
+	R_AUTO_REGIST_FAILED								= 10114,	// AUTO 등록에 실패 했습니다
+	R_ALREADY_REGISTERED_AUTO							= 10115,	// 이미 AUTO가 등록 되었습니다
+	R_INVENTORY_OVERWEIGHT								= 10116,	// 인벤토리 무게 초과를 초과 하였습니다.
+	R_CANNOT_ENHANCE_ITEM_ERROR							= 10117,	// 강화 할 수 없는 아이템입니다.
+	R_NOT_SAFE_ENHANCE_RANGE_ERROR						= 10118,	// 안전 강화 범위에 맞지 않습니다.
+	R_SAFE_ENHANCE_NEED_NORMAL_TYPE						= 10119,	// 안전 강화는 일반 강화서만 필요로 합니다.
+	R_NOT_AVAILABLE_PRODUCT_TIME						= 10120,	// 제작 가능시간이 아닙니다
+	R_PRODUCT_ITEM_LIMIT_COUNT_OVER						= 10121,	// 제작 제한 횟수 초과
+	R_PRODUCT_MAX_COUNT_OVER							= 10122,	// 제작 최대 횟수 초과
+	R_CAN_NOT_DECOMPOSE_ERROR							= 10123,	// 분해 할 수 없는 아이템 입니다.
+	R_DECOMPOSE_SORT_MAX_COUNT_OVER						= 10124,	// 분해 종류 갯수가 최대치를 초과 했습니다.
+	R_DECOMPOSE_STACKABLE_MAX_COUNT_OVER				= 10125,	// 하나의 아이템의 분해 갯수가 최대치를 초과 했습니다.
+	R_UNLOCKABLE_ITEM_TYPE								= 10126,	// 잠금 수 없는 아이템 타입 입니다.
+	R_CANNOT_CHANGE_LOCK_STATE							= 10127,	// 잠금 상태를 변경 할 수 없습니다.
+	R_LOCKED_ITEM										= 10128,	// 잠긴 아이템 입니다.
+	R_ALREADY_APPLY_SAME_EFFECT							= 10129,	// 이미 동일한 효과가 적용되어 있습니다
+	R_ALREADY_APPLY_HIGH_PRIORITY_EFFECT				= 10130,	// 기존보다 더 높은 효과가 적용 중이므로 사용을 취소합니다.
+	R_NOT_MATCH_ITEM_GROUP								= 10131,	// 아이템 그룹이 맞지 않습니다.
+	R_NOT_FOUND_ENHANCEMENT_DATA						= 10132,	// 강화 정보를 찾을 수 없습니다.
+	R_NOT_MATCH_ITEM_COUNT								= 10133,	// 아이템 개수가 일치하지 않습니다.
+	R_DROP_ITEM_NOT_FOUND								= 10134,	// 드랍 아이템을 찾을 수 없습니다.
+	R_DROP_ITEM_PRIORITY								= 10135,	// 드랍 아이템 획득 권한이 없습니다.
+	R_DROP_ITEM_DISTANCE								= 10136,	// 드랍 아이템을 획득할 수 있는 위치가 아닙니다.
+	R_NOT_EXISTS_ACQUIRE_ROLLBACK_ITEM					= 10137,	// 롤백 실패(출력용 X)
+	R_ACQUIRE_EXPIRED									= 10138,	// 사용이 만료된 Acquire 입니다.
+	R_ALREADY_REGISTERED_AUTO_OFF						= 10139,	// 이미 AUTO가 OFF 입니다.
+	R_INVALID_AUTO_ITEM									= 10140,	// 등록된 AUTO 항목이 아닙니다.
+	R_ALREADY_ENHANCE_LEVEL_IS_MAX						= 10141,	// 이미 최대 최대 입니다.
+	R_ENHANCE_SLOT_IS_MAX								= 10142,	// 장비 강화 슬롯이 이미 MAX입니다.
+	R_CURSED_ENHANCE_IS_INVALID_IN_MULTI				= 10143,	// 저주강화는 다중강화가 진행되지 않습니다.
+	R_ENHANCE_COUNT_IS_INVALID							= 10144,	// 인벤토리 강화 카운트가 비정상 데이터입니다.
+	R_ENHANCE_MATERIAL_SUM_IS_INVALID					= 10145,	// 강화재료 갯수가 맞지않습니다.
+	R_NO_STORABLE_ITEMS									= 10146,	// 창고에 저장 할 수 있는 아이템이 없습니다.
+	R_STORAGE_EXPANSION_MAX_OVER						= 10147,	// 창고 확장 최대 크기를 초과 하였습니다.
+	R_NOT_ENOUGH_GOLD									= 10148,	// 골드 부족
+	R_NOT_ENOUGH_RUBY									= 10149,	// 루비 부족
+
+	// 퀘스트
+	R_QUEST_ADDITION_FAILED								= 10200,	// 퀘스트 추가 실패
+	R_QUEST_DELETION_FAILED								= 10201,	// 퀘스트 삭제 실패
+	R_QUEST_COMPLETION_FAILED							= 10202,	// 퀘스트 완료 실패
+	R_NOT_EXIST_PREV_QUEST_ERROR						= 10203,	// 이전 퀘스트가 존재하지 않습니다
+	R_NOT_EXIST_QUEST_ERROR								= 10204,	// 퀘스트가 존재하지 않습니다
+	R_NPC_DISTANCE_TOO_FAR								= 10205,	// NPC와 거리가 너무 멉니다.
+	R_QUEST_PROCESS_FAILED								= 10206,	// 퀘스트 진행 실패
+	R_DAILY_QUEST_LIST_RESET							= 10207,	// 일일 퀘스트가 초기화 되었습니다.
+	R_NOT_EXIST_DAILY_QUEST								= 10208,	// 일일 퀘스트가 없습니다.
+	R_DAILY_QUEST_LIMIT_COUNT_OVER						= 10209,	// 일일 퀘스트 구매 가능 개수 초과
+	R_NOT_HAVE_AVAILABLE_QUEST							= 10210,	// 수행 가능한 퀘스트가 없습니다
+	R_WRONG_QUEST_REQUEST								= 10211,	// 잘못된 퀘스트 요청입니다
+	R_SPOT_DISTANCE_TOO_FAR								= 10212,	// 퀘스트 지역과 거리가 너무 멉니다
+	R_ALREADY_COMPLETED_QUEST							= 10213,	// 이미 완료되 퀘스트 입니다.
+	R_SCROLL_QUEST_REFRESH_FAILED						= 10214,	// 스크롤 퀘스트 교체 실패
+	R_SCROLL_QUEST_REFRESH_COUNT_OVER					= 10215,	// 스크롤 퀘스트 교체 횟수 초과 했습니다.
+	R_QUEST_LIMIT_COUNT_OVER							= 10216,	// 퀘스트 최대 개수를 초과 했습니다.
+
+	// 스킬
+	R_NOT_EXIST_SKILL_ERROR								= 10300,	// 스킬이 존재 하지 않습니다
+	R_NOT_ACTIVE_SKILL_ERROR							= 10301,	// 액티스 스킬이 존재 하지 않습니다
+	R_NOT_ENOUGH_MP_ERROR								= 10302,	// MP가 충분하지 않습니다
+	R_NOT_ENOUGH_COOL_TIME_ERROR						= 10303,	// 쿨타임이 충분하지 않습니다
+	R_NOT_FIND_CHARACTER								= 10304,	// 캐릭터를 찾을 수 없습니다
+	R_TARGET_ALREADY_DEAD								= 10305,	// 타겟이 이미 사망했습니다
+	R_NOT_MATCH_SKILL_TARGET							= 10306,	// 스킬 타겟이 일치하지 않습니다
+	R_NOT_ENOUGH_DISTANCE_TARGET						= 10307,	// 타겟과의 거리가 충분하지 않습니다
+	R_BLOCKED_BY_OBJECT_BETWEEN_TARGET					= 10308,	// 타겟 사이에 장애물이 있어 스킬사용 불가합니다
+	R_SKILL_ALREADY_IN_USE								= 10309,	// 이미 스킬 사용중 입니다.
+	R_PET_MOUNTED_CANNOT_ATTACK							= 10310,	// 펫에 탑승한 상태에서는 공격할 수 없습니다.
+	R_SOURCE_ALREADY_DEAD								= 10311,	// 시전자가 이미 사망했습니다
+	R_FAILED_WRONG_TARGET								= 10312,	// 공격할 수 없는 대상입니다
+	R_SAME_GUILD_TARGET									= 10313,	// 같은 길드를 대상으로 할 수 없습니다.
+	R_DIFFERENT_GUILD_TARGET							= 10314,	// 같은 길드원이 아닙니다.
+	R_NOT_PK_AREA										= 10315,	// PK 지역이 아닙니다.
+	R_NOT_FIND_SKILL_TARGET_TYPE						= 10316,	// 스킬 타겟 타입을 찾을 수 없습니다.
+	R_CANNOT_ACTION_STATE								= 10317,	// 수행할 수 없는 상태입니다.
+	R_SAME_PARTY_TARGET									= 10318,	// 같은 파티를 대상으로 할 수 없습니다
+	R_DIFFERENT_PARTY_TARGET							= 10319,	// 같은 파티원이 아닙니다.
+	R_NOT_EXIST_SKILL_OPTION_ERROR						= 10320,	// 스킬 옵션이 존재하지 않습니다
+	R_MAX_SKILL_DEPTH_OVER								= 10321,	// 스킬 최대 반복횟수를 초과했습니다.
+	R_SKILL_OVERLAP_ERROR								= 10322,	// 사용된 스킬이 중첩 조건에 맞지 않습니다.
+	R_ALREADY_SKILL_LEVEL_IS_MAX						= 10323,	// 스킬 강화시 이미 MAX Level입니다.
+	R_SAME_TEAM_TARGET									= 10324,	// 같은 팀을 공격 할 수 없습니다.
+	R_CANNOT_USE_LINK_SKILL								= 10325,	// 연계 스킬 사용 불가
+	R_PREREQUISITE_SKILL_NOT_FOUND						= 10326,	// 선행 스킬을 배우지 않았음
+	R_CANNOT_SET_AUTO_LINK_SKILL						= 10327,	// 연계 스킬 자동 설정 변경 불가
+
+	// 상점
+	R_NOT_EXIST_SHOP_ITEM_ERROR							= 10400,	// 상점 아이템이 존재 하지 않습니다
+	R_NOT_ENOUGH_PLAYER_LEVEL							= 10401,	// 플레이어 레벨이 충분하지 않습니다
+	R_SHOP_ITEM_LIMIT_COUNT_OVER						= 10402,	// 상점 구매제한 횟수를 초과 했습니다
+    R_NOT_SHOP_NPC										= 10403,	// 해당 NPC는  상점 NPC가 아닙니다.
+    R_SHOP_ITEM_IS_NOT_SALE_IN_THE_SHOP_NPC				= 10404,	// 해당 상점 아이템은 해당 NPC에서 팔지 않습니다.
+	R_SHOP_ITEM_COUNT_IS_OVER							= 10405,	// 해당 아이템 카운트가 초과 및 0보다 작습니다.
+	R_NOT_MATCH_NPC										= 10406,	// NPC 타입이 일치하지 않습니다
+
+    // 펫
+    R_NOT_EXIST_PET_ERROR								= 10500,	// 펫이 존재 하지 않습니다
+	
+	// 탈것
+	R_NOT_EXIST_VEHICLE_ERROR							= 10600,	// 탈것이 존재 하지 않습니다
+	R_NOT_ENOUGH_RERIDE_COOL_TIME						= 10601,	// 탈것의 재탑승 시간이 충분하지 않습니다
+	R_CAN_NOT_RIDE_IN_BATTLE_STATE						= 10602,	// 전투 상태일 때는 탈 수 없습니다.
+	
+	// 히어로
+	R_NOT_EXIST_HERO_ERROR								= 10700,	// 히어로가 존재 하지 않습니다
+
+	// 콜렉
+	R_NOT_FOUND_COLLECTION								= 10800,	// 컬랙션을 찾을 수 없습니다
+	R_ALREADY_COLLECTED_INDEX							= 10801,	// 이미 습득한 컬랙션 입니다.
+	R_CANNOT_COLLECTABLE_ITEM							= 10802,	// 컬랙션에 사용 할 수 없는 아이템입니다
+	R_FAILED_REMOVE_ITEM								= 10803,	// 아이템 삭제에 실패했습니다
+	R_ALREADY_FAVORITE_COLLECTION						= 10804,	// 이미 즐겨찾기에 등록된 컬랙션 입니다
+	R_NOT_FAVORITE_COLLECTION							= 10805,	// 즐겨찾기로 등록되지 않은 컬렉션입니다
+	R_FAILED_COLLECTION_FILTER_PRESET_SAVE				= 10806,	// 컬렉션 필터 저장에 실패했습니다
+	R_FAILED_UPDATE_ITEM								= 10807,	// 아이템 갱신에 실패했습니다
+	R_ALREADY_MONSTER_COLLECTION_LEVEL_IS_MAX			= 10808,	// 몬스터 도감 강화 레벨이 최대입니다.
+	R_NOT_ENOUGH_COUNT_MONSTER_COLLECTION_CATEGORY		= 10809,	// 몬스터 도감 카테고리 달성도가 보상을 받기에 충분하지 않습니다.
+	R_ALREADY_RECV_ALL_CATEGORY_REWARD					= 10810,	// 이미 몬스터 도감 카테고리 달성도의 보상을 받았습니다.
+	R_MONSTER_COLLECTION_IS_NOT_OPEN_BY_QUEST			= 10811,	// 해당 몬스터 도감은 잠겨있습니다.
+	R_NOT_MATCHED_COLLECTION_COUNT						= 10812,	// 올바르지 않은 컬렉션 카운트입니다.
+	R_COLLECTION_IS_NOT_EVENT_DATE						= 10813,	// 컬렉션 등록 기간이 지났습니다.
+	
+	// 부활
+	R_REVIVAL_TIME_ERROR								= 10900,	// 부활시간이 만족하지 않습니다
+	R_NOT_DEAD_STATE									= 10901,	// 사망상태가 아닙니다
+	R_NOT_FIND_DEAD_PENALTY								= 10902,	// 사망 패널티 정보를 찾을수 없습니다.
+	R_DEAD_PENALTY_TIME_ERROR							= 10903,	// 사망 패널티 획득 시간이 지났습니다.
+	R_DEAD_PENALTY_TYPE_ERROR							= 10904,	// 사망 패널티 타입이 잘못 되었습니다.
+	R_DEAD_PENALTY_FREE_COUNT_IS_MAX					= 10905,	// 사망 패널티 무료 횟수가 이미 최대입니다.
+	
+	// 길드
+	R_GUILD_DB_ERROR									= 11101,	// DB 에러
+	R_GUILD_INVALID_REQUEST								= 11102,	// 잘못된 요청
+	R_GUILD_DUPLICATED_NAME								= 11103,	// 중복 길드명
+	R_GUILD_NOT_FOUND									= 11104,	// 길드가 없음
+	R_GUILD_NOT_FOUND_EMBLEM							= 11105,	// Emblem 정보가 없음
+	R_GUILD_NOT_SATISFIED_LEVEL							= 11106,	// 필요 길드 레벨을 만족하지 않음
+	R_GUILD_ALREADY_REQUESTED							= 11107,	// 이미 가입 신청한 길드
+	R_GUILD_MAX_REQUEST_LIST							= 11108,	// 길드 가입 신청 목록 최대 초과
+	R_GUILD_MAX_REQUEST									= 11109,	// 길드 가입 신청 최대 초과
+	R_GUILD_UNAUTHORIZED								= 11110,	// 권한이 없음
+	R_GUILD_NOT_EXIST_REQUEST							= 11111,	// 요청 대상이 존재하지 않음
+	R_GUILD_MAX_MEMBERS									= 11112,	// 최대 인원 초과
+	R_GUILD_ALREADY_ATTENDANCED							= 11113,	// 이미 출석 완료
+	R_GUILD_MAX_DONATED									= 11114,	// 최대 기부 횟수 초과
+	R_GUILD_MAX_MEMBER_TYPE								= 11115,	// MemberType 최대 인원 초과
+	R_GUILD_REMAIN_COOLTIME								= 11116,	// 길드 재가입 가능 시간이 아님
+	R_GUILD_EXIST_REQUEST_SEND							= 11117,	// 보낸 요청 목록에 있음
+	R_GUILD_EXIST_REQUEST_RECEIVE						= 11118,	// 받은 요청 목록에 있음
+	R_GUILD_EXIST_ALLIANCE								= 11119,	// 동맹 목록에 있음
+	R_GUILD_EXIST_HOSTILITY								= 11120,	// 적대 목록에 있음
+	R_GUILD_MAX_ALLIANCE_REQUEST_SEND					= 11121,	// 보낸 동맹 요청 수 초과
+	R_GUILD_MAX_ALLIANCE_REQUEST_RECEIVE				= 11122,	// 받은 동맹 요청 수 초과
+	R_GUILD_MAX_ALLIANCE								= 11123,	// 최대 동맹 수 초과
+	R_GUILD_MAX_REQUESTER_ALLIANCE						= 11124,	// 요청 길드의 최대 동맹 수 초과
+	R_GUILD_MAX_HOSTILITY								= 11125,	// 최대 적대 목록 수 초과
+	R_GUILD_NOT_EXIST_REQUEST_RECEIVE					= 11126,	// 받은 요청 목록에 없음
+	R_GUILD_MISSION_INVALID_REQUEST						= 11127,	// 잘못된 길드 임무 보상 요청
+	R_GUILD_MISSION_EXPIRED								= 11128,	// 종료된 길드 임무
+	R_GUILD_MISSION_NOT_SATISFIED						= 11129,	// 길드 임수 보상 수령 조건 부족
+	R_GUILD_MISSION_MAX_REWARDED						= 11130,	// 길드 임무 최대 보상 가능 수 초과
+	R_GUILD_RAID_NOT_OPENED								= 11131,	// 길드 레이드가 오픈 되지 않았습니다.
+	R_GUILD_ALREADY_OPEN_RAID							= 11132,	// 길드 레이드가 이미 오픈 되었습니다.
+	R_GUILD_RAID_NOT_FOUND								= 11133,	// 길드 레이드를 찾을 수 없습니다.
+	R_GUILD_RAID_CHALLENGE_COUNT_OVER					= 11134,	// 길드 레이드를 도전 횟수를 초과 하였습니다.
+	R_GUILD_RAID_NOT_CLOSE								= 11135,	// 길드 레이드가 오픈 되지 않았습니다.
+	R_GUILD_ALREADY_ENTERED_RAID						= 11136,	// 길드 레이드에 이미 입장 하였습니다.
+	
+	// 던전
+	R_NOT_FIND_DUNGEON									= 11201,	// 던전을 찾을 수 없습니다.
+	R_NOT_MATCH_CHARGING_ITEM							= 11202,	// 충전 아이템이 잘못 되었습니다.
+	R_CHARGING_TIME_EXCEEDED							= 11203,	// 충전 시간을 초과 하였습니다.
+	R_NOT_DUNGEON_TYPE									= 11204,	// 던전 타입이 아닙니다.
+	R_NOT_FIND_FIELD									= 11205,	// 필드를 찾을 수 없습니다.
+	R_NOT_ENOUGH_DUNGEON_PLAY_TIME						= 11206,	// 던전 플레이 시간이 부족합니다.
+	R_NOT_FIND_FIELD_INFO								= 11207,	// 필드 정보를 찾을 수 없습니다.
+	R_NOT_FIND_WORLDBOSS								= 11208,	// 월드 보스를 찾을 수 없습니다.
+	R_FAILED_FIELD_CREATE								= 11209,	// 필드 생성에 실패 했습니다.
+	R_FIELD_ALREADY_EXISTS								= 11210,	// 필드가 이미 존재합니다.
+
+	// 업적
+	R_ACHIEVEMENT_COMPLETION_FAILED						= 11301,	// 업적 완료 실패
+	R_ACHIEVEMENT_ISGETALL_COUNT_ERROR					= 11302,	// 단일 받기인데 받으려는 갯수가 여러개인 경우
+
+	// 공성전
+	R_NOT_EXISTS_SIEGE_BIDDING							= 11401,	// 입찰 중인 공성전이 없습니다
+	R_NOT_FOUND_SIEGE_FIELD								= 11402,	// 공성 정보를 찾을 수 없습니다
+	R_MAX_SIEGE_BIDDING_COUNT							= 11403,	// 더 이상 입찰할 수 없습니다
+	R_NOT_EXISTS_SIEGE_START							= 11404,	// 진행 중인 공성전이 없습니다
+	R_NOT_FOUND_SIEGE_TELEPORT							= 11405,	// 이동 좌표 정보를 찾을 수 없습니다
+	R_ALREADY_SIEGE_BIDDED								= 11406,	// 이미 입찰했습니다
+	R_FAILED_SIEGE_BIDDING								= 11407,	// 입찰에 실패했습니다
+	R_FAILED_SIEGE_BIDDING_DEFENDER						= 11408,	// 수성 길드는 입찰에 참여할 수 없습니다
+	R_NOT_FOUND_SIEGE_SCHEDULE							= 11409,	// 공성 일정을 찾을 수 없습니다
+	R_NOT_SIEGE_ATTACKER								= 11410,	// 공성 길드가 아닙니다
+	R_NOT_SIEGE_DEFENDER								= 11411,	// 수성 길드가 아닙니다
+	
+	// 필드
+	R_FAILED_FILED_WARP									= 11501,	// 워프할 수 없는 지역입니다
+	R_NOT_TIME_CHANGE_CHANNEL							= 11502,	// 채널 이동 시간이 아닙니다.
+	R_SAME_CHANNEL										= 11503,	// 같은 채널로 이동 할 수 없습니다.
+	R_SAME_FIELD										= 11504,	// 같은 필드로 이동 할 수 없습니다.
+
+	// 상호작용
+	R_NOT_INVALID_TARGET								= 11601,	// 유효하지 않은 대상입니다
+	R_FAILED_TARGET_DISTANCE							= 11602,	// 대상의 거리가 너무 멉니다
+	R_FAILED_ACTOR_STATE								= 11603,	// 수행할 수 없는 상태입니다
+	R_FAILED_FIELD										= 11604,	// 수행할 수 없는 지역입니다
+	R_FAILED_ANIMATION									= 11605,	// 연출 중에는 수행할 수 없습니다
+	R_ANOTHER_ACTOR_INPROGRESS							= 11606,	// 이미 다른 대상이 상호작용 중 입니다.
+
+	// 파티
+	R_ALREADY_PARTY_JOINED								= 11701,	// 이미 참여 중인 파티가 존재합니다
+	R_FAILED_PARTY_AUTHORITY							= 11702,	// 권한이 없습니다
+	R_FAILED_PARTY_INVITE								= 11703,	// 대상을 초대하는데 실패했습니다
+	R_NOT_FOUND_TARGET									= 11704,	// 초대 대상을 찾을 수 없습니다
+	R_NOT_JOINED_PARTY									= 11705,	// 참여 중인 파티가 없습니다
+	R_ALREADY_PARTY_INVITING							= 11706,	// 이미 초대 중인 파티가 있습니다
+	R_NOT_PARTY_INVITING								= 11707,	// 초대 중인 파티가 없습니다
+	R_FAILED_PARTY_MEMBER_FULL							= 11708,	// 파티 멤버가 가득 찼습니다
+	R_FAILED_INVITING_PARTY_ACCEPT						= 11709,	// 파티 초대 수락에 실패했습니다
+	R_FAILED_CHANGE_HOST								= 11710,	// 파티장 변경에 실패했습니다
+	R_EXPIRED_PARTY_INVITE_TIME							= 11711,	// 파티 초대 시간이 만료되었습니다
+	R_WRONG_TARGET_PARTY_KICK							= 11712,	// 추방할 수 없는 대상입니다
+	R_NOT_FOUND_PARTY									= 11713,	// 파티를 찾지 못했습니다
+
+	//이벤트 통합
+	R_EVENT_IS_NOT_CURRENT_SEASON						= 11800,	// 해당 이벤트는 기간이 지났습니다.
+
+	// 출석체크
+	R_ATTENDANCE_EVENT_REWARD_LEVEL_IS_INVALID			= 11801,	// 요청한 보상 요청 단계가 적절하지 않습니다.
+	R_ATTENDANCE_EVENT_IS_NOT_CURRENT_SEASON			= 11802,	// 해당 출석부 이벤트는 기간이 지났습니다.
+	
+	// 커뮤니티
+	R_COMMUNITY_INVALID_REQUEST							= 11910,	// 잘못된 요청입니다.
+	R_COMMUNITY_DB_ERROR								= 11911,	// 요쳥을 실패 했습니다.
+	R_COMMUNITY_EXIST_REQUEST_SEND						= 11912,	// 보낸 요청 목록에 있습니다.
+	R_COMMUNITY_EXIST_REQUEST_RECEIVE					= 11913,	// 받은 요청 목록에 있습니다.
+	R_COMMUNITY_EXIST_FRIENDS							= 11914,	// 친구 목록에 있습니다.
+	R_COMMUNITY_EXIST_AMITIES							= 11915,	// 우호 목록에 있습니다.
+	R_COMMUNITY_EXIST_VIGILANCES						= 11916,	// 경계 목록에 있습니다.
+	R_COMMUNITY_MAX_REQUEST_SEND						= 11917,	// 최대 보낸 요청 수를 초과합니다.
+	R_COMMUNITY_MAX_REQUEST_RECEIVE						= 11918,	// 상대가 최대 받은 요청 수를 초과합니다.
+	R_COMMUNITY_MAX_FRIENDS								= 11919,	// 최대 친구 수를 초과합니다.
+	R_COMMUNITY_MAX_REQUESTER_FRIENDS					= 11920,	// 상대방이 최대 친구 수를 초과합니다.
+	R_COMMUNITY_MAX_AMITIES								= 11921,	// 상대방이 최대 친구 수를 초과합니다.
+	R_COMMUNITY_MAX_VIGILANCES							= 11922,	// 상대방이 최대 친구 수를 초과합니다.
+	R_COMMUNITY_NOT_EXIST_REQUEST_SEND					= 11923,	// 보낸 요청 목록에 없습니다.
+	R_COMMUNITY_NOT_EXIST_REQUEST_RECEIVE				= 11924,	// 받은 요청 목록에 없습니다.
+	R_COMMUNITY_NOT_UNIQUE								= 11925,	// 친구, 우호, 경계는 중복으로 지정할 수 없습니다.
+	R_COMMUNITY_NOT_EXIST_FRIENDS						= 11926,	// 친구 목록에 없습니다.
+	R_COMMUNITY_NOT_EXIST_AMITIES						= 11927,	// 우호 목록에 없습니다.
+	R_COMMUNITY_NOT_EXIST_VIGILANCES					= 11928,	// 경계 목록에 없습니다.
+	R_COMMUNITY_NOT_EXISTS_ACCEPTABLES					= 11929,	// 수락 가능한 대상이 존재하지 않습니다.
+
+	// 클래스 숙련도
+	R_NOT_ENOUGH_CLASS_MASTERY_LEVEL					= 12001,	// 숙련도 레벨이 충분하지 않습니다
+ 
+    R_NOT_FIND_SERVER									= 20001,	// 서버를 찾을 수 없습니다.
+	R_FAILED_MOVE_SERVER								= 20002,	// 서버 이동에 실패 하였습니다.
+
+	// 인벤토리 확장 
+    R_INVENTORY_EXPAND_COUNT_IS_OVER					= 20101,	// 인벤토리 확장 카운트가 범위를 벗어났습니다.
+	// 상품 자동 담기 
+	R_AUTO_BUY_IS_ONLY_AVAILABLE_IN_MERCHANT_NPC		= 20201,	// 상품 자동 담기 기능은 잡화상인만 가능합니다.
+
+	// 거래소
+	R_EXCHANGE_ITEM_NOT_FOUND							= 20301,	// 거래소에 등록할 아이템을 보유하고 있지 않습니다.
+	R_EXCHANGE_ITEM_INVALID_BIND_TYPE					= 20302,	// 거래소에 등록할 아이템의 BindType이 NoAttribution이 아닙니다.
+	R_EXCHANGE_DUPLICATED_FAVORITE_ITEM					= 20303,	// 거래소 즐겨찾기를 중복으로 등록할 수 없습니다.
+	R_EXCHANGE_NOT_FOUND_FAVORITE_ITEM					= 20304,	// 삭제할 거래소 즐겨찾기를 찾을 수 없습니다.
+	R_EXCHANGE_INVALID_SELLING_NUM						= 20305,	// 동시 판매 갯수 최소, 최대 범위를 벗어 났습니다.
+	R_EXCHANGE_INVALID_SELLING_PRICE					= 20306,	// 총 판매 금액 최소, 최대 범위를 벗어 났습니다.
+	R_EXCHANGE_INVALID_EXCHANGE_UID						= 20307,	// 올바르지 않은 ExchangeUID가 포함되어 있습니다.
+	R_EXCHANGE_INVALID_PURCHASABLE_CHARACTER			= 20308,	// 개인 구매 대상 캐릭터가 아닙니다.
+	R_EXCHANGE_SALES_EXPIRED							= 20309,	// 판매 시간이 종료된 상품 입니다.
+	R_EXCHANGE_INVALID_SALES_CHARACTER					= 20310,	// 판매자가 아닙니다.
+	R_EXCHANGE_NOT_PURCHASED							= 20311,	// 판매가 완료된 상품이 아닙니다.
+	R_EXCHANGE_MAX_FAVORITES							= 20312,	// 즐겨찾기 아이템 최대 갯수를 초과 했습니다.
+	R_EXCHANGE_MAX_PUBLIC_REGISTERED					= 20313,	// 최대 판매 등록 갯수를 초과 했습니다.
+	R_EXCHANGE_MAX_PUBLIC_PURCHASE_COUNT				= 20314,	// 일괄 구매 최대 갯수를 초과 했습니다.
+	R_EXCHANGE_MAX_DAILY_PRIVATE_REGISTERED				= 20315,	// 일일(개인) 최대 판매 등록 갯수를 초과 했습니다.
+	R_EXCHANGE_MAX_DAILY_PRIVATE_PURCHASED				= 20316,	// 일일(개인) 최대 구매 등록 갯수를 초과 했습니다.
+	R_EXCHANGE_INVALID_FAVORITE							= 20317,	// 올바르지 않은 즐겨찾기 정보입니다.
+	R_EXCHANGE_SELLER_NOT_PURCHASABLE					= 20318,	// 해당 상품의 판매자는 구매할 수 없습니다.
+
+	// 다시 뽑기
+	R_GACHA_INVALID_REQUEST								= 20400,	// 잘못된 요청입니다.
+	R_GACHA_REDRAWABLE_NOT_FOUND						= 20401,	// 다시 뽑기 가능한 항목이 존재하지 않습니다.
+	R_GACHA_REDRAW_EXPIRED								= 20402,	// 다시 뽑기 가능한 시간을 초과하였습니다.
+	R_GACHA_MAX_REDREW									= 20403,	// 다시 뽑기 최대 횟수를 초과하였습니다.
+	R_GACHA_REDRAW_RETRY								= 20404,	// 다시 뽑기를 재시도 해주세요.
+	R_GACHA_INVALID_DRAW_NUM							= 20405,	// 뽑기 횟수 범위가 비정상입니다.
+
+	// 룬
+	R_RUNE_DO_NOT_HAVE									= 20501,	// 가지고있지 않은 룬입니다.
+	R_RUNE_SLOT_IS_NOT_MATCH_TYPE						= 20502,	// 룬 슬롯과 룬타입이 맞지않습니다
+	R_RUNE_COMBINE_TRY_NUM_IS_MAX						= 20503,	// 룬 합성 가능횟수를 초과했습니다.
+
+	// 여신의 축복
+	R_BLESS_LEVEL_IS_INVALID							= 20601,	// 여신의 축복 레벨이 일치하지 않습니다
+	R_BLESS_PROBE_IS_ZERO								= 20602,	// 여신의 축복 합산 확률이 0입니다.
+	
+    // PvP
+	R_PVP_REVENGE_NOT_FIND_TARGET_USER					= 20701,	// PVP 복수하기 대상 유저가 오프라인이거나 찾을 수 없습니다.
+	R_PVP_REVENGE_COUNT_IS_ALREADY_MAX					= 20702,	// PVP 복수하기 시도 횟수가 MAX입니다.
+	R_PVP_REVENGE_USER_POSITION_IS_NOT_ACCESSIBLE		= 20703,	// PVP 복수할 유저의 위치가 접근 불가능한 위치입니다.
+	R_PVP_REVENGE_TIME_LIMIT_IS_OVER					= 20705,	// PVP 복수하기 제한 시간이 지났습니다.
+	R_PVP_MESSAGE_MAX_LENGTH_OVER						= 20706,	// PVP 메시지 글자수 초과입니다.
+	R_PVP_INSULT_COUNT_IS_ALREADY_MAX					= 20707,	// PVP 모욕하기 시도 횟수가 MAX입니다.
+	R_PVP_INSULT_TIME_LIMIT_IS_OVER						= 20708,	// PVP 모욕하기 제한 시간이 지났습니다.
+	R_PVP_INSULT_NOT_FIND_TARGET_USER					= 20709,	// PVP 모욕하기 대상 유저가 오프라인이거나 찾을 수 없습니다.
+
+	// Preset
+	R_INVALID_PRESET_ID									= 20801,	//  잘못된 PrestID
+	R_EMPTY_PRESET										= 20802,
+	
+	// 컨텐츠 오픈
+	R_CONTENT_NOT_OPENED								= 20811,	// 열리지 않은 컨텐츠
+
+	//Season Pass
+	R_SEASON_PASS_REWARD_LEVEL_IS_INVALID				= 20901,	// 요청한 시즌패스 보상 레벨이 적합하지 않습니다.
+	R_SEASON_PASS_PREMIUM_IS_NOT_ACTIVE					= 20902,	// 해당 유저는 시즌 패스 프리미엄 유저가 아닙니다.
+	R_SEASON_PASS_LEVEL_IS_ALREADY_MAX					= 20903,	// 시즌 패스 레벨이 이미 MAX입니다.
+	R_SEASON_PASS_LEVEL_IS_OUT_OF_RANGE					= 20904,	// 요청한 시즌 패스 레벨이 범위 밖입니다.
+	R_SEASON_PASS_SEASON_IS_NOT_CURRENT_SEASON			= 20905,	// 해당 시즌은 현재 시즌이 아닙니다.
+	R_SEASON_PASS_SEASON_MISSION_IS_UNCHANGED			= 20906,	// 시즌 패스 미션중 변경된 게 없습니다.
+
+	//CashShop
+	R_CASHSHOP_DB_ERROR									= 21000,	// 유료 상점 DB Error;
+	R_CASHSHOP_INVALID_REQUEST							= 21001,	// 잘못된 요청입니다.
+	R_CASHSHOP_CONTACT_CUSTOMER_SERVICE_CENTER			= 21002,	// 고객센터에 문의하세요.
+	R_CASHSHOP_NOT_EXIST_PRODUCT						= 21003,	// 판매하지 않는 상품입니다.
+	R_CASHSHOP_NOT_SALES_PERIOD							= 21004,	// 판매 기간이 아닙니다.
+	R_CASHSHOP_NOT_SATISFIED_LEVEL						= 21005,	// 구매 레벨 조건을 만족하지 않습니다.
+	R_CASHSHOP_NOT_SATISFIED_QUEST						= 21006,	// 구매 퀘스트 조건을 만족하지 않습니다.
+	R_CASHSHOP_SOLDOUT									= 21007,	// 구매 횟수를 초과 합니다.
+	R_CASHSHOP_NOT_FOUND_STORAGE						= 21008,	// 보관함에 없는 상품입니다.
+	R_CASHSHOP_NOT_SATISFIED_STEPUP						= 21009,	// 스텝업 상품 구매 조건을 만족하지 않습니다.
+	R_CASHSHOP_INVALID_PAYLOAD							= 21010,	// 스텝업 상품 구매 조건을 만족하지 않습니다.
+	R_CASHSHOP_EXPIRED									= 21011,	// 판매가 종료된 상품입니다.
+	
+
+	//Pet Explore
+	R_PET_EXPLORE_IS_EQUIPPED							= 21100,	// 해당 펫은 현재 장착중입니다.
+	R_PET_EXPLORE_IS_EXPLORED							= 21101,	// 해당 펫은 현재 파견중입니다.
+	R_PET_EXPLORE_IS_NOT_EXPLORED						= 21102,	// 해당 펫은 현재 파견 상태가 아닙니다.
+	R_PET_EXPLORE_FIELD_IS_NOT_OPENED					= 21103,	// 해당 펫 탐사지역은 오픈된 상태가 아닙니다.
+
+	//Auto Option
+	R_AUTO_OPTION_IS_NOT_REGISTERED						= 21200,	// 해당 옵션은 등록되지 않았습니다.
+	R_AUTO_DECOMPOSITION_IS_FAIL						= 21201,	// 자동 분해가 실패하였습니다.
+	R_AUTO_OPTION_IS_NON_ACTIVE							= 21202,	// 자동 옵션이 비활성화 되어 있습니다.
+	R_AUTO_DECOMPOSITION_ITEM_NOT_FOUND					= 21203,	// 자동 분해 등록할 아이템이 없습니다.
+	R_AUTO_SELL_ITEM_NOT_FOUND							= 21204,	// 자동 판매 등록할 아이템이 없습니다.
+	R_AUTO_COLLECTION_ITEM_NOT_FOUND					= 21205,	// 자동 컬랙션에 등록할 아이템이 없습니다.
+
+	// 기억장소
+	R_FIELD_MEMORY_PLACE_NAME_EMPTY						= 21300,	// 기억장소명이 비어있습니다.
+	R_FIELD_MEMORY_PLACE_INVALID_NAME_SIZE				= 21301,	// 기억장소명이 최소, 최대 범위를 벗어 났습니다.
+	R_FIELD_MEMORY_PLACE_INVALID_DESTSPOT				= 21302,	// 지역이동 정보가 올바르지 않습니다.
+	R_FIELD_MEMORY_PLACE_INVALID_ORDER_INDEX			= 21303,	// 기억장소 순서 번호가 올바르지 않습니다.
+	R_FIELD_MEMORY_PLACE_REGIST_MAXSIZE_OVER			= 21304,	// 기억장소 최대 등록 가능 갯수를 초과했습니다.
+	R_FIELD_MEMORY_PLACE_CAN_NOT_REGIST_AREA			= 21305,	// 기억장소 저장 가능한 지역이 아닙니다.
+	R_FIELD_MEMORY_PLACE_POSITION_EMPTY					= 21306,	// 기억장소 포지션 정보가 비어있습니다.
+
+	//AI Scheduler
+	R_AISCHEDULER_TELEPORTING							= 21400,	// 다음 위치로 이동중...(에러 아님)
+	R_AISCHEDULER_DB_ERROR								= 21410,	// DB Error
+	R_AISCHEDULER_INVALID_REQUEST						= 21411,	// 잘못된 요청
+	R_AISCHEDULER_RUNNING								= 21412,	// 스케줄러 실행중
+	R_AISCHEDULER_NOT_RUNNING							= 21413,	// 스케줄러 실행중 아님
+	R_AISCHEDULER_STOP_RESERVED							= 21414,	// 스케줄러 종료가 예약되어 있음
+	R_AISCHEDULER_EMPTY									= 21415,	// 등록된 스케줄이 없음
+	R_AISCHEDULER_MAX_RESTORE							= 21416,	// 최대 사망 패널티 복구 횟수로 인한 종료
+	R_AISCHEDULER_NOT_ENOUGH_COINS						= 21417,	// 코인 부족
+	R_AISCHEDULER_STOP_DEAD								= 21418,	// 사망 후 종료
+	R_AISCHEDULER_STOP_PVP_AVOID						= 21419,	// PVP 회피 후 종료
+	
+	//Event Mission
+	R_EVENT_MISSION_COUNT_NOT_ENOUGH					= 21500,	// 이벤트 미션 완료를 위한 카운트가 부족합니다.
+	R_EVENT_MISSION_IS_ALREADY_COMPLETED				= 21501,	// 해당 이벤트 미션은 이미 완료처리되었습니다.
+	
+	//Territory
+	R_TERRITORY_MANSION_LEVEL_IS_LOW					= 21601,	// 대저택 레벨이 부족합니다.
+	R_TERRITORY_BUILDING_IS_ALREADY_BUILT				= 21602,	// 해당 건물은 이미 지어졌습니다.
+	R_TERRITORY_TARGET_LEVEL_IS_INVALID					= 21603,	// 건설하려는 건물의 레벨이 잘못되었습니다.
+	R_TERRITORY_IS_PROGRESS_IN_BUILDING					= 21604,	// 해당 슬롯은 현재 건설 중입니다.
+	R_TERRITORY_PRODUCTION_Q_IS_FULL					= 21605,	// 해당 건물 생산 큐가 꽉찼습니다.
+	R_TERRITORY_PRODUCTION_IS_NOT_MATCH_WITH_BUILDING	= 21606,	// 해당 건물에서 생산할 수 없는 품목입니다.
+	R_TERRITORY_BUILDING_LEVE_IS_LOW_FOR_PRODUCTION		= 21607,	// 생산하기에 건물 레벨이 부족합니다.
+	R_TERRITORY_HARVEST_TIME_IS_EARLY					= 21608,	// 생산 시간이 부족합니다.
+	R_TERRITORY_PRODUCTION_IS_ALREADY_COMPLETED			= 21609,	// 이미 생산이 완료되어 취소 할 수 없습니다.
+	R_TERRITORY_PRODUCTION_NOT_IN_PROGRESSS				= 21610,	// 진행 중인 생산품이 없습니다.
+	R_TERRITORY_RESIDENT_IS_ONLY_HIRED_IN_BAR			= 21611,	// 주민은 주점에서만 고용할 수 있습니다.
+	R_TERRITORY_RESIDENT_IS_ALREADY_MAX					= 21612,	// 주민수가 이미 최대치입니다.
+	R_TERRITORY_RESIDENT_IS_BUSY						= 21613,	// 해당 주민이 고용된 생산시설이 현재 생산중입니다.
+	R_TERRITORY_PRODUCTION_Q_IS_NOT_EMPTY				= 21614,	// 건물을 짓기위해 해당 건물 생산 큐를 비워야합니다.
+	R_TERRITORY_PRODUCTION_Q_SLOT_IS_MAX				= 21615,	// 생산 시설 큐 확장 슬롯이 이미 최대치입니다.
+	R_TERRITORY_BUILDING_SLOT_IS_INVALID				= 21616,	// 건설하려는 슬롯이 잘못되었습니다.
+	R_TERRITORY_RESIDENT_HIRE_IS_ALREADY_DONE			= 21617,	// 해당 주민은 이미 고용되었습니다.
+
+	// Web
+    R_WEB_SUCCESS										= 50001,
+	R_WEB_ERROR											= 50002,
+	R_WEB_DB_ERROR										= 50003,
+	R_WEB_DUPLICATE_LOGIN								= 50004,
+	R_WEB_NOT_FIND_SERVER								= 50005,
+	R_WEB_NOT_FIND_WAITING_USER							= 50006,
+	R_WEB_INVALID_SESSION_KEY							= 50007,
+	R_WEB_NOT_FIND_SESSION_KEY							= 50008,
+	R_WEB_SESSION_KEY_MISMATCH							= 50009,
+	R_WEB_DISCONNECT_SESSION							= 50010,
+}

@@ -1,4 +1,56 @@
 
+table FConnectReq {
+	seq: int;
+	ip: string;
+	port: int;
+}
+
+table FConnectAck {
+	seq: int;
+	result: EResultID;
+}
+
+table FAcceptAck {
+	seq: int;
+	result: EResultID;
+	ip: string;
+	port: int;
+}
+
+table FDisconnectReq {
+	seq: int;
+}
+
+table FDisconnectAck {
+	seq: int;
+	result: EResultID;
+}
+
+table FAuthenticationReq {
+	seq: int;
+	accounttoken: string;
+	reconnect: bool;
+	connectSessionKey: string;
+}
+
+table FAuthenticationAck {
+	seq: int;
+	result: EResultID;
+	accountID: long;
+}
+
+
+table CLGS_CONNECT_REQ_ {
+	seq: int;
+	accounttoken: string;
+	reconnect: bool;
+	connectSessionKey: string;
+}
+
+table CLGS_CONNECT_ACK_ {
+	seq: int;
+	result: int;
+}
 
 table CLGS_AUTHEN_REQ {
 	seq: int;

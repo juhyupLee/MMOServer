@@ -83,14 +83,7 @@ public:
 
 		while (curNode != nullptr)
 		{
-			char* delNode = reinterpret_cast<char*>(curNode);
-
-			//---------------------------------------------------------------------------------
-			// 맨처음 메모리 malloc으로 할당할때, 객체화를 위해 해준, PlacementNew로 인한 생성자 호출때문에,
-			// 소멸자를 맨마지막에는 호출해준다.
-			//---------------------------------------------------------------------------------
-			std::destroy_at(delNode);
-			delNode = delNode - (sizeof(int64_t)*2);
+			auto delNode = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(curNode) - offsetof(AllocMemory, _Node));
 			curNode = curNode->_Next;
 			_aligned_free(delNode);
 		}
@@ -210,7 +203,10 @@ bool FreeList<T>::Free(T* data)
 		else
 		{
 			++spinCount;
-			YieldProcessor();
+			for (auto i = 0; i < 1024; ++i)
+			{
+				YieldProcessor();
+			}
 		}
 
 		if(spinCount >= YIELD_TRY_MAX)
@@ -250,7 +246,10 @@ T* FreeList<T>::Alloc(size_t size)
 		else
 		{
 			++spinCount;
-			YieldProcessor();
+			for (auto i = 0; i < 1024; ++i)
+			{
+				YieldProcessor();
+			}
 		}
 
 		if (spinCount >= YIELD_TRY_MAX)

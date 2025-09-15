@@ -1,55 +1,84 @@
 #pragma once
 #include "JobQueue.h"
+#include "NetworkServer.h"
+#include "NetworkTask.h"
 
+struct NetworkTaskSend;
+
+struct NetworkPacket
+{
+	flatbuffers::DetachedBuffer m_buffer{ };
+};
 class NetworkSession : public std::enable_shared_from_this<NetworkSession>
 {
 public:
 	NetworkSession(JobDispatcher* jobDispatcher)
+		:m_sessionID(UIDGenerator::GetInstance()->GenerateSessionID())
 	{
 		m_jobQueue = std::make_shared<JobQueue>(jobDispatcher);
 	}
 
-	DWORD _SessionStatus;
 	RingQ _RecvRingQ;
+	LockFreeQ<NetworkPacket*> m_sendQueue;
+	int64_t m_sessionID;
 
 	int32_t m_port;
 	std::string m_ip;
 	std::shared_ptr<JobQueue> m_jobQueue;
 	SOCKET m_socket;
+
+public:
+	std::atomic<bool> m_isSending;
 	
 public:
 	//------------------------------------------
 	// Contentes
 	//------------------------------------------
-	//virtual void OnClientJoin_Auth(WCHAR* ip, uint16_t port) = 0;
-	//virtual void OnClientLeave_Auth() = 0;
-	////virtual void OnAuthPacket(NetPacket* packet) = 0;
 
-
-	//virtual void OnClientJoin_Game(WCHAR* ip, uint16_t port) = 0;
-	//virtual void OnClientLeave_Game() = 0;
-	////virtual void OnGamePacket(NetPacket* packet) = 0;
-
-	//virtual void OnError(int errorcode, WCHAR* errorMessage) = 0;
-	//virtual void OnTimeOut() = 0;
 
 public:
 
 	bool Disconnect();
-	void IO_Cancel();
 
-	//---------------------------------------------------
-	// Send관련함수
-	//---------------------------------------------------
-	//bool SendPost();
-	//bool SendPacket(NetPacket* packet);
-	//void SendUnicast(NetPacket* packet);
+	template <MessageConcept T>
+	void Send(T& messsage);
 
 
+	int64_t GetSessionID();
+	
 	void Listen(int32_t port);
 	void SetSocket(SOCKET socket);
 	SOCKET GetSocket();
 
 	JobDispatcher* GetJobDispatcher();
+
+	LockFreeQ<NetworkPacket*>& GetSendQueue();
+	RingQ& GetRecvRingQueue();
 	void OnAccept(std::string ip, int32_t port, SOCKET sock);
+	void OnRecvMessage(char* messageBuffer, int32_t messageSize);
 };
+
+template <MessageConcept T>
+void NetworkSession::Send(T& messsage)
+{
+	auto packet = new NetworkPacket;
+	auto messageHolder = CreateMessageHolder(messsage);
+
+	flatbuffers::FlatBufferBuilder fbb;
+	auto offset = MessageHolder::Pack(fbb, messageHolder.get());
+	fbb.FinishSizePrefixed(offset);
+	packet->m_buffer = fbb.Release();
+	auto messageSize = static_cast<int32_t>(packet->m_buffer.size() - PACKET_HEADER_SIZE);
+	if (messageSize > 0)
+	{
+		NetworkServer::GetInstance()->Convert(reinterpret_cast<char*>(packet->m_buffer.data()) + PACKET_HEADER_SIZE, messageSize);
+	}
+
+	m_sendQueue.EnQ(packet);
+
+	auto task = new NetworkTaskSend();
+	task->m_owner = shared_from_this();
+	NetworkServer::GetInstance()->WorkerPush(task);
+}
+
+

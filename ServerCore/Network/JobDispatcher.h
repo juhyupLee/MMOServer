@@ -11,12 +11,12 @@ protected:
 	std::condition_variable m_signal;
 	std::mutex m_lock{ };
 public:
-	JobDispatcher(int32_t threadCount = 1);
+	JobDispatcher(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t threadCount = 1);
 	virtual ~JobDispatcher();
 public:
 	virtual void PushJobQueue(const std::shared_ptr<JobQueue>& dbQueue);
 	virtual std::shared_ptr<JobQueue> PopJobQueue();
 
-	void Run(std::function<void()> dispatch);
+	void Run(std::function<void(int64_t, MessageHolderPtr)> dispatch);
 
 };

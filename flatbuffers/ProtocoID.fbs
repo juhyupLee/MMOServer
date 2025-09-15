@@ -16,16 +16,26 @@ union MessageID : int
 {
 	// client(guest), server <-> server
     F_GUEST_MESSAGE_MIN					= 1,
+	FConnectReq								= 11,
+	FConnectAck								= 12,
+	FAcceptAck								= 13,
+	FDisconnectReq							= 21,
+	FDisconnectAck							= 22,
 
-	CLGS_AUTHEN_REQ						= 41,
-	CLGS_AUTHEN_ACK						= 42,
-	DBGS_Authentication_REQ				= 43,
+	FAuthenticationReq						= 41,
+	FAuthenticationAck						= 42,
+
+	CLGS_CONNECT_REQ_					= 9001,
+	CLGS_CONNECT_ACK_					= 9002, 
+	CLGS_AUTHEN_REQ						= 9003,
+	CLGS_AUTHEN_ACK						= 9004,
+	DBGS_Authentication_REQ				= 9005,
 
     F_MEMBER_MESSAGE_MAX        			= 19999,
 }
 
-table MessageHolder
-{
+table MessageHolder{
+	accountID: [long];
     message: MessageID;
 }
 root_type MessageHolder;

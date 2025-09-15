@@ -44,8 +44,12 @@ public:
 	NetworkServer();
 	~NetworkServer();
 	bool Initialize();
+	void Convert(char* buffer, int32_t bufferSize);
 
 public:
+	std::unordered_map<int64_t, std::shared_ptr<NetworkSession>> m_sessions;
+	std::mutex m_lock;
+
 	void Listen(int32_t port, JobDispatcher* jobDispatcher);
 	bool RegisterSocketToIOCP(SOCKET socket);
 	//bool Start(WCHAR* ip, uint16_t port, DWORD runningThread, SocketOption& option, DWORD workerThreadCount, DWORD maxUserCount, TimeOutOption& timeOutOption, NetworkSession** sessionArray);
@@ -54,6 +58,7 @@ public:
 	//bool EventInit();
 	bool InitializeWorkerThread(DWORD workerThreadCount);
 	std::shared_ptr<NetworkSession> CreateNewSession(JobDispatcher* jobDispatcher);
+	bool RemoveSession(int64_t sessionID);
 
 	//bool DisconnectAllUser();
 
@@ -145,16 +150,7 @@ protected:
 
 
 private:
-
-	SOCKET m_ListenSocket;
-	HANDLE* m_WorkerThread;
 	std::vector<std::thread> m_workerThread;
-	HANDLE m_AcceptThread;
-	HANDLE m_MonitoringThread;
-	HANDLE m_GameThread;
-	HANDLE m_AuthThread;
-	HANDLE m_SendThread;
-
 	uint16_t m_ServerPort;
 	WCHAR* m_ServerIP;
 
@@ -162,43 +158,6 @@ private:
 	DWORD m_WorkerThreadCount;
 
 	HANDLE m_IOCP;
-
-	//------------------------------------------------
-	// For Debugging
-	//------------------------------------------------
-	DWORD m_AuthFPS_To_Main;
-	DWORD m_GameFPS_To_Main;
-	DWORD m_SendFPS_To_Main;
-
-	LONG m_NetworkTraffic;
-	LONG m_NetworkRecvTraffic;
-
-	//MyMemoryLog<int64_t> m_MemoryLog_Overlap;
-
-	int64_t m_SendFlagNo;
-
-	LONG m_RecvTPS;
-	LONG m_SendTPS;
-	LONG m_AcceptTPS;
-
-
-	LONG m_RecvTPS_To_Main;
-	LONG m_SendTPS_To_Main;
-	LONG m_AcceptTPS_To_Main;
-	LONG m_NetworkTraffic_To_Main;
-	LONG m_NetworkRecvTraffic_To_Main;
-
-	LONG m_SendQMemory;
-
-
-	int64_t m_AcceptCount;
-
-	NetworkServer* m_Contents;
-
-	HANDLE m_MonitorEvent;
-	HANDLE m_GameThreadEvent;
-	HANDLE m_AuthTreadEvent;
-	HANDLE m_SendThreadEvent;
 
 };
 

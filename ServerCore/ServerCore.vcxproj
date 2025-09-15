@@ -146,10 +146,10 @@
     <ClCompile Include="Memory\LockFreeQ.cpp" />
     <ClCompile Include="Memory\MemoryPool.cpp" />
     <ClCompile Include="Memory\RingBuffer.cpp" />
-    <ClCompile Include="NetworkSession.cpp" />
     <ClCompile Include="Network\JobDispatcher.cpp" />
     <ClCompile Include="Network\JobQueue.cpp" />
     <ClCompile Include="Network\NetworkServer.cpp" />
+    <ClCompile Include="Network\NetworkSession.cpp" />
     <ClCompile Include="Network\NetworkTask.cpp" />
     <ClCompile Include="PCH\PCH_ServerCore.cpp" />
     <ClCompile Include="Test\Test_LockFreeQ.cpp" />
@@ -158,6 +158,7 @@
     <ClCompile Include="Test\Test_MemoryPoolTLS.cpp" />
     <ClCompile Include="Utill\Log.cpp" />
     <ClCompile Include="Utill\Singleton.cpp" />
+    <ClCompile Include="Utill\UIDGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\flatbuffers\MessageID.h" />
@@ -172,6 +173,7 @@
     <ClInclude Include="Memory\ObjectPool.h" />
     <ClInclude Include="Memory\Protocol.h" />
     <ClInclude Include="Memory\RingBuffer.h" />
+    <ClInclude Include="MessageJob.h" />
     <ClInclude Include="Network\BaseServerApp.h" />
     <ClInclude Include="Network\JobDispatcher.h" />
     <ClInclude Include="Network\JobQueue.h" />
@@ -187,6 +189,7 @@
     <ClInclude Include="Utill\Log.h" />
     <ClInclude Include="Utill\PointerStack.h" />
     <ClInclude Include="Utill\Singleton.h" />
+    <ClInclude Include="Utill\UIDGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\flatbuffers\Enum.fbs" />

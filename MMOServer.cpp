@@ -249,7 +249,7 @@ void MyMMOServer::ServerMonitorPrint()
     ////{
     ////    if (m_SessionArray[i]->_SessionStatus == 1)
     ////    {
-    ////        wprintf(L"Session[%d] Complete Q UseSize:%d\n", i, m_SessionArray[i]->_CompleteRecvPacketQ.GetUsedSize());
+    ////        wprintf(L"Session[%d] Complete Q UseSize:%d\n", i, m_SessionArray[i]->_CompleteRecvPacketQ.GetReadSize());
     ////    }
     ////}
 

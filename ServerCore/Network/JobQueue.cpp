@@ -12,7 +12,7 @@ JobDispatcher* JobQueue::GetJobDispatcher()
 }
 
 
-void JobQueue::Push(std::shared_ptr<BaseJob>& job)
+void JobQueue::Push(const std::shared_ptr<BaseJob>& job)
 {
 	std::lock_guard<std::mutex> guard(m_lock);
 	m_dataQueue.emplace_back(job);
