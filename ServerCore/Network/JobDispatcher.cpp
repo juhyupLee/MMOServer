@@ -1,15 +1,13 @@
 #include "JobDispatcher.h"
-
 #include "BaseJob.h"
 
-
-JobDispatcher::JobDispatcher(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t threadCount)
+JobDispatcher::JobDispatcher(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t timeout, int32_t threadCount)
 {
 	for (int32_t n = 0; n < threadCount; ++n)
 	{
-		m_threads.emplace_back([this, dispatch]
+		m_threads.emplace_back([this, dispatch, timeout]
 		{
-			Run(dispatch);
+			Run(dispatch, timeout);
 		});
 	}
 }
@@ -27,24 +25,42 @@ void JobDispatcher::PushJobQueue(const std::shared_ptr<JobQueue>& dbQueue)
 	m_signal.notify_one();
 }
 
-std::shared_ptr<JobQueue> JobDispatcher::PopJobQueue()
+std::shared_ptr<JobQueue> JobDispatcher::PopJobQueue(int32_t timeout)
 {
 	std::unique_lock<std::mutex> lockGuard(m_lock);
-	m_signal.wait(lockGuard, [this]()
-		{
+	if(timeout == 0)
+	{
+		m_signal.wait(lockGuard, [this](){
 			return m_activeJobQueue.empty() == false;
 		});
+	}
+	else
+	{
+		m_signal.wait_for(lockGuard, std::chrono::microseconds(timeout), [this]() {
+			return m_activeJobQueue.empty() == false;
+		});
+	}
 
+	if (m_activeJobQueue.empty())
+	{
+		return nullptr;
+	}
 	auto jobQueue = m_activeJobQueue.front();
 	m_activeJobQueue.pop_front();
 	return jobQueue;
+
+	
 }
 
-void JobDispatcher::Run(std::function<void(int64_t, MessageHolderPtr)> dispatch)
+void JobDispatcher::Run(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t timeout)
 {
 	while (true)
 	{
-		auto dbQueue = PopJobQueue();
+		auto dbQueue = PopJobQueue(timeout);
+		if(dbQueue == nullptr)
+		{
+			continue;
+		}
 		std::deque<std::shared_ptr<BaseJob>> messages;
 		dbQueue->Pop(messages);
 

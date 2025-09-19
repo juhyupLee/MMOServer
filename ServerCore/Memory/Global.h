@@ -1,6 +1,7 @@
 #pragma once
 #define dfPACKET_CODE		0x77
 #define dfPACKET_KEY		0x32
+#include "MemoryPool.h"
 
 constexpr int32_t	PACKET_HEADER_SIZE = sizeof(flatbuffers::uoffset_t);
 
@@ -24,7 +25,7 @@ template<typename T> concept PacketConcept = std::is_base_of_v<flatbuffers::Nati
 template<PacketConcept T>
 std::shared_ptr<MessageHolderT> CreatePacketHolder(const T& message)
 {
-	auto messageHolder = std::make_shared<MessageHolderT>();
+	auto messageHolder = MakeMySharedPtr<MessageHolderT>();
 	messageHolder->message.Set(const_cast<T&>(message));
 	return messageHolder;
 }
@@ -57,7 +58,7 @@ template<typename T> concept MessageConcept = std::is_base_of_v<flatbuffers::Nat
 template<MessageConcept T>
 static MessageHolderPtr CreateMessageHolder(const T& message, const std::unordered_set<int64_t>& accountIDs = {})
 {
-	auto messageHolder = std::make_shared<MessageHolderT>();
+	auto messageHolder = MakeMySharedPtr<MessageHolderT>();
 	messageHolder->message.Set(const_cast<T&>(message));
 	std::ranges::copy(accountIDs, std::back_inserter(messageHolder->accountID));
 	return messageHolder;

@@ -8,11 +8,12 @@ public:
 	void OnFAuthenticationReq(int64_t sessionID, std::shared_ptr<FAuthenticationReqT>& msg);
 
 	JobDispatcher m_main;
+	JobDispatcher m_sub;
 	bool Initialize() override;
 	bool Start() override;
 	void Run() override;
 	void Release() override;
-	void Dispatch(int64_t key, MessageHolderPtr& messageHolder);
+	void MainDispatch(int64_t key, MessageHolderPtr& messageHolder);
 private:
 	std::unordered_map<MessageID, std::function<void(int64_t, const MessageHolderPtr&)>> m_handlers{ };
 

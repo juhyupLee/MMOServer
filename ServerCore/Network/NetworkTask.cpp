@@ -51,7 +51,8 @@ bool NetworkTaskAcceptIO::Run(bool result, DWORD transferred)
 	switch (m_step)
 	{
 	case EStep::None:		return Start(); 
-	case EStep::Running:	return Complete(result); break;
+	case EStep::Running:	return Complete(result);
+	default: return false;
 	}
 }
 
@@ -127,7 +128,7 @@ bool NetworkTaskAcceptIO::Complete(bool result)
 				std::cout << "InetNtop failed" << std::endl;
 			}
 			task->m_ip = ipStr;
-			task->m_port = (int32_t)ntohs(remote->sin_port);
+			task->m_port = static_cast<int32_t>(ntohs(remote->sin_port));
 			task->m_socket = m_clientSocket;
 			task->m_jobDispatcher = m_owner->GetJobDispatcher();
 			NetworkServer::GetInstance()->WorkerPush(task);
@@ -166,7 +167,7 @@ bool NetworkTaskReceiveIO::Run(bool result, DWORD transferred)
 	{
 	case EStep::None:		return Start(); 
 	case EStep::Running:	return Complete(result, transferred);
-		\
+	default: return false;
 	}
 }
 
@@ -221,7 +222,7 @@ bool NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
 	if (result == false || transferred <= 0)
 	{
 		//LOG_ERR("failed - result. transferred : % ", transferred);
-		//NetworkServer::GetInstance()->RemoveSession(m_owner->GetSessionID());
+		NetworkServer::GetInstance()->RemoveSession(m_owner->GetSessionID());
 		m_owner.reset();
 		return false;
 	}
@@ -264,6 +265,7 @@ bool NetworkTaskSend::Run(bool result, DWORD transferred)
 	{
 	case EStep::None:		return Start();
 	case EStep::Running:	return Complete(result, transferred);
+	default: return false;
 	}
 }
 
@@ -302,7 +304,6 @@ bool NetworkTaskSend::Start()
 			if (error != WSA_IO_PENDING)
 			{
 				//LOG_ERR("failed - WSASend:%", error);
-				//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
 				m_owner.reset();
 				return false;
 			}

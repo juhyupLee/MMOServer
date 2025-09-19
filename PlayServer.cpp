@@ -1,10 +1,8 @@
 #include "PlayServer.h"
 
 PlayServer::PlayServer()
-	:m_main([this](int64_t key, MessageHolderPtr message)
-	{
-		Dispatch(key, message);
-	}, 1)
+	:m_main([this](int64_t key, MessageHolderPtr message) {MainDispatch(key, message); }, 1),
+     m_sub([this](int64_t key, MessageHolderPtr message) {MainDispatch(key, message); }, 1)
 {
 	RegisterPacket(&PlayServer::OnFAuthenticationReq);
 }
@@ -48,6 +46,7 @@ bool PlayServer::Initialize()
 bool PlayServer::Start()
 {
 	NetworkServer::GetInstance()->Listen(7777, &m_main);
+	NetworkServer::GetInstance()->Connect("127.0.0.1",13001, &m_main);
 	return true;
 }
 
@@ -64,7 +63,7 @@ void PlayServer::Release()
 }
 
 
-void PlayServer::Dispatch(int64_t key, MessageHolderPtr& messageHolder)
+void PlayServer::MainDispatch(int64_t key, MessageHolderPtr& messageHolder)
 {
 	auto it = m_handlers.find(messageHolder->message.type);
 	if (it != m_handlers.end())
@@ -73,7 +72,7 @@ void PlayServer::Dispatch(int64_t key, MessageHolderPtr& messageHolder)
 		return;
 	}
 
-	//if (m_proxySession.Dispatch(key, messageHolder) == true)
+	//if (m_proxySession.MainDispatch(key, messageHolder) == true)
 	//	return;
 
 	//if (messageHolder->accountID.empty())
@@ -82,6 +81,6 @@ void PlayServer::Dispatch(int64_t key, MessageHolderPtr& messageHolder)
 	//auto player = PlayerManager::GetInstance()->FindPlayer(messageHolder->accountID[0]);
 	//if (player)
 	//{
-	//	player->Dispatch(messageHolder);
+	//	player->MainDispatch(messageHolder);
 	//}
 }

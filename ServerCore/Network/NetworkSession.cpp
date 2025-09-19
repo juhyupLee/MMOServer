@@ -1,9 +1,8 @@
-
-
 #include "MessageJob.h"
 
 bool NetworkSession::Disconnect()
 {
+	closesocket(m_socket);
 	return true;
 }
 
@@ -17,7 +16,7 @@ void NetworkSession::Listen(int32_t port)
 	SocketOption sockOption;
 	sockOption._KeepAliveOption.onoff = 0;
 	sockOption._Linger = true;
-	sockOption._TCPNoDelay = false;
+	sockOption._TCPNoDelay = true;
 	sockOption._SendBufferZero = false;
 
 	SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
@@ -50,7 +49,7 @@ void NetworkSession::Listen(int32_t port)
 		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_LINGER, (const char*)&lingerOpt, sizeof(lingerOpt));
 		if (rtnOpt != 0)
 		{
-			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
 		}
 
 	}
@@ -61,7 +60,7 @@ void NetworkSession::Listen(int32_t port)
 		int rtnOpt = setsockopt(listenSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&tcpNodelayOpt, sizeof(tcpNodelayOpt));
 		if (rtnOpt != 0)
 		{
-			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
 		}
 	}
 
@@ -71,7 +70,7 @@ void NetworkSession::Listen(int32_t port)
 
 		if (0 != WSAIoctl(listenSocket, SIO_KEEPALIVE_VALS, &sockOption._KeepAliveOption, sizeof(tcp_keepalive), NULL, 0, &recvByte, NULL, NULL))
 		{
-			_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
 		}
 	}
 
@@ -91,7 +90,7 @@ void NetworkSession::Listen(int32_t port)
 
 	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR )
 	{
-		_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"listen() error:%d", WSAGetLastError());
+		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"listen() error:%d", WSAGetLastError());
 		return;
 	}
 
@@ -183,7 +182,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 	const auto messageID = packedMessageHolder->message_type();
 
 	const auto messageHolder = MessageHolderPtr(packedMessageHolder->UnPack());
-	m_jobQueue->Push(std::make_shared<MessageJob>(messageHolder, m_sessionID));
+	m_jobQueue->Push(MakeMySharedPtr<MessageJob>(messageHolder, m_sessionID));
 }
 
 //

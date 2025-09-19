@@ -44,14 +44,16 @@ public:
 		using other = MyAllocator<U>;
 	};
 
-	void construct(pointer p, T&& t)
+	template<typename U, typename... Args>
+	void construct(U* p, Args&&... args)
 	{
-		new(p)T(std::forward<T>(t));
+		::new((void*)p) U(std::forward<Args>(args)...);
 	}
 
-	void destroy(pointer p)
+	template<typename U>
+	void destroy(U* p)
 	{
-		p->~T();
+		p->~U();
 	}
 
 	T* allocate(size_t n)
@@ -77,3 +79,8 @@ struct Buffer
 	char data[SIZE];
 };
 
+template<typename T, typename... Args>
+std::shared_ptr<T> MakeMySharedPtr(Args&&... args)
+{
+	return std::allocate_shared<T>(MyAllocator<T>(), std::forward<Args>(args)...);
+}

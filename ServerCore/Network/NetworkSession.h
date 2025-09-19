@@ -15,7 +15,7 @@ public:
 	NetworkSession(JobDispatcher* jobDispatcher)
 		:m_sessionID(UIDGenerator::GetInstance()->GenerateSessionID())
 	{
-		m_jobQueue = std::make_shared<JobQueue>(jobDispatcher);
+		m_jobQueue = MakeMySharedPtr<JobQueue>(jobDispatcher);
 	}
 
 	RingQ _RecvRingQ;

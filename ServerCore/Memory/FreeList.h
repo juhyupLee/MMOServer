@@ -10,7 +10,6 @@ struct MemHeader
 	size_t _Size;
 };
 
-
 class FreeListBase
 {
 public:
@@ -170,10 +169,10 @@ bool FreeList<T>::Free(T* data)
 	//----------------------------------------------------
 	// 반납된 포인터가 언더플로우 한 경우
 	//----------------------------------------------------
-	if (allocMemory->_FrontMark._MarkID != m_FreeListUID || allocMemory->_FrontMark._MarkValue != MARK_FRONT)
+	if (allocMemory->_FrontMark._MarkID != m_FreeListUID ||
+		allocMemory->_FrontMark._MarkValue != MARK_FRONT)
 	{
 		throw(FreeListException(L"Underflow Violation", __LINE__));
-		return false;
 	}
 	//----------------------------------------------------
 	// 두번 반납된 경우
@@ -181,7 +180,6 @@ bool FreeList<T>::Free(T* data)
 	if (allocMemory->_FrontMark._FreeFlag.exchange(true) == true)
 	{
 		throw(FreeListException(L"Twice Free", __LINE__));
-		return false;
 	}
 
 	TopCheck tempTop;
