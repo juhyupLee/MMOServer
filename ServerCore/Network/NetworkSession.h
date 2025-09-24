@@ -43,18 +43,21 @@ public:
 	template <MessageConcept T>
 	void Send(T& messsage);
 
-
 	int64_t GetSessionID();
 	
 	void Listen(int32_t port);
+	void Connect(std::string ip, int32_t port);
+	
 	void SetSocket(SOCKET socket);
 	SOCKET GetSocket();
-
+	std::string GetIP();
+	int32_t GetPort();
 	JobDispatcher* GetJobDispatcher();
 
 	LockFreeQ<NetworkPacket*>& GetSendQueue();
 	RingQ& GetRecvRingQueue();
 	void OnAccept(std::string ip, int32_t port, SOCKET sock);
+	void OnConnected();
 	void OnRecvMessage(char* messageBuffer, int32_t messageSize);
 };
 

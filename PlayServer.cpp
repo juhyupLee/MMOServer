@@ -46,7 +46,7 @@ bool PlayServer::Initialize()
 bool PlayServer::Start()
 {
 	NetworkServer::GetInstance()->Listen(7777, &m_main);
-	NetworkServer::GetInstance()->Connect("127.0.0.1",13001, &m_main);
+	NetworkServer::GetInstance()->Connect("127.0.0.1", 13001, &m_main);
 	return true;
 }
 

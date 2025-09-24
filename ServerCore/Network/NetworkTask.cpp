@@ -343,158 +343,133 @@ bool NetworkTaskSend::Complete(bool result, DWORD transferred)
 ////////////////////////////////////////////////////////////////////
 bool NetworkTaskConnect::Run(bool result, DWORD transferred)
 {
-	////session 积己
-	//auto session = NetworkSystem::GetInstance()->CreateSession(m_callback, m_proxyCallback);
-	//if (session == nullptr)
-	//{
-	//	LOG_ERR("CreateSession failed");
-	//	return;
-	//}
+	//session 积己
+	auto session = NetworkServer::GetInstance()->CreateNewSession(m_jobDispatcher);
+	if (session == nullptr)
+	{
+		//LOG_ERR("CreateSession failed");
+		return false;
+	}
 
-	//session->Connect(m_ip, m_port);
+	session->Connect(m_ip, m_port);
 	return true;
 }
 
 ////////////////////////////////////////////////////////////////////
 bool NetworkTaskConnectIO::Run(bool result, DWORD transferred)
 {
-	//switch (m_step)
-	//{
-	//case EStep::None:		Start(); break;
-	//case EStep::Running:	Complete(result); break;
-	//}
-	return true;
+	switch (m_step)
+	{
+	case EStep::None:		return Start();
+	case EStep::Running:	return Complete(result);
+	}
+	return false;
 }
 
 bool NetworkTaskConnectIO::Start()
 {
-	//m_step = EStep::Running;
+	m_step = EStep::Running;
+	ZeroMemory((LPOVERLAPPED)this, sizeof(OVERLAPPED));
 
-	//auto session = (NetworkSession*)m_owner;
-	//if (session == nullptr)
-	//{
-	//	LOG_ERR("session null");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
+	//家南积己
+	SOCKET sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
+	if (sock == INVALID_SOCKET)
+	{
+		//LOG_ERR("failed - WSASocket:%", WSAGetLastError());
+		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		return false;
+	}
 
-	//ZeroMemory((LPOVERLAPPED)this, sizeof(OVERLAPPED));
+	m_owner->SetSocket(sock);
 
-	////家南积己
-	//SOCKET sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
-	//if (sock == INVALID_SOCKET)
-	//{
-	//	LOG_ERR("failed - WSASocket:%", WSAGetLastError());
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
+	//器飘且寸
+	SOCKADDR_IN local = { };
+	local.sin_family = AF_INET;
+	local.sin_addr.s_addr = INADDR_ANY;
+	if (bind(m_owner->GetSocket(),reinterpret_cast<SOCKADDR*>(&local), sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
+	{
+		//LOG_ERR("failed - bind:%", WSAGetLastError());
+		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		return false;
+	}
 
-	//if (session->SetSocket(sock) == false)
-	//{
-	//	LOG_ERR("SetSocket Failed");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
+	//林家函券
+	auto ip = m_owner->GetIP();
+	auto port = m_owner->GetPort();
 
-	////器飘且寸
-	//SOCKADDR_IN local = { };
-	//local.sin_family = AF_INET;
-	//local.sin_addr.s_addr = INADDR_ANY;
-	//if (bind(session->GetSocket(), (SOCKADDR*)&local, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
-	//{
-	//	LOG_ERR("failed - bind:%", WSAGetLastError());
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
+	SOCKADDR_IN remote = { };
+	remote.sin_family = AF_INET;
+	remote.sin_port = htons((unsigned short)port);
 
-	////林家函券
-	//auto ip = session->GetIP();
-	//auto port = session->GetPort();
+	if (ip.size() > 0)
+	{
+		if (isalpha(ip[0]))
+		{
+			addrinfo* infos = nullptr;
+			addrinfo hints = { };
+			hints.ai_family = remote.sin_family;
+			hints.ai_socktype = SOCK_STREAM;
+			hints.ai_protocol = IPPROTO_TCP;
 
-	//SOCKADDR_IN remote = { };
-	//remote.sin_family = AF_INET;
-	//remote.sin_port = htons((unsigned short)port);
+			getaddrinfo(ip.c_str(), nullptr, &hints, &infos);
+			if (infos)
+			{
+				memcpy(&remote, infos->ai_addr, infos->ai_addrlen);
+				freeaddrinfo(infos);
+			}
+			else
+			{
+				inet_pton(remote.sin_family, "127.0.0.1", &remote.sin_addr);
+			}
+		}
+		else
+		{
+			inet_pton(remote.sin_family, ip.c_str(), &remote.sin_addr);
+		}
+	}
+	else
+	{
+		inet_pton(remote.sin_family, "127.0.0.1", &remote.sin_addr);
+	}
 
-	//if (ip.size() > 0)
-	//{
-	//	if (isalpha(ip[0]))
-	//	{
-	//		addrinfo* infos = nullptr;
-	//		addrinfo hints = { };
-	//		hints.ai_family = remote.sin_family;
-	//		hints.ai_socktype = SOCK_STREAM;
-	//		hints.ai_protocol = IPPROTO_TCP;
+	//connect 夸没
+	static LPFN_CONNECTEX ConnectEx = nullptr;
+	if (ConnectEx == nullptr)
+	{
+		GUID guid = WSAID_CONNECTEX;
+		DWORD bytes = 0;
+		if (WSAIoctl(m_owner->GetSocket(), SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), &ConnectEx, sizeof(ConnectEx), &bytes, nullptr, nullptr) != 0)
+		{
+			return false;
+		}
+	}
 
-	//		getaddrinfo(ip.c_str(), nullptr, &hints, &infos);
-	//		if (infos)
-	//		{
-	//			memcpy(&remote, infos->ai_addr, infos->ai_addrlen);
-	//			freeaddrinfo(infos);
-	//		}
-	//		else
-	//		{
-	//			inet_pton(remote.sin_family, "127.0.0.1", &remote.sin_addr);
-	//		}
-	//	}
-	//	else
-	//	{
-	//		inet_pton(remote.sin_family, ip.c_str(), &remote.sin_addr);
-	//	}
-	//}
-	//else
-	//{
-	//	inet_pton(remote.sin_family, "127.0.0.1", &remote.sin_addr);
-	//}
+	if (ConnectEx(m_owner->GetSocket(), reinterpret_cast<sockaddr*>(&remote), sizeof(remote), nullptr, 0, nullptr, static_cast<LPOVERLAPPED>(this)) == FALSE)
+	{
+		int32_t error = WSAGetLastError();
+		if (error != WSA_IO_PENDING)
+		{
+			return false;
+		}
+	}
 
-	////connect 夸没
-	//static LPFN_CONNECTEX ConnectEx = nullptr;
-	//if (ConnectEx == nullptr)
-	//{
-	//	GUID guid = WSAID_CONNECTEX;
-	//	DWORD bytes = 0;
-	//	if (WSAIoctl(session->GetSocket(), SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid), &ConnectEx, sizeof(ConnectEx), &bytes, nullptr, nullptr) != 0)
-	//	{
-	//		LOG_ERR("WSAIoctl failed:%", WSAGetLastError());
-	//		NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//		return;
-	//	}
-	//}
-
-	//if (ConnectEx(session->GetSocket(), (sockaddr*)&remote, sizeof(remote), nullptr, 0, nullptr, (LPOVERLAPPED)this) == FALSE)
-	//{
-	//	int32_t error = WSAGetLastError();
-	//	if (error != WSA_IO_PENDING)
-	//	{
-	//		LOG_ERR("ConnectEx failed:%", error);
-	//		NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//		return;
-	//	}
-	//}
-
-return true;
+	return true;
 }
 
 bool NetworkTaskConnectIO::Complete(bool result)
 {
-	//auto session = (NetworkSession*)m_owner;
-	//if (session == nullptr)
-	//{
-	//	LOG_ERR("session null");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
+	if (m_owner == nullptr)
+	{
+		return false;
+	}
 
-	////夸没搬苞 眉农
-	//if (result == false)
-	//{
-	//	//LOG_ERR("result failed");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
-	//	return;
-	//}
-
-	////矫累 贸府
-	//NetworkSystem::GetInstance()->Notify(EStep::SuccessConnect, m_owner, this);
-
-	return true;
+	//夸没搬苞 眉农
+	if (result == false)
+	{
+		//LOG_ERR("result failed");
+		return false;
+	}
+	m_owner->OnConnected();
+	return false;
 }
 

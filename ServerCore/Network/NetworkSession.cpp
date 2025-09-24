@@ -74,15 +74,13 @@ void NetworkSession::Listen(int32_t port)
 		}
 	}
 
-
-	NetworkServer::GetInstance()->RegisterSocketToIOCP(listenSocket);
 	SetSocket(listenSocket);
 
 	SOCKADDR_IN local = { };
 	local.sin_family = AF_INET;
 	local.sin_addr.s_addr = INADDR_ANY;
 	local.sin_port = htons((unsigned short)port);
-	if (bind(listenSocket, (SOCKADDR*)&local, sizeof(local)) == SOCKET_ERROR)
+	if (bind(listenSocket, reinterpret_cast<SOCKADDR*>(&local) , sizeof(local)) == SOCKET_ERROR)
 	{
 		//LOG_ERR("failed - bind:%", WSAGetLastError());
 		return;
@@ -108,16 +106,43 @@ void NetworkSession::Listen(int32_t port)
 	}
 }
 
+void NetworkSession::Connect(std::string ip, int32_t port)
+{
+	m_ip = ip;
+	m_port = port;
+
+	auto task = new NetworkTaskConnectIO;
+	task->m_owner = shared_from_this();
+	NetworkServer::GetInstance()->WorkerPush(task);
+}
+
+void NetworkSession::OnConnected()
+{
+	//receive ¿äÃ»
+	auto task = new NetworkTaskReceiveIO;
+	task->m_owner = shared_from_this();
+	NetworkServer::GetInstance()->WorkerPush(task);
+}
+
 void NetworkSession::SetSocket(SOCKET socket)
 {
+	NetworkServer::GetInstance()->RegisterSocketToIOCP(socket);
 	m_socket = socket;
-	NetworkServer::GetInstance()->RegisterSocketToIOCP(m_socket);
-	
 }
 
 SOCKET NetworkSession::GetSocket()
 {
 	return m_socket;
+}
+
+std::string NetworkSession::GetIP()
+{
+	return m_ip;
+}
+
+int32_t NetworkSession::GetPort()
+{
+	return m_port;
 }
 
 JobDispatcher* NetworkSession::GetJobDispatcher()

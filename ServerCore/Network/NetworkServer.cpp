@@ -65,7 +65,9 @@ std::shared_ptr<NetworkSession> NetworkServer::CreateNewSession(JobDispatcher* j
 	auto newSession = MakeMySharedPtr<NetworkSession>(jobDispatcher);
 	auto it = m_sessions.insert({ newSession->GetSessionID(), newSession });
 	if (it.second == false)
+	{
 		return nullptr;
+	}
 	return newSession;
 }
 
@@ -111,7 +113,7 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 {
 	if (CreateIoCompletionPort((HANDLE)socket, m_IOCP, 0, 0) == nullptr)
 	{
-		//LOG_ERR("CreateIoCompletionPort failed:%", GetLastError());
+		printf("errorCode:%d", GetLastError());
 		return false;
 	}
 	return true;
@@ -148,15 +150,3 @@ HANDLE NetworkServer::GetIOCP()
 {
 	return m_IOCP;
 }
-
-void NetworkServer::Crash()
-{
-	int* p = nullptr;
-	*p = 10;
-}
-
-
-
-
-
-
