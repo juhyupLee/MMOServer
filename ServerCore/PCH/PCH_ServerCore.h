@@ -1,16 +1,15 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN             // °ÅÀÇ »ç¿ëµÇÁö ¾Ê´Â ³»¿ëÀº Windows Çì´õ¿¡¼­ Á¦¿ÜÇÕ´Ï´Ù.
+#define WIN32_LEAN_AND_MEAN             // ê±°ì˜ ì‚¬ìš©ë˜ì§€ ì•ŠëŠ” ë‚´ìš©ì€ Windows í—¤ë”ì—ì„œ ì œì™¸í•©ë‹ˆë‹¤.
 #define NOMINMAX
-//Windows Çì´õ ÆÄÀÏ:
 
-#pragma comment ( lib, "mimalloc.lib" )
+//Windows í—¤ë” íŒŒì¼:
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")
-//±¹°¡ °ü·Ã
+//êµ­ê°€ ê´€ë ¨
 #include <locale>
 #include <stdint.h>
-//Ç¥ÁØ
+//í‘œì¤€
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
@@ -20,11 +19,11 @@
 #include <memory>
 #include <cstdint>
 #include <clocale>
-//½º·¹µå°ü·Ã
+//ìŠ¤ë ˆë“œê´€ë ¨
 #include <mutex>
 
 
-//STL ÄÁÅ×ÀÌ³Ê
+//STL ì»¨í…Œì´ë„ˆ
 #include <map>
 #include <unordered_map>
 #include <vector>
@@ -32,14 +31,14 @@
 #include <set>
 #include <unordered_set>
 #include <stack>
-//¹®ÀÚ¿­°ü·Ã
+//ë¬¸ìì—´ê´€ë ¨
 
 #include <tchar.h>
 
 #include <string>
 #include <atlstr.h>
 
-//±âÅ¸µîµî
+//ê¸°íƒ€ë“±ë“±
 #include <assert.h>
 #include <limits.h>
 #include <timeapi.h>
@@ -47,9 +46,9 @@
 
 #include <time.h>
 #include <strsafe.h>
+#include <regex>
 
-
-//³×Æ®¿öÅ© OS °ü·Ã
+//ë„¤íŠ¸ì›Œí¬ OS ê´€ë ¨
 #include <process.h>
 #include <WinSock2.h>
 #include <Mswsock.h>
@@ -61,12 +60,11 @@
 #include <psapi.h>
 #include <Dbghelp.h>
 
-#include "../../mimalloc.h"
-
-//°³ÀÎ¶óÀÌºê·¯¸®
+#include <spdlog/spdlog.h>
+//ê°œì¸ë¼ì´ë¸ŒëŸ¬ë¦¬
 #include "../Utill/Singleton.h"
 #include "../Utill/TimeUtill.h"
-#include "../Utill/Log.h"
+#include "../Utill/LogManager.h"
 #include "../Utill/PointerStack.h"
 #include "../Utill/UIDGenerator.h"
 #include "../../flatbuffers/ProtocoID.h"
@@ -94,6 +92,6 @@
 #include "../Network/BaseServerApp.h"
 #include "../Test/Test_MemoryPool.h"
 
-// TODO: ÇÁ·Î±×·¥¿¡ ÇÊ¿äÇÑ Ãß°¡ Çì´õ´Â ¿©±â¿¡¼­ ÂüÁ¶ÇÕ´Ï´Ù.
+// TODO: í”„ë¡œê·¸ë¨ì— í•„ìš”í•œ ì¶”ê°€ í—¤ë”ëŠ” ì—¬ê¸°ì—ì„œ ì°¸ì¡°í•©ë‹ˆë‹¤.
 
 

@@ -31,7 +31,7 @@ int RingQ::Enqueue(char* buffer, int32_t size)
     int32_t copyFreeSize = GetFreeSize(copyFront, copyRear);
 
     //-----------------------------------
-    // ¸µ¹öÆÛÀÇ ³²Àº »çÀÌÁî°¡ µé¾î¿Â »çÀÌÁîº¸´Ù ÀÛ´Ù¸é size¸¦ ÇÁ¸®»çÀÌÁî·Î¹Ù²Þ
+    // ë§ë²„í¼ì˜ ë‚¨ì€ ì‚¬ì´ì¦ˆê°€ ë“¤ì–´ì˜¨ ì‚¬ì´ì¦ˆë³´ë‹¤ ìž‘ë‹¤ë©´ sizeë¥¼ í”„ë¦¬ì‚¬ì´ì¦ˆë¡œë°”ê¿ˆ
     //-----------------------------------
     if (copyFreeSize < size)
     {
@@ -45,12 +45,12 @@ int RingQ::Enqueue(char* buffer, int32_t size)
     int32_t directSize = GetDirectEnqueueSize(copyFront, copyRear);
 
     //-----------------------------------
-    // Enqueue µé¾î¿À¸é m_Rear´Â »Ü»Ü ¸ÕÀúÇÏ°í, Enqeue¸¦ÇÑ´Ù.
+    // Enqueue ë“¤ì–´ì˜¤ë©´ m_RearëŠ” ì ì  ë¨¼ì €í•˜ê³ , Enqeueë¥¼í•œë‹¤.
     //-----------------------------------
     copyRear = (copyRear + 1) % RING_BUFFER_SIZE;
 
     //-----------------------------------
-    // ÀÎÀÚ·Î µé¾î¿Â »çÀÌÁî°¡  ¿¬¼ÓµÈ »çÀÌÁî º¸´Ù ´õ Å©´Ù¸é, memcpy¸¦ ³ª´²¼­ÇØ¾ßÇÑ´Ù
+    // ì¸ìžë¡œ ë“¤ì–´ì˜¨ ì‚¬ì´ì¦ˆê°€  ì—°ì†ëœ ì‚¬ì´ì¦ˆ ë³´ë‹¤ ë” í¬ë‹¤ë©´, memcpyë¥¼ ë‚˜ëˆ ì„œí•´ì•¼í•œë‹¤
     //-----------------------------------
     if (directSize < size)
     {
@@ -80,7 +80,7 @@ int RingQ::Dequeue(char* buffer, int32_t size)
     int copyUsedSize = GetUsedSize(copyFront, copyRear);
 
     //-------------------------------------------
-    //¸µ¹öÆÛ¿¡ »ç¿ëÁßÀÎ »çÀÌÁî°¡ ÀÎÀÚ·Î µé¾î¿Â »çÀÌÁîº¸´Ù ÀÛÀ¸¸é ½ÇÆÐ
+    //ë§ë²„í¼ì— ì‚¬ìš©ì¤‘ì¸ ì‚¬ì´ì¦ˆê°€ ì¸ìžë¡œ ë“¤ì–´ì˜¨ ì‚¬ì´ì¦ˆë³´ë‹¤ ìž‘ìœ¼ë©´ ì‹¤íŒ¨
     //-------------------------------------------
     if (copyUsedSize < size)
     {
@@ -94,11 +94,11 @@ int RingQ::Dequeue(char* buffer, int32_t size)
     int directSize = GetDirectDequeueSize(copyFront,copyRear);
 
     //-----------------------------------
-    // Enqueue µé¾î¿À¸é m_Rear´Â »Ü»Ü ¸ÕÀúÇÏ°í, Enqeue¸¦ÇÑ´Ù.
+    // Enqueue ë“¤ì–´ì˜¤ë©´ m_RearëŠ” ì ì  ë¨¼ì €í•˜ê³ , Enqeueë¥¼í•œë‹¤.
     //-----------------------------------
     copyFront = (copyFront + 1) % RING_BUFFER_SIZE;
     //-------------------------------------------
-    // ¿¬¼ÓÇÒ´çÇÒ¼öÀÖ´Â »çÀÌÁî°¡ µé¾î¿Â »çÀÌÁîº¸´Ù ÀÛ´Ù¸é µÎ¹ø³ª´²¼­ µðÅ¥¸¦ ÇØ¾ßÇÔ.
+    // ì—°ì†í• ë‹¹í• ìˆ˜ìžˆëŠ” ì‚¬ì´ì¦ˆê°€ ë“¤ì–´ì˜¨ ì‚¬ì´ì¦ˆë³´ë‹¤ ìž‘ë‹¤ë©´ ë‘ë²ˆë‚˜ëˆ ì„œ ë””íë¥¼ í•´ì•¼í•¨.
     //-------------------------------------------
     if (directSize < size)
     {
@@ -207,7 +207,7 @@ int32_t RingQ::GetUsedSize(int32_t front, int32_t rear) const
 int32_t RingQ::GetDirectWriteSize() const
 {
      //-----------------------------------
-    // ¸µ¹öÆÛÀÇ »çÀÌÁî°¡ ²ËÃ¡´Ù¸é, Direct Size¸¦ ±¸ÇÒ¼ö ¾ø´Ù. 0¹ÝÈ¯
+    // ë§ë²„í¼ì˜ ì‚¬ì´ì¦ˆê°€ ê½‰ì°¼ë‹¤ë©´, Direct Sizeë¥¼ êµ¬í• ìˆ˜ ì—†ë‹¤. 0ë°˜í™˜
     //-----------------------------------
     int copyFront = m_readPosition;
     int copyRear = m_writePosition;
@@ -221,8 +221,8 @@ int32_t RingQ::GetDirectWriteSize() const
     int rearNext = (copyRear + 1) % RING_BUFFER_SIZE;
 
     //-----------------------------------
-    // mRear < mFront < ÀÎµ¦½º ³¡
-    // ÀÌ·¯¸é  ¿¬¼ÓµÈ ÀÎµ¦½º´Â m_readPosition Àü±îÁö´Ù.
+    // mRear < mFront < ì¸ë±ìŠ¤ ë
+    // ì´ëŸ¬ë©´  ì—°ì†ëœ ì¸ë±ìŠ¤ëŠ” m_readPosition ì „ê¹Œì§€ë‹¤.
     //-----------------------------------
 
     if (rearNext < copyFront)
@@ -230,7 +230,7 @@ int32_t RingQ::GetDirectWriteSize() const
         directSize = copyFront - rearNext;
     }
     //-----------------------------------
-    // ±×°ÍÀÌ ¾Æ´Ï¶ó¸é, m_writePosition ~ ÀÎµ¦½º³¡±îÁö°¡ ¿¬¼ÓµÈ ¸Þ¸ð¸® ÇÒ´ç¹üÀ§´Ù.
+    // ê·¸ê²ƒì´ ì•„ë‹ˆë¼ë©´, m_writePosition ~ ì¸ë±ìŠ¤ëê¹Œì§€ê°€ ì—°ì†ëœ ë©”ëª¨ë¦¬ í• ë‹¹ë²”ìœ„ë‹¤.
     //-----------------------------------
     else
     {
@@ -286,7 +286,7 @@ int32_t RingQ::GetDirectReadSize() const
     int32_t copyFront = m_readPosition;
     
     //------------------------------------------
-    // ¸µ¹öÆÛ°¡ ºñ¾îÀÖ´Ù¸é, 0À»¹ÝÈ¯
+    // ë§ë²„í¼ê°€ ë¹„ì–´ìžˆë‹¤ë©´, 0ì„ë°˜í™˜
     //------------------------------------------
     if (copyFront == copyRear)
     {
@@ -296,7 +296,7 @@ int32_t RingQ::GetDirectReadSize() const
     int32_t nextFront = (copyFront + 1) % RING_BUFFER_SIZE;
 
     int32_t directSize = 0;
-    //ÀÏ¹ÝÀûÀÎ °æ¿ì
+    //ì¼ë°˜ì ì¸ ê²½ìš°
     if (nextFront <= copyRear)
     {
         directSize = copyRear - nextFront+1;
@@ -349,9 +349,9 @@ char* RingQ::GetFrontBufferPtr(int32_t copyFront, int32_t copyRear)
 char* RingQ::GetReadBufferPtr(void)
 {
     //--------------------------------------
-    // FrontBufferPtrÀ» ¾²·Á°íÇÏ´Â°ÍÀº Áö±Ý
-    // dequeue¸¦ÇÏ·Á´Â »óÈ²ÀÎµ¥, Å¥°¡ ºñ¾îÀÖ´Ù¸é
-    // nullÀ»¹ÝÈ¯
+    // FrontBufferPtrì„ ì“°ë ¤ê³ í•˜ëŠ”ê²ƒì€ ì§€ê¸ˆ
+    // dequeueë¥¼í•˜ë ¤ëŠ” ìƒí™©ì¸ë°, íê°€ ë¹„ì–´ìžˆë‹¤ë©´
+    // nullì„ë°˜í™˜
     //--------------------------------------
     
     int32_t copyRear = m_writePosition;
@@ -376,8 +376,8 @@ char* RingQ::GetWriteBufferPtr(int32_t copyFront, int32_t copyRear)
 char* RingQ::GetWriteBufferPtr(void)
 {
     //--------------------------------------
-    // Enqueue¸¦ÇÏ·Á´Â »óÈ²ÀÎµ¥, Å¥°¡ ²ËÂ÷ÀÖ´Ù¸é,
-    // nullÀ»¹ÝÈ¯
+    // Enqueueë¥¼í•˜ë ¤ëŠ” ìƒí™©ì¸ë°, íê°€ ê½‰ì°¨ìžˆë‹¤ë©´,
+    // nullì„ë°˜í™˜
     //--------------------------------------
     int32_t copyFront = m_readPosition;
     int32_t copyRear = m_writePosition;
@@ -393,8 +393,8 @@ char* RingQ::GetWriteBufferPtr(void)
 int RingQ::Peek(char* dest, int size)
 {
     //-------------------------------------------
-   //¸µ¹öÆÛ¿¡ »ç¿ëÁßÀÎ »çÀÌÁî°¡ ÀÎÀÚ·Î µé¾î¿Â »çÀÌÁîº¸´Ù ÀÛÀ¸¸é ÇöÀç »ç¿ëÁßÀÎ »çÀÌÁî·Î¹Ù²Þ.
-   // PeekÀÌ±â¶§¹®¿¡ ÇÁ·ÐÆ® »çº» ¸¸µë.
+   //ë§ë²„í¼ì— ì‚¬ìš©ì¤‘ì¸ ì‚¬ì´ì¦ˆê°€ ì¸ìžë¡œ ë“¤ì–´ì˜¨ ì‚¬ì´ì¦ˆë³´ë‹¤ ìž‘ìœ¼ë©´ í˜„ìž¬ ì‚¬ìš©ì¤‘ì¸ ì‚¬ì´ì¦ˆë¡œë°”ê¿ˆ.
+   // Peekì´ê¸°ë•Œë¬¸ì— í”„ë¡ íŠ¸ ì‚¬ë³¸ ë§Œë“¬.
    //-------------------------------------------
     int32_t copyRear = m_writePosition;
     int32_t copyFront = m_readPosition;
@@ -413,12 +413,12 @@ int RingQ::Peek(char* dest, int size)
 
 
     //-----------------------------------
-    // Peek µé¾î¿À¸é »çº» front ´Â »Ü»Ü ¸ÕÀúÇÏ°í, dequeue¸¦ÇÑ´Ù.
+    // Peek ë“¤ì–´ì˜¤ë©´ ì‚¬ë³¸ front ëŠ” ì ì  ë¨¼ì €í•˜ê³ , dequeueë¥¼í•œë‹¤.
     //-----------------------------------
     copyFront = (copyFront + 1) % RING_BUFFER_SIZE;
 
     //-------------------------------------------
-    // ¿¬¼ÓÇÒ´çÇÒ¼öÀÖ´Â »çÀÌÁî°¡ µé¾î¿Â »çÀÌÁîº¸´Ù ÀÛ´Ù¸é µÎ¹ø³ª´²¼­ µðÅ¥¸¦ ÇØ¾ßÇÔ.
+    // ì—°ì†í• ë‹¹í• ìˆ˜ìžˆëŠ” ì‚¬ì´ì¦ˆê°€ ë“¤ì–´ì˜¨ ì‚¬ì´ì¦ˆë³´ë‹¤ ìž‘ë‹¤ë©´ ë‘ë²ˆë‚˜ëˆ ì„œ ë””íë¥¼ í•´ì•¼í•¨.
     //-------------------------------------------
     if (directSize < size)
     {
@@ -450,7 +450,7 @@ int32_t RingQ::GetwritePosition()
 int32_t RingQ::GetDirectEnqueueSize(int32_t copyFront, int32_t copyRear) const
 {
     //-----------------------------------
-    // ¸µ¹öÆÛÀÇ »çÀÌÁî°¡ ²ËÃ¡´Ù¸é, Direct Size¸¦ ±¸ÇÒ¼ö ¾ø´Ù. 0¹ÝÈ¯
+    // ë§ë²„í¼ì˜ ì‚¬ì´ì¦ˆê°€ ê½‰ì°¼ë‹¤ë©´, Direct Sizeë¥¼ êµ¬í• ìˆ˜ ì—†ë‹¤. 0ë°˜í™˜
     //-----------------------------------
 
     if ((copyRear + 1) % RING_BUFFER_SIZE == copyFront)
@@ -467,7 +467,7 @@ int32_t RingQ::GetDirectEnqueueSize(int32_t copyFront, int32_t copyRear) const
         directSize = copyFront - rearNext;
     }
     //-----------------------------------
-    // ±×°ÍÀÌ ¾Æ´Ï¶ó¸é, m_writePosition ~ ÀÎµ¦½º³¡±îÁö°¡ ¿¬¼ÓµÈ ¸Þ¸ð¸® ÇÒ´ç¹üÀ§´Ù.
+    // ê·¸ê²ƒì´ ì•„ë‹ˆë¼ë©´, m_writePosition ~ ì¸ë±ìŠ¤ëê¹Œì§€ê°€ ì—°ì†ëœ ë©”ëª¨ë¦¬ í• ë‹¹ë²”ìœ„ë‹¤.
     //-----------------------------------
     else
     {
@@ -481,7 +481,7 @@ int32_t RingQ::GetDirectDequeueSize(int32_t copyFront, int32_t copyRear) const
 {
 
     //------------------------------------------
-    // ¸µ¹öÆÛ°¡ ºñ¾îÀÖ´Ù¸é, 0À»¹ÝÈ¯
+    // ë§ë²„í¼ê°€ ë¹„ì–´ìžˆë‹¤ë©´, 0ì„ë°˜í™˜
     //------------------------------------------
     if (copyFront == copyRear)
     {
@@ -491,7 +491,7 @@ int32_t RingQ::GetDirectDequeueSize(int32_t copyFront, int32_t copyRear) const
     int nextFront = (copyFront + 1) % RING_BUFFER_SIZE;
 
     int32_t directSize = 0;
-    //ÀÏ¹ÝÀûÀÎ °æ¿ì
+    //ì¼ë°˜ì ì¸ ê²½ìš°
     if (nextFront <= copyRear)
     {
         directSize = copyRear - nextFront + 1;

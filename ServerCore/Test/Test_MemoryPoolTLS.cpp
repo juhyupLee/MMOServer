@@ -1,4 +1,4 @@
-﻿
+
 
 CrashDump g_CrashDump;
 

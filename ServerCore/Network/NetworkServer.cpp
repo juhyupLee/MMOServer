@@ -113,7 +113,7 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 {
 	if (CreateIoCompletionPort((HANDLE)socket, m_IOCP, 0, 0) == nullptr)
 	{
-		printf("errorCode:%d", GetLastError());
+		LOG_ERR("IOCP Register Fail:%", WSAGetLastError());
 		return false;
 	}
 	return true;

@@ -1,4 +1,4 @@
-﻿////
+////
 ////#define INIT_DATA 0x123456789
 ////#define INIT_COUNT  0
 ////#define DATA_COUNT 1000000

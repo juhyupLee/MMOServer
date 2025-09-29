@@ -1,0 +1,7 @@
+ObjectPad,Threads,Scenario,Allocator,Ops,Time(s),Throughput(op/s),Mem(MB),p50_us,p99_us
+32,1,SameThread,make_shared,250000,0.0704831,3.54695e+06,20.4609,0.2,0.4
+32,1,SameThread,allocate_shared(PoolAlloc),250000,0.0707901,3.53157e+06,21.0469,0.2,0.5
+32,2,CrossThread,make_shared,250000,0.161568,1.54734e+06,21.6094,0,0
+32,2,CrossThread,allocate_shared(PoolAlloc),250000,0.153431,1.62939e+06,23.7344,0,0
+32,2,CrossThread,make_shared,250000,1.45239,172130,44.918,0,0
+32,2,CrossThread,allocate_shared(PoolAlloc),250000,1.42858,174999,71.8242,0,0

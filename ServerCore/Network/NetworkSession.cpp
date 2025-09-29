@@ -22,14 +22,14 @@ void NetworkSession::Listen(int32_t port)
 	SOCKET listenSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
 	if (listenSocket == INVALID_SOCKET)
 	{
-		//LOG_ERR("failed - WSASocket:%", WSAGetLastError());
+		LOG_ERR("failed - WSASocket:%", WSAGetLastError());
 		return;
 	}
 
 	if (sockOption._SendBufferZero)
 	{
 		//----------------------------------------------------------------------------
-		// º€Ω≈πˆ∆€ Zero -->∫Òµø±‚ IO ¿Øµµ
+		// ÏÜ°Ïã†Î≤ÑÌçº Zero -->ÎπÑÎèôÍ∏∞ IO Ïú†ÎèÑ
 		//----------------------------------------------------------------------------
 		int optVal = 0;
 		int optLen = sizeof(optVal);
@@ -37,7 +37,7 @@ void NetworkSession::Listen(int32_t port)
 		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_SNDBUF, (const char*)&optVal, optLen);
 		if (rtnOpt != 0)
 		{
-			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
 		}
 	}
 	if (sockOption._Linger)
@@ -49,7 +49,7 @@ void NetworkSession::Listen(int32_t port)
 		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_LINGER, (const char*)&lingerOpt, sizeof(lingerOpt));
 		if (rtnOpt != 0)
 		{
-			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
 		}
 
 	}
@@ -60,7 +60,7 @@ void NetworkSession::Listen(int32_t port)
 		int rtnOpt = setsockopt(listenSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&tcpNodelayOpt, sizeof(tcpNodelayOpt));
 		if (rtnOpt != 0)
 		{
-			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
 		}
 	}
 
@@ -70,7 +70,7 @@ void NetworkSession::Listen(int32_t port)
 
 		if (0 != WSAIoctl(listenSocket, SIO_KEEPALIVE_VALS, &sockOption._KeepAliveOption, sizeof(tcp_keepalive), NULL, 0, &recvByte, NULL, NULL))
 		{
-			//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"setsockopt() error:%d", WSAGetLastError());
+			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
 		}
 	}
 
@@ -82,13 +82,14 @@ void NetworkSession::Listen(int32_t port)
 	local.sin_port = htons((unsigned short)port);
 	if (bind(listenSocket, reinterpret_cast<SOCKADDR*>(&local) , sizeof(local)) == SOCKET_ERROR)
 	{
-		//LOG_ERR("failed - bind:%", WSAGetLastError());
+		LOG_ERR("failed - bind:%", WSAGetLastError());
 		return;
 	}
 
 	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR )
 	{
 		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"listen() error:%d", WSAGetLastError());
+		LOG_ERR("Listen Failed - bind:%", WSAGetLastError());
 		return;
 	}
 
@@ -98,9 +99,6 @@ void NetworkSession::Listen(int32_t port)
 		task->m_owner = shared_from_this();
 		if (!NetworkServer::GetInstance()->WorkerPush(task))
 		{
-			/*LOG_ERR("fail - NetworkTaskAcceptIO WorkerPush");
-			m_tasks.pop_back();
-			Close();*/
 			return;
 		}
 	}
@@ -118,7 +116,7 @@ void NetworkSession::Connect(std::string ip, int32_t port)
 
 void NetworkSession::OnConnected()
 {
-	//receive ø‰√ª
+	//receive ÏöîÏ≤≠
 	auto task = new NetworkTaskReceiveIO;
 	task->m_owner = shared_from_this();
 	NetworkServer::GetInstance()->WorkerPush(task);
@@ -165,32 +163,32 @@ void NetworkSession::OnAccept(std::string ip, int32_t port, SOCKET sock)
 	m_ip = ip;
 	m_port = port;
 
-	////≈∏¿”æ∆øÙ ¿˚øÎ«œµµ∑œ º¬∆√
+	////ÌÉÄÏûÑÏïÑÏõÉ Ï†ÅÏö©ÌïòÎèÑÎ°ù ÏÖãÌåÖ
 	//m_ignoreTimeout = false;
 
 	//int64_t currentTime = TimeUtil::GetEpochTimeForNetwork();
 	//m_timeoutTime = currentTime + NETWORK_TIMEOUT_TIME;
 	//m_pingTime = currentTime + NETWORK_PING_TIME;
 
-	//º“ƒœº¬∆√
+	//ÏÜåÏºìÏÖãÌåÖ
 	SetSocket(sock);
 
 	FConnectAckT msg2;
 	msg2.result = EResultID::R_SUCCESS;
 	Send(msg2);
 	//Send(msg);
-	//≥ª∫Œ∑Œ ¡¢º”«— ¿Ø¿˙∞° ¿÷¥Ÿ∞Ì æÀ∑¡¡ÿ¥Ÿ.
+	//ÎÇ¥Î∂ÄÎ°ú Ï†ëÏÜçÌïú Ïú†Ï†ÄÍ∞Ä ÏûàÎã§Í≥† ÏïåÎ†§Ï§ÄÎã§.
 	//FAcceptAckT msg1;
 	//msg1.ip = ip;
 	//msg1.port = port;
 	//ExecuteCallback((HANDLE)m_sessionID, msg1);
 	
-	//¡¢º”«—ªÁ∂˜«—≈◊ æÀ∑¡¡ÿ¥Ÿ.
+	//Ï†ëÏÜçÌïúÏÇ¨ÎûåÌïúÌÖå ÏïåÎ†§Ï§ÄÎã§.
 	//FConnectAckT msg2;
 	//msg2.result = EResultID::R_SUCCESS;
 	//NetworkSystem::GetInstance()->Send(m_sessionID, msg2);
 
-	//receive ø‰√ª
+	//receive ÏöîÏ≤≠
 	auto task = new NetworkTaskReceiveIO;
 	task->m_owner = this->shared_from_this();
 	NetworkServer::GetInstance()->WorkerPush(task);
@@ -222,7 +220,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //		if (0 == InterlockedExchange(&_SendFlag, 1))
 //		{
 //			//--------------------------------------------------------
-//			// Echo Count∞° ¡ı∞°«— π¸¿Œ
+//			// Echo CountÍ∞Ä Ï¶ùÍ∞ÄÌïú Î≤îÏù∏
 //			//--------------------------------------------------------
 //			if (_SendQ.GetQCount() <= 0)
 //			{
@@ -230,8 +228,8 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //				continue;
 //			}
 //			//--------------------------------------------------
-//			// IOCountøÕ ¿Ãººº«¿Ã WSARecv or WSASend ¿Ã»ƒ ∑Œ±◊∏¶ ¿ß«ÿ Sessionø° ¡¢±Ÿ«“ºˆ¿÷±‚ ∂ßπÆø°
-//			// ¬¸¡∂ƒ´øÓ∆ÆøÎ¿∏∑Œ «œ≥™ ¥ı ¡ı∞°Ω√≈≤¥Ÿ.
+//			// IOCountÏôÄ Ïù¥ÏÑ∏ÏÖòÏù¥ WSARecv or WSASend Ïù¥ÌõÑ Î°úÍ∑∏Î•º ÏúÑÌï¥ SessionÏóê Ï†ëÍ∑ºÌï†ÏàòÏûàÍ∏∞ ÎïåÎ¨∏Ïóê
+//			// Ï∞∏Ï°∞Ïπ¥Ïö¥Ìä∏Ïö©ÏúºÎ°ú ÌïòÎÇò Îçî Ï¶ùÍ∞ÄÏãúÌÇ®Îã§.
 //			//--------------------------------------------------
 //			InterlockedAdd((LONG*)&_IOCount, 2);
 //			//--------------------------------------------------
@@ -247,7 +245,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //			}*/
 //
 //			////-----------------------------------------------------------------------------------------------------------------------
-//			//// SendQø° ¿÷¥¬ LanPackt* ∆˜¿Œ≈ÕµÈ¿ª ªÃæ∆º≠ WSABUF∏¶ ºº∆√«ÿ¡ÿ¥Ÿ
+//			//// SendQÏóê ÏûàÎäî LanPackt* Ìè¨Ïù∏ÌÑ∞Îì§ÏùÑ ÎΩëÏïÑÏÑú WSABUFÎ•º ÏÑ∏ÌåÖÌï¥Ï§ÄÎã§
 //			////-----------------------------------------------------------------------------------------------------------------------
 //			WSABUF wsaSendBuf[NetworkSession::DEQ_PACKET_ARRAY_SIZE];
 //
@@ -283,7 +281,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //				_DeQArraySize++;
 //			}
 //			//------------------------------------------------------
-//			//   Send º€Ω≈πŸ¿Ã∆Æ √º≈©«œ±‚
+//			//   Send ÏÜ°Ïã†Î∞îÏù¥Ìä∏ Ï≤¥ÌÅ¨ÌïòÍ∏∞
 //			//------------------------------------------------------
 //			if (_SendByte <= 0)
 //			{
@@ -298,8 +296,8 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //			}
 //
 //			//------------------------------------------------------------------
-//			// 	IO Cancel ¿Ã Ω««‡âÁ¥Ÿ∏È, ¿‘√‚∑¬¿ª ∞…¡ˆæ ∞Ì, IOCount∏¶ ≥∑√ﬂ∞Ì Return«—¥Ÿ
-//			//  ∑Œ±◊∏¶¿ß«— IOCount +1  WSASend∏¶ ¿ß«— +1 
+//			// 	IO Cancel Ïù¥ Ïã§ÌñâÎê¨Îã§Î©¥, ÏûÖÏ∂úÎ†•ÏùÑ Í±∏ÏßÄÏïäÍ≥†, IOCountÎ•º ÎÇÆÏ∂îÍ≥† ReturnÌïúÎã§
+//			//  Î°úÍ∑∏Î•ºÏúÑÌïú IOCount +1  WSASendÎ•º ÏúÑÌïú +1 
 //			//------------------------------------------------------------------
 //			if (_bIOCancel)
 //			{
@@ -332,7 +330,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //					//MMOGameLib::SpecialErrorCodeCheck(errorCode);
 //
 //					//---------------------------------------------------------
-//					// WSASend∏¶ ∞…±‚¿ß«ÿ ¡ı∞°Ω√≈≤ IOCount∏¶ ∞®º“Ω√≈≤¥Ÿ.
+//					// WSASendÎ•º Í±∏Í∏∞ÏúÑÌï¥ Ï¶ùÍ∞ÄÏãúÌÇ® IOCountÎ•º Í∞êÏÜåÏãúÌÇ®Îã§.
 //					//---------------------------------------------------------
 //					int tempIOCount = InterlockedDecrement(&_IOCount);
 //
@@ -344,7 +342,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //			}
 //
 //			//---------------------------------------------------------
-//			// Log∏¶ ¿ß«ÿ ø√∑«¥¯ IOCount∏¶ ∞®º“Ω√≈∞∞Ì ≥°≥Ω¥Ÿ. (Return)
+//			// LogÎ•º ÏúÑÌï¥ Ïò¨Î†∑Îçò IOCountÎ•º Í∞êÏÜåÏãúÌÇ§Í≥† ÎÅùÎÇ∏Îã§. (Return)
 //			//---------------------------------------------------------
 //			int tempIOCount = InterlockedDecrement(&_IOCount);
 //			if (0 == tempIOCount)
@@ -375,7 +373,7 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 //	}
 //	if (!_SendQ.EnQ(packet))
 //	{
-//		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SendQ √—∞πºˆ √ ∞˙(LockFreeQ Qcount √ ∞˙«‘)");
+//		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SendQ Ï¥ùÍ∞ØÏàò Ï¥àÍ≥º(LockFreeQ Qcount Ï¥àÍ≥ºÌï®)");
 //		CRASH();
 //	}
 //

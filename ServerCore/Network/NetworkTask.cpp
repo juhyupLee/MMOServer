@@ -10,7 +10,7 @@ bool NetworkTaskClose::Run(bool result, DWORD transferred)
 		//auto session = NetworkSystem::GetInstance()->FindSession(sessionID);
 		//if (session == nullptr) continue;
 
-		////session ÇØÁ¦
+		////session í•´ì œ
 		//session->Close();
 	}
 
@@ -32,7 +32,7 @@ bool NetworkTaskListen::Run(bool result, DWORD transferred)
 ////////////////////////////////////////////////////////////////////
 bool NetworkTaskChange::Run(bool result, DWORD transferred)
 {
-	//session »ı¼º
+	//session ìƒì„±
 	//auto session = NetworkSystem::GetInstance()->FindSession(m_sessionID);
 	//if (session == nullptr)
 	//{
@@ -61,32 +61,29 @@ bool NetworkTaskAcceptIO::Start()
 	m_step = EStep::Running;
 	if (m_owner == nullptr)
 	{
-		//LOG_ERR("session null");
-		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("Session is null");
 		return false;
 	}
 
-	//ÃÊ±âÈ­
+	//ì´ˆê¸°í™”
 	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
 	ZeroMemory(m_address, sizeof(m_address));
 
-	//¼ÒÄÏ»ı¼º
+	//ì†Œì¼“ìƒì„±
 	m_clientSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
 	if (m_clientSocket == INVALID_SOCKET)
 	{
-		//LOG_ERR("WSASocket failed:%", WSAGetLastError());
-		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("WSASocket failed:%", WSAGetLastError());
 		return false;
 	}
-	//accept ¿äÃ»
+	//accept ìš”ì²­
 	DWORD bytes = 0;
 	if (AcceptEx(m_owner->GetSocket(), m_clientSocket, m_address, 0, sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &bytes, static_cast<LPOVERLAPPED>(this)) == FALSE)
 	{
 		int32_t error = WSAGetLastError();
 		if (error != WSA_IO_PENDING)
 		{
-			//LOG_ERR("AcceptEx failed:%", error);
-			//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+			LOG_ERR("AcceptEx failed:%", error);
 			return false;
 		}
 	}
@@ -98,18 +95,17 @@ bool NetworkTaskAcceptIO::Complete(bool result)
 {
 	if (m_owner == nullptr)
 	{
-		//LOG_ERR("session null");
-		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("Session is null");
 		return false;
 	}
 
-	//¿äÃ»°á°ú Ã¼Å©
+	//ìš”ì²­ê²°ê³¼ ì²´í¬
 	if (result == true)
 	{
 		//SO_UPDATE_ACCEPT_CONTEXT
 		SOCKET listener = m_owner->GetSocket();
 		setsockopt(m_clientSocket, SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char*)&listener, sizeof(listener));
-		//Á¢¼ÓÁÖ¼Ò ¾ò±â
+		//ì ‘ì†ì£¼ì†Œ ì–»ê¸°
 		sockaddr_in* local = nullptr;
 		sockaddr_in* remote = nullptr;
 		int32_t localLength = 0;
@@ -122,10 +118,11 @@ bool NetworkTaskAcceptIO::Complete(bool result)
 			if (inet_ntop(AF_INET, &remote->sin_addr, ipStr, INET_ADDRSTRLEN) != nullptr)
 			{
 				std::cout << "IP: " << ipStr << std::endl;
+				LOG_INFO("IP:%", ipStr);
 			}
 			else
 			{
-				std::cout << "InetNtop failed" << std::endl;
+				LOG_ERR("InetNtop failed:");
 			}
 			task->m_ip = ipStr;
 			task->m_port = static_cast<int32_t>(ntohs(remote->sin_port));
@@ -141,18 +138,18 @@ bool NetworkTaskAcceptIO::Complete(bool result)
 
 	m_clientSocket = INVALID_SOCKET;
 
-	//accept ¿äÃ»
+	//accept ìš”ì²­
 	return Start();
 }
 
 ////////////////////////////////////////////////////////////////////
 bool NetworkTaskNewUser::Run(bool result, DWORD transferred)
 {
-	//session »ı¼º
+	//session ìƒì„±
 	auto session = NetworkServer::GetInstance()->CreateNewSession(m_jobDispatcher);
 	if (session == nullptr)
 	{
-//		LOG_ERR("CreateSession failed");
+		LOG_ERR("CreateSession is null");
 		return false;
 	}
 
@@ -176,8 +173,7 @@ bool NetworkTaskReceiveIO::Start()
 	m_step = EStep::Running;
 	if (m_owner == nullptr)
 	{
-		//LOG_ERR("session null");
-		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("Session is null");
 		return false;
 	}
 	if (m_owner->_RecvRingQ.GetWriteSize() <= 0)
@@ -189,7 +185,7 @@ bool NetworkTaskReceiveIO::Start()
 	wsaBufs.reserve(2);
 	m_owner->_RecvRingQ.GetDirectEnQData(wsaBufs);
 
-	//receive ¿äÃ»
+	//receive ìš”ì²­
 	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
 	DWORD bytes = 0;
 	DWORD flag = 0;
@@ -199,8 +195,7 @@ bool NetworkTaskReceiveIO::Start()
 		int32_t error = WSAGetLastError();
 		if (error != WSA_IO_PENDING)
 		{
-			//LOG_ERR("failed - WSARecv:%", error);
-			//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+			LOG_ERR("failed - WSARecv:%", error);
 			m_owner.reset();
 			return false;
 		}
@@ -213,24 +208,23 @@ bool NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
 {
 	if (m_owner == nullptr)
 	{
-//		LOG_ERR("session null");
-	//	NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("Session is null");
 		return false;
 	}
 
-	//¿äÃ»°á°ú Ã¼Å©
+	//ìš”ì²­ê²°ê³¼ ì²´í¬
 	if (result == false || transferred <= 0)
 	{
-		//LOG_ERR("failed - result. transferred : % ", transferred);
+		LOG_ERR("failed - result. transferred : % ", transferred);
 		NetworkServer::GetInstance()->RemoveSession(m_owner->GetSessionID());
 		m_owner.reset();
 		return false;
 	}
 
-	//¹ŞÀº »çÀÌÁî Ãß°¡
+	//ë°›ì€ ì‚¬ì´ì¦ˆ ì¶”ê°€
 	m_owner->_RecvRingQ.MoveWitePosition(transferred);
 
-	//µ¥ÀÌÅÍ ÆÄ½Ì
+	//ë°ì´í„° íŒŒì‹±
 	while (true)
 	{
 		int packetSize = m_owner->_RecvRingQ.GetReadSize();
@@ -239,10 +233,10 @@ bool NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
 			char* packet = m_owner->_RecvRingQ.GetReadBufferPtr();
 			int32_t messageSize = flatbuffers::ReadScalar<flatbuffers::uoffset_t>(packet);
 
-			//µ¥ÀÌÅÍ »çÀÌÁî ¿¹¿Ü Ã¼Å©
+			//ë°ì´í„° ì‚¬ì´ì¦ˆ ì˜ˆì™¸ ì²´í¬
 			if ( 0 <= messageSize && messageSize <= packetSize - PACKET_HEADER_SIZE)
 			{
-				//ÀĞ±â Ã³¸®
+				//ì½ê¸° ì²˜ë¦¬
 				m_owner->_RecvRingQ.MoveReadPosition(PACKET_HEADER_SIZE + messageSize);
 				NetworkServer::GetInstance()->Convert(packet + PACKET_HEADER_SIZE, messageSize);
 				m_owner->OnRecvMessage(packet , messageSize);
@@ -253,7 +247,7 @@ bool NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
 		break;
 	}
 
-	//receive ¿äÃ»
+	//receive ìš”ì²­
 	return Start();
 }
 
@@ -277,7 +271,7 @@ bool NetworkTaskSend::Start()
 		return false;
 	}
 
-	//OVERLAPPED ÃÊ±âÈ­
+	//OVERLAPPED ì´ˆê¸°í™”
 	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
 	std::vector<WSABUF> wsaBufs{ };
 	wsaBufs.reserve(m_owner->GetSendQueue().GetQCount());
@@ -295,7 +289,7 @@ bool NetworkTaskSend::Start()
 			wsaBufs.emplace_back(wsabuf);
 			m_totalSize += wsabuf.len;
 		}
-		//send ¿äÃ»
+		//send ìš”ì²­
 		DWORD bytes = 0;
 		DWORD flag = 0;
 		if (WSASend(m_owner->GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), &bytes, flag, static_cast<LPOVERLAPPED>(this), nullptr) == SOCKET_ERROR)
@@ -303,7 +297,7 @@ bool NetworkTaskSend::Start()
 			int32_t error = WSAGetLastError();
 			if (error != WSA_IO_PENDING)
 			{
-				//LOG_ERR("failed - WSASend:%", error);
+				LOG_ERR("failed - WSASend:%", error);
 				m_owner.reset();
 				return false;
 			}
@@ -317,23 +311,23 @@ bool NetworkTaskSend::Complete(bool result, DWORD transferred)
 {
 	if (m_owner == nullptr)
 	{
-		//ÀÌ°Ô ¹ß»ıÇÏ¸é..¾ÖÃÊ¿¡ ±¸ÇöÀ» Àß¸øÇÑ°Í..·Î±×¸¸ ³²±ä´Ù
+		//ì´ê²Œ ë°œìƒí•˜ë©´..ì• ì´ˆì— êµ¬í˜„ì„ ì˜ëª»í•œê²ƒ..ë¡œê·¸ë§Œ ë‚¨ê¸´ë‹¤
 		return false;
 	}
 
 	m_owner->m_isSending.exchange(false);
 
-	//¿äÃ»°á°ú Ã¼Å©
+	//ìš”ì²­ê²°ê³¼ ì²´í¬
 	if (result == false || transferred <= 0)
 	{
-		//LOG_ERR("failed - result");
+		LOG_ERR("failed - result");
 		return false;
 	}
 
-	//´Ù º¸³Â´ÂÁö Ã¼Å©
+	//ë‹¤ ë³´ëƒˆëŠ”ì§€ ì²´í¬
 	if (transferred != m_totalSize)
 	{
-		//LOG_ERR("transferred:%/%", transferred, m_totalSize);
+		LOG_ERR("transferred:%/%", transferred, m_totalSize);
 		return false;
 	}
 
@@ -343,11 +337,11 @@ bool NetworkTaskSend::Complete(bool result, DWORD transferred)
 ////////////////////////////////////////////////////////////////////
 bool NetworkTaskConnect::Run(bool result, DWORD transferred)
 {
-	//session »ı¼º
+	//session ìƒì„±
 	auto session = NetworkServer::GetInstance()->CreateNewSession(m_jobDispatcher);
 	if (session == nullptr)
 	{
-		//LOG_ERR("CreateSession failed");
+		LOG_ERR("CreateSession failed");
 		return false;
 	}
 
@@ -371,29 +365,27 @@ bool NetworkTaskConnectIO::Start()
 	m_step = EStep::Running;
 	ZeroMemory((LPOVERLAPPED)this, sizeof(OVERLAPPED));
 
-	//¼ÒÄÏ»ı¼º
+	//ì†Œì¼“ìƒì„±
 	SOCKET sock = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, nullptr, 0, WSA_FLAG_OVERLAPPED);
 	if (sock == INVALID_SOCKET)
 	{
-		//LOG_ERR("failed - WSASocket:%", WSAGetLastError());
-		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("failed - WSASocket:%", WSAGetLastError());
 		return false;
 	}
 
 	m_owner->SetSocket(sock);
 
-	//Æ÷Æ®ÇÒ´ç
+	//í¬íŠ¸í• ë‹¹
 	SOCKADDR_IN local = { };
 	local.sin_family = AF_INET;
 	local.sin_addr.s_addr = INADDR_ANY;
 	if (bind(m_owner->GetSocket(),reinterpret_cast<SOCKADDR*>(&local), sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
 	{
-		//LOG_ERR("failed - bind:%", WSAGetLastError());
-		//NetworkSystem::GetInstance()->Notify(EStep::Failed, m_owner, this);
+		LOG_ERR("failed - bind:%", WSAGetLastError());
 		return false;
 	}
 
-	//ÁÖ¼Òº¯È¯
+	//ì£¼ì†Œë³€í™˜
 	auto ip = m_owner->GetIP();
 	auto port = m_owner->GetPort();
 
@@ -432,7 +424,7 @@ bool NetworkTaskConnectIO::Start()
 		inet_pton(remote.sin_family, "127.0.0.1", &remote.sin_addr);
 	}
 
-	//connect ¿äÃ»
+	//connect ìš”ì²­
 	static LPFN_CONNECTEX ConnectEx = nullptr;
 	if (ConnectEx == nullptr)
 	{
@@ -449,6 +441,7 @@ bool NetworkTaskConnectIO::Start()
 		int32_t error = WSAGetLastError();
 		if (error != WSA_IO_PENDING)
 		{
+			LOG_ERR("failed - WSASend:%", error);
 			return false;
 		}
 	}
@@ -463,10 +456,10 @@ bool NetworkTaskConnectIO::Complete(bool result)
 		return false;
 	}
 
-	//¿äÃ»°á°ú Ã¼Å©
+	//ìš”ì²­ê²°ê³¼ ì²´í¬
 	if (result == false)
 	{
-		//LOG_ERR("result failed");
+		LOG_ERR("result failed");
 		return false;
 	}
 	m_owner->OnConnected();

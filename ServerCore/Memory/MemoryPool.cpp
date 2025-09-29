@@ -1,4 +1,4 @@
-﻿
+
 #include "MemoryPool.h"
 MemoryPool gMemoryPool;
 MemoryPool::MemoryPool()

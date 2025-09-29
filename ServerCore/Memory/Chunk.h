@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 constexpr size_t TargetChunkSize = 128 * 1024; // 64KB
 
@@ -7,17 +7,17 @@ constexpr size_t CalcSlotCount()
 {
 
 	constexpr size_t s = sizeof(T);
-	// 2MB¸¦ ±âº» Á¤·Ä/»óÇÑ ÃàÀ¸·Î È°¿ë
+	// 2MBë¥¼ ê¸°ë³¸ ì •ë ¬/ìƒí•œ ì¶•ìœ¼ë¡œ í™œìš©
 	constexpr size_t KB = 1024;
 	constexpr size_t MB = 1024 * KB;
 
-	if (s <= 64)    return (256 * KB) / s;     // 32B¡æ8,192 slots
-	if (s <= 128)   return (1 * MB) / s;     // 128B¡æ8,192
-	if (s <= 256)   return (1 * MB) / s;     // 256B¡æ4,096
-	if (s <= 512)   return (2 * MB) / s;     // 512B¡æ4,096
-	if (s <= 1024)  return (2 * MB) / s;     // 1KB¡æ2,048
+	if (s <= 64)    return (256 * KB) / s;     // 32Bâ†’8,192 slots
+	if (s <= 128)   return (1 * MB) / s;     // 128Bâ†’8,192
+	if (s <= 256)   return (1 * MB) / s;     // 256Bâ†’4,096
+	if (s <= 512)   return (2 * MB) / s;     // 512Bâ†’4,096
+	if (s <= 1024)  return (2 * MB) / s;     // 1KBâ†’2,048
 
-	// Å« °´Ã¼: 2MB »óÇÑ + ÃÖ¼Ò ½½·Ô º¸Àå
+	// í° ê°ì²´: 2MB ìƒí•œ + ìµœì†Œ ìŠ¬ë¡¯ ë³´ì¥
 	constexpr size_t n = (2 * MB) / s;
 	return n >= 64 ? n : 64;
 }
@@ -118,7 +118,7 @@ void ChunkPage<T, SLOT_COUNT>::Free(void* data)
 {
 	ChunkSlot<T>* dataPtr = reinterpret_cast<ChunkSlot<T>*>(reinterpret_cast<char*>(data) - offsetof(ChunkSlot<T>, m_data));
 	//----------------------------------------------------
-	// ¹İ³³µÈ Æ÷ÀÎÅÍ°¡ ¾ğ´õÇÃ·Î¿ì ÇÑ °æ¿ì
+	// ë°˜ë‚©ëœ í¬ì¸í„°ê°€ ì–¸ë”í”Œë¡œìš° í•œ ê²½ìš°
 	//----------------------------------------------------
 	if (dataPtr->m_metaData.m_markValue != MARK_FRONT || dataPtr->m_metaData.m_chunkOwner != this)
 	{

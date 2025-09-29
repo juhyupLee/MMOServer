@@ -76,7 +76,7 @@ public:
 	~FreeList()
 	{
 		//--------------------------------------------------------------------------
-		// ´õ¹Ì³ëµå¸¦ Á¦¿ÜÇÑ, µ¥ÀÌÅÍ ³ëµåµéÀº ±âÁ¸ Æ÷ÀÎÅÍ¿¡¼­ 128¹ÙÀÌÆ® ¸¸Å­ ¶¯°Ü, delete¸¦ ÇØ¾ßÇÑ´Ù
+		// ë”ë¯¸ë…¸ë“œë¥¼ ì œì™¸í•œ, ë°ì´í„° ë…¸ë“œë“¤ì€ ê¸°ì¡´ í¬ì¸í„°ì—ì„œ 128ë°”ì´íŠ¸ ë§Œí¼ ë•¡ê²¨, deleteë¥¼ í•´ì•¼í•œë‹¤
 		//--------------------------------------------------------------------------
 		Node* curNode = m_TopCheck->_TopPtr;
 
@@ -147,7 +147,7 @@ template<typename T>
 inline T* FreeList<T>::AllocateMemoryFromHeap(size_t size)
 {
 	//--------------------------------------------------------------------------
-	// ¾ğ´õÇÃ·Î¿ì Ã¼Å©¿ë mark ID  + data(Payload)  + ¿À¹öÇÃ·Î¿ì Ã¼Å©¿ë mark ID  ÇÒ´ç
+	// ì–¸ë”í”Œë¡œìš° ì²´í¬ìš© mark ID  + data(Payload)  + ì˜¤ë²„í”Œë¡œìš° ì²´í¬ìš© mark ID  í• ë‹¹
 	//--------------------------------------------------------------------------
 	AllocMemory* allocMemory = static_cast<AllocMemory*>(_aligned_malloc(sizeof(AllocMemory), 16));
 	allocMemory->_FrontMark._FreeFlag = false;
@@ -155,7 +155,7 @@ inline T* FreeList<T>::AllocateMemoryFromHeap(size_t size)
 	allocMemory->_FrontMark._MarkID = m_FreeListUID;
 	allocMemory->_FrontMark._MarkValue = MARK_FRONT;
 
-	//»ı¼ºÀÚ È£ÃâÇØÁà¾ßÇÔ (Á¦°Å±İÁö)
+	//ìƒì„±ì í˜¸ì¶œí•´ì¤˜ì•¼í•¨ (ì œê±°ê¸ˆì§€)
 	std::construct_at(&allocMemory->_Node);
 	return reinterpret_cast<T*>(&allocMemory->_Node);
 }
@@ -167,7 +167,7 @@ bool FreeList<T>::Free(T* data)
 	AllocMemory* allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(data) - offsetof(AllocMemory,_Node));
 
 	//----------------------------------------------------
-	// ¹İ³³µÈ Æ÷ÀÎÅÍ°¡ ¾ğ´õÇÃ·Î¿ì ÇÑ °æ¿ì
+	// ë°˜ë‚©ëœ í¬ì¸í„°ê°€ ì–¸ë”í”Œë¡œìš° í•œ ê²½ìš°
 	//----------------------------------------------------
 	if (allocMemory->_FrontMark._MarkID != m_FreeListUID ||
 		allocMemory->_FrontMark._MarkValue != MARK_FRONT)
@@ -175,7 +175,7 @@ bool FreeList<T>::Free(T* data)
 		throw(FreeListException(L"Underflow Violation", __LINE__));
 	}
 	//----------------------------------------------------
-	// µÎ¹ø ¹İ³³µÈ °æ¿ì
+	// ë‘ë²ˆ ë°˜ë‚©ëœ ê²½ìš°
 	//----------------------------------------------------
 	if (allocMemory->_FrontMark._FreeFlag.exchange(true) == true)
 	{
@@ -189,7 +189,7 @@ bool FreeList<T>::Free(T* data)
 	do
 	{
 		//-------------------------------------------------------------------------------------------
-		//  FreeNode(¹İ³³µÈ ³ëµå) ->  CurrentTop  ¹İ³³µÈ ³ëµåÀÇ NextÆ÷ÀÎÅÍ¸¦ ÇöÀçÀÇ TopÀ»°¡¸£Å°°ÔÇÔ
+		//  FreeNode(ë°˜ë‚©ëœ ë…¸ë“œ) ->  CurrentTop  ë°˜ë‚©ëœ ë…¸ë“œì˜ Nextí¬ì¸í„°ë¥¼ í˜„ì¬ì˜ Topì„ê°€ë¥´í‚¤ê²Œí•¨
 		//-------------------------------------------------------------------------------------------
 		freeNode->_Next = tempTop._TopPtr;
 
