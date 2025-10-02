@@ -6,6 +6,8 @@
 //Windows 헤더 파일:
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "Mswsock.lib")
+#pragma comment(lib, "../bin/pqxx.lib")
+#pragma comment(lib, "../bin/libpq.lib")
 //국가 관련
 #include <locale>
 #include <stdint.h>
