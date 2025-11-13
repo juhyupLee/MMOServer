@@ -1,0 +1,2 @@
+CreateDB.py dev_gamedb_1 GameDB_Schema.sql
+CreateDB.py dev_accountdb AccountDB_Schema.sql
