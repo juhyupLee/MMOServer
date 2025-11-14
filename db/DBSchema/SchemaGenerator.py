@@ -9,20 +9,20 @@ import sys
 DB_HOST = "localhost"
 DB_PASSWORD = "dlwnguq1!"
 DB_USER = "postgres"
-OUT_RAW = "Temp_Schema.sql"
-OUT_CLEAN = "GameDB_Schema.sql"
 
 
-def get_db_name():
-    # 파라미터 부족 → 종료
-    if len(sys.argv) < 2:
-        print("Usage: python convert_dump.py <DB_NAME>")
+def getArgs():
+    # DB 이름 + 출력 파일명 두 개 필요
+    if len(sys.argv) < 3:
+        print("Usage: python convert_dump.py <DB_NAME> <OUTPUT_FILE>")
         sys.exit(1)
 
-    return sys.argv[1]
+    dbName = sys.argv[1]
+    outFile = sys.argv[2]
+    return dbName, outFile
 
 
-def run_pg_dump(db_name):
+def runPgDump(dbName, rawFile):
     print("\n=== PostgreSQL schema-only dump Generating... ===")
     env = os.environ.copy()
     env["PGPASSWORD"] = DB_PASSWORD
@@ -32,54 +32,52 @@ def run_pg_dump(db_name):
         "-U", DB_USER,
         "-w",
         "-h", DB_HOST,
-        "-d", db_name,
+        "-d", dbName,
         "--schema-only",
         "--no-owner",
         "--no-privileges",
         "-F", "p",
-        "-f", OUT_RAW
+        "-f", rawFile
     ]
 
     result = subprocess.run(cmd, env=env)
     return result.returncode
 
 
-def clean_dump_file():
+def cleanDumpFile(rawFile, outFile):
     print("\n=== Clean Dump Schema... ===")
-    if not os.path.exists(OUT_RAW):
-        print("ERROR: Raw dump file not found:", OUT_RAW)
+    if not os.path.exists(rawFile):
+        print("ERROR: Raw dump file not found:", rawFile)
         return False
 
-    with open(OUT_RAW, "r", encoding="utf-8") as f:
+    with open(rawFile, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     cleaned = [line for line in lines if not line.startswith("\\")]
 
-    with open(OUT_CLEAN, "w", encoding="utf-8") as f:
+    with open(outFile, "w", encoding="utf-8") as f:
         f.writelines(cleaned)
 
-    return os.path.exists(OUT_CLEAN)
+    return os.path.exists(outFile)
 
 
 def main():
-    # ▶ DB 이름 받기 (명령줄 파라미터)
-    db_name = get_db_name()
+    dbName, outFile = getArgs()
 
-    # ▶ pg_dump 실행
-    code = run_pg_dump(db_name)
+    rawFile = "Temp_Schema.sql"
+
+    code = runPgDump(dbName, rawFile)
     if code != 0:
         print("*** pg_dump Fail Please Check Configure.")
         sys.exit(code)
 
-    # ▶ clean 작업
-    if clean_dump_file():
-        print(f"Schema SQL is Completed : {OUT_CLEAN}")
+    if cleanDumpFile(rawFile, outFile):
+        print(f"Schema SQL is Completed : {outFile}")
     else:
         print("Fail!")
 
-    # ▶ raw 파일 제거
-    if os.path.exists(OUT_RAW):
-        os.remove(OUT_RAW)
+    if os.path.exists(rawFile):
+        os.remove(rawFile)
 
     print("\nDone.")
 
