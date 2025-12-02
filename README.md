@@ -1,4 +1,4 @@
-# Custom C++ Memory Pool
+# Custom C++ Memory Pool Allocator
 
 🇰🇷 [한국어 문서 보기](README_KR.md)
 
