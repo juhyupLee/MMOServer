@@ -5,7 +5,7 @@ int main()
 {
     try
     {
-        pqxx::connection conn{ "dbname=testdb user=postgres password=dlwnguq1! host=localhost port=5432" };
+        pqxx::connection conn{ "dbname=postgres user=postgres password=dlwnguq1! host=juhyup.iptime.org port=5432" };
         if (conn.is_open())
         {
             std::cout << "Connected to " << conn.dbname() << std::endl;

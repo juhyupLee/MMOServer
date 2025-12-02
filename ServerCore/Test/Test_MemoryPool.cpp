@@ -137,10 +137,10 @@
 ////	{
 ////	
 ////		auto ptr = std::allocate_shared<TestData_MemoryPool>(MyAllocator<TestData_MemoryPool>());
-////		InterlockedIncrement64(&ptr->_Data);
+////		InterlockedIncrement64(&ptr->m_data);
 ////		InterlockedIncrement(&ptr->_RefCount);
 ////
-////		if (ptr->_Data != INIT_DATA + 1)
+////		if (ptr->m_data != INIT_DATA + 1)
 ////		{
 ////			CRASH();
 ////		}
@@ -149,9 +149,9 @@
 ////			CRASH();
 ////		}
 ////
-////		InterlockedDecrement64(&ptr->_Data);
+////		InterlockedDecrement64(&ptr->m_data);
 ////		InterlockedDecrement(&ptr->_RefCount);
-////		if (ptr->_Data != INIT_DATA)
+////		if (ptr->m_data != INIT_DATA)
 ////		{
 ////			CRASH();
 ////		}

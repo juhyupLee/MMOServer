@@ -143,7 +143,7 @@ void Start_LockFreeStack()
 	while (true)
 	{
 
-		wprintf(L"Stack Count %d\n", g_Stack.m_Count.load());
+		wprintf(L"Stack Count %d\n", g_Stack.m_count.load());
 		//wprintf(L"Push Count %d\n", g_Stack.m_PushCount);
 		//wprintf(L"Pop Count %d\n", g_Stack.m_PopCount);
 		Sleep(500);

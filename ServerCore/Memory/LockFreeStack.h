@@ -9,16 +9,16 @@ public:
 	{
 		Node()
 		{
-			_Next = nullptr;
+			m_next = nullptr;
 		}
-		T _Data;
-		Node* _Next;
+		T m_data;
+		Node* m_next;
 	};
 
 	struct TopCheck
 	{
-		Node* _TopPtr;
-		int64_t _ID;
+		Node* m_topPtr;
+		int64_t m_checkID;
 	};
 
 public:
@@ -32,56 +32,54 @@ public:
 
 	int32_t GetMemoryAllocCount();
 public:
-	alignas(64) TopCheck* m_TopCheck;
-	alignas(64) std::atomic<int32_t> m_Count{ 0 };
-
-	FreeList<Node> m_MemoryPool;
-
+	alignas(64) TopCheck* m_topCheck;
+	alignas(64) std::atomic<int32_t> m_count{ 0 };
+	FreeList<Node> m_memoryPool;
 };
 
 template<typename T>
 inline LockFreeStack<T>::LockFreeStack()
 {
-	m_Count =0;
+	m_count =0;
 
-	m_TopCheck = static_cast<TopCheck*>(_aligned_malloc(sizeof(TopCheck), 16));
-	m_TopCheck->_TopPtr = nullptr;
-	m_TopCheck->_ID = -1;
+	m_topCheck = static_cast<TopCheck*>(_aligned_malloc(sizeof(TopCheck), 16));
+	m_topCheck->m_topPtr = nullptr;
+	m_topCheck->m_checkID = -1;
 
 }
 
 template<typename T>
 inline LockFreeStack<T>::~LockFreeStack()
 {
-	Node* curNode = m_TopCheck->_TopPtr;
+	Node* curNode = m_topCheck->m_topPtr;
 	Node* delNode = nullptr;
 
 	while (curNode != nullptr)
 	{
 		delNode = curNode;
-		curNode = curNode->_Next;
-		m_MemoryPool.Free(delNode);
+		curNode = curNode->m_next;
+		m_memoryPool.Free(delNode);
 	}
-	_aligned_free(m_TopCheck);
+	_aligned_free(m_topCheck);
 }
 
 template<typename T>
 inline bool LockFreeStack<T>::Push(T data)
 {
-	Node* newNode = m_MemoryPool.Alloc();
+	Node* newNode = m_memoryPool.Alloc();
 
-	newNode->_Data = data;
-	newNode->_Next = nullptr;
+	newNode->m_data = data;
+	newNode->m_next = nullptr;
 
 	TopCheck tempTop;
 	
-	tempTop._TopPtr = m_TopCheck->_TopPtr;
-	tempTop._ID = m_TopCheck->_ID;
+	tempTop.m_topPtr = m_topCheck->m_topPtr;
+	tempTop.m_checkID = m_topCheck->m_checkID;
 	int64_t spinCount = 0;
 	do
 	{
-		newNode->_Next = tempTop._TopPtr;
-		if(InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_TopCheck), static_cast<LONG64>(tempTop._ID) + 1, reinterpret_cast<LONG64>(newNode), reinterpret_cast<LONG64*>(&tempTop)))
+		newNode->m_next = tempTop.m_topPtr;
+		if(InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_topCheck), static_cast<LONG64>(tempTop.m_checkID) + 1, reinterpret_cast<LONG64>(newNode), reinterpret_cast<LONG64*>(&tempTop)))
 		{
 			break;
 		}
@@ -106,27 +104,27 @@ inline bool LockFreeStack<T>::Push(T data)
 	} while (true);
 
 	spinCount = 0;
-	m_Count++;
+	m_count++;
 	return true;
 }
 
 template<typename T>
 inline bool LockFreeStack<T>::Pop(T* outData)
 {
-	if (--m_Count < 0)
+	if (--m_count < 0)
 	{
-		++m_Count;
+		++m_count;
 		return false;
 	}
 
 	TopCheck tempTop;
 
-	tempTop._TopPtr = m_TopCheck->_TopPtr;
-	tempTop._ID = m_TopCheck->_ID;
+	tempTop.m_topPtr = m_topCheck->m_topPtr;
+	tempTop.m_checkID = m_topCheck->m_checkID;
 	int64_t spinCount = 0;
 	do
 	{
-		if (InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_TopCheck), static_cast<LONG64>(tempTop._ID) + 1, reinterpret_cast<LONG64>(tempTop._TopPtr->_Next), reinterpret_cast<LONG64*>(&tempTop)))
+		if (InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_topCheck), static_cast<LONG64>(tempTop.m_checkID) + 1, reinterpret_cast<LONG64>(tempTop.m_topPtr->m_next), reinterpret_cast<LONG64*>(&tempTop)))
 		{
 			break;
 		}
@@ -151,8 +149,8 @@ inline bool LockFreeStack<T>::Pop(T* outData)
 	} while (true);
 
 	spinCount = 0;
-	*outData = tempTop._TopPtr->_Data;
-	m_MemoryPool.Free(tempTop._TopPtr);
+	*outData = tempTop.m_topPtr->m_data;
+	m_memoryPool.Free(tempTop.m_topPtr);
 	return true;
 }
 
@@ -160,11 +158,11 @@ inline bool LockFreeStack<T>::Pop(T* outData)
 template<typename T>
 inline int32_t LockFreeStack<T>::GetStackCount()
 {
-	return m_Count;
+	return m_count;
 }
 
 template<typename T>
 inline int32_t LockFreeStack<T>::GetMemoryAllocCount()
 {
-	return m_MemoryPool.GetAllocCount();
+	return m_memoryPool.GetAllocCount();
 }

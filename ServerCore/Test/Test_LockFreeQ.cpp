@@ -292,7 +292,7 @@ void StartLockFreeQTest()
 #endif
 
 
-	int64_t prevID = g_Q.m_RearID;
+	int64_t prevID = g_Q.m_rearID;
 	int64_t tempDif = 0;
 
 	while (true)
@@ -305,10 +305,10 @@ void StartLockFreeQTest()
 			break;
 		}
 		wprintf(L"[Q Count: %d]\n[Memory AllocCount: %d]\n[m_Rear :%p]\n[m_Front :%p]\n[EnQ TPS:%d]\n[DeQ TPS: %d]\n",
-			g_Q.m_Count, g_Q.GetMemoryPoolAllocCount(), g_Q.m_RearCheck->_NodePtr, g_Q.m_FrontCheck->_NodePtr, g_Q.m_EnQTPS, g_Q.m_DeQTPS);
+			g_Q.m_count, g_Q.GetMemoryPoolAllocCount(), g_Q.m_rearCheck->m_nodePtr, g_Q.m_frontCheck->m_nodePtr, g_Q.m_enQTPS, g_Q.m_deQTPS);
 
-		g_Q.m_EnQTPS = 0;
-		g_Q.m_DeQTPS = 0;
+		g_Q.m_enQTPS = 0;
+		g_Q.m_deQTPS = 0;
 
 		Sleep(1000);
 

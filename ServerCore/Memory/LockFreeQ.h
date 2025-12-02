@@ -8,88 +8,88 @@ class LockFreeQ
 	{
 		Node()
 		{
-			_Data = NULL;
-			_Next = nullptr;
+			m_data = NULL;
+			m_next = nullptr;
 		}
-		T _Data;
-		Node* _Next;
+		T m_data;
+		Node* m_next;
 
 	};
 
 	struct QCheck
 	{
-		Node* _NodePtr;
-		int64_t _ID;
+		Node* m_nodePtr;
+		int64_t m_checkID;
 	};
 
 public:
 	LockFreeQ(DWORD maxQCount=INT32_MAX)
 	{
-		m_MaxQCount = maxQCount;
+		m_maxQCount = maxQCount;
 
-		m_RearID = KERNEL_ADDRESS;
-		m_Count = 0;
-		m_FrontCheck = (QCheck*)_aligned_malloc(sizeof(QCheck), 16);
-		m_RearCheck = (QCheck*)_aligned_malloc(sizeof(QCheck), 16);
+		m_rearID = KERNEL_ADDRESS;
+		m_count = 0;
+		m_frontCheck = (QCheck*)_aligned_malloc(sizeof(QCheck), 16);
+		m_rearCheck = (QCheck*)_aligned_malloc(sizeof(QCheck), 16);
 
 		//-----------------------------------------------
 		// 더미노드 생성
 		// Front ->  Dummy Node  <- Rear
 		//-----------------------------------------------
-		m_FrontCheck->_NodePtr = m_MemoryPool.Alloc();
-		m_FrontCheck->_ID = 0;
-		m_FrontCheck->_NodePtr->_Next = (Node*)m_RearID;
+		m_frontCheck->m_nodePtr = m_memoryPool.Alloc();
+		m_frontCheck->m_checkID = 0;
+		m_frontCheck->m_nodePtr->m_next = (Node*)m_rearID;
 
-		m_RearCheck->_NodePtr = m_FrontCheck->_NodePtr;
-		m_RearCheck->_ID = m_RearID;
-		//m_RearCheck->_NodePtr->_Next = (Node*)m_RearCheck->_ID;
+		m_rearCheck->m_nodePtr = m_frontCheck->m_nodePtr;
+		m_rearCheck->m_checkID = m_rearID;
+		//m_rearCheck->m_nodePtr->m_next = (Node*)m_rearCheck->m_checkID;
 
-		m_DeQTPS = 0;
-		m_EnQTPS = 0;
+		m_deQTPS = 0;
+		m_enQTPS = 0;
 
 	}
 	~LockFreeQ()
 	{
 		
-		Node* curNode = m_FrontCheck->_NodePtr;
+		Node* curNode = m_frontCheck->m_nodePtr;
 		Node* delNode = nullptr;
 
 		while ((int64_t)curNode < KERNEL_ADDRESS)
 		{
 			delNode = curNode;
-			curNode = curNode->_Next;
-			m_MemoryPool.Free(delNode);
+			curNode = curNode->m_next;
+			m_memoryPool.Free(delNode);
 		}
 
-		_aligned_free(m_FrontCheck);
-		_aligned_free(m_RearCheck);
+		_aligned_free(m_frontCheck);
+		_aligned_free(m_rearCheck);
 
 	}
 	LONG GetQCount()
 	{
-		return m_Count;
+		return m_count;
 	}
 	int32_t  GetMemoryPoolAllocCount()
 	{
-		return m_MemoryPool.GetAllocCount();
+		return m_memoryPool.GetAllocCount();
 	}
 	bool EnQ(T data);
 	bool DeQ(T* data);
 
 
 public:
-	LONG m_Count;
+	LONG m_count;
 
 public:
-	LONG m_DeQTPS;
-	LONG m_EnQTPS;
+	LONG m_deQTPS;
+	LONG m_enQTPS;
 
-	QCheck* m_FrontCheck;
-	QCheck* m_RearCheck;
-	int64_t m_RearID;
+	QCheck* m_frontCheck;
+	QCheck* m_rearCheck;
+	int64_t m_rearID;
 
-	FreeList<Node> m_MemoryPool;
-	LONG m_MaxQCount;
+	FreeList<Node> m_memoryPool;
+	LONG m_maxQCount;
 
 };
 
@@ -97,7 +97,7 @@ public:
 template<typename T>
 inline bool LockFreeQ<T>::EnQ(T data)
 {
-	if (m_MaxQCount < m_Count)
+	if (m_maxQCount < m_count)
 	{
 		CRASH();
 		return false;
@@ -105,20 +105,20 @@ inline bool LockFreeQ<T>::EnQ(T data)
 
 	QCheck tempRear;
 	QCheck changeValue;
-	Node* newNode = m_MemoryPool.Alloc();
+	Node* newNode = m_memoryPool.Alloc();
 
-	newNode->_Data = data;
-	newNode->_Next = (Node*)InterlockedIncrement64(&m_RearID);
+	newNode->m_data = data;
+	newNode->m_next = (Node*)InterlockedIncrement64(&m_rearID);
 
 	do
 	{
 
-		tempRear._NodePtr = m_RearCheck->_NodePtr;
-		tempRear._ID = m_RearCheck->_ID;
+		tempRear.m_nodePtr = m_rearCheck->m_nodePtr;
+		tempRear.m_checkID = m_rearCheck->m_checkID;
 		//-------------------------------------------------------------- 
 		// CAS(Compare And Swap) 1 
 		//-------------------------------------------------------------- 
-		if ((int64_t)tempRear._ID != InterlockedCompareExchange64((int64_t*)&tempRear._NodePtr->_Next, (int64_t)newNode, (int64_t)tempRear._ID))
+		if ((int64_t)tempRear.m_checkID != InterlockedCompareExchange64((int64_t*)&tempRear.m_nodePtr->m_next, (int64_t)newNode, (int64_t)tempRear.m_checkID))
 		{
 			//-------------------------------------------------------------- 
 			// CAS1에 실패했을경우 
@@ -126,16 +126,16 @@ inline bool LockFreeQ<T>::EnQ(T data)
 			// 그런데 만약 Temp Rear의 Nert포인터가 커널영역의 가상메모리 주소라면 
 			// 이미 갱신까지 마친것으로, 다시 처음부터 CAS1을 시도한다. 
 			//-------------------------------------------------------------- 
-			changeValue._NodePtr = tempRear._NodePtr->_Next;
+			changeValue.m_nodePtr = tempRear.m_nodePtr->m_next;
 
-			if ((int64_t)changeValue._NodePtr >= KERNEL_ADDRESS)
+			if ((int64_t)changeValue.m_nodePtr >= KERNEL_ADDRESS)
 			{
 				continue;
 			}
 
-			changeValue._ID = (int64_t)changeValue._NodePtr->_Next;
+			changeValue.m_checkID = (int64_t)changeValue.m_nodePtr->m_next;
 
-			BOOL result = InterlockedCompareExchange128((LONG64*)m_RearCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempRear);
+			BOOL result = InterlockedCompareExchange128((LONG64*)m_rearCheck, (LONG64)changeValue.m_checkID, (LONG64)changeValue.m_nodePtr, (LONG64*)&tempRear);
 
 			continue;
 
@@ -147,18 +147,18 @@ inline bool LockFreeQ<T>::EnQ(T data)
 		// 그래서 CAS2의 성공 실패를 따지지 않고 Loop를 종료한다 
 		// CAS2는 Rear의 포인터와 현재 이 EnQ ID를 갱신시켜준다. 
 		//-------------------------------------------------------------- 
-		changeValue._NodePtr = newNode;
-		changeValue._ID = (int64_t)newNode->_Next;
+		changeValue.m_nodePtr = newNode;
+		changeValue.m_checkID = (int64_t)newNode->m_next;
 
 		//-------------------------------------------------------------- 
 		// CAS(Compare And Swap) 2 
 		//-------------------------------------------------------------- 
-		BOOL result = InterlockedCompareExchange128((LONG64*)m_RearCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempRear);
+		BOOL result = InterlockedCompareExchange128((LONG64*)m_rearCheck, (LONG64)changeValue.m_checkID, (LONG64)changeValue.m_nodePtr, (LONG64*)&tempRear);
 		break;
 
 	} while (true);
 
-	InterlockedIncrement(&m_Count);
+	InterlockedIncrement(&m_count);
 
 	return true;
 }
@@ -172,21 +172,21 @@ inline bool LockFreeQ<T>::DeQ(T* data)
 	T tempData = NULL;
 
 
-	if (InterlockedDecrement(&m_Count) < 0)
+	if (InterlockedDecrement(&m_count) < 0)
 	{
-		InterlockedIncrement(&m_Count);
+		InterlockedIncrement(&m_count);
 		return false;
 	}
 
-	tempFront._NodePtr = m_FrontCheck->_NodePtr;
-	tempFront._ID = m_FrontCheck->_ID;
+	tempFront.m_nodePtr = m_frontCheck->m_nodePtr;
+	tempFront.m_checkID = m_frontCheck->m_checkID;
 
 	do
 	{
 		//-----------------------------
 		// Change Value Setting
 		//-----------------------------
-		changeValue._NodePtr = tempFront._NodePtr->_Next;
+		changeValue.m_nodePtr = tempFront.m_nodePtr->m_next;
 
 		//--------------------------------------------------------
 		// 동시에 tempRear을 같은것을 가르킨다거나, ABA문제가 나타나면 
@@ -194,18 +194,18 @@ inline bool LockFreeQ<T>::DeQ(T* data)
 		// 근데 내경우는 ABA문제를 해결하는 코드이기때문에 전자일것이다.
 		//-------------------------------------------------------
 
-		if ((int64_t)changeValue._NodePtr >= KERNEL_ADDRESS)
+		if ((int64_t)changeValue.m_nodePtr >= KERNEL_ADDRESS)
 		{
 			continue;
 		}
 
-		changeValue._ID = tempFront._ID + 1;
+		changeValue.m_checkID = tempFront.m_checkID + 1;
 		//--------------------------------------------
 		// tempData를 미리 저장해놔야한다.
 		//--------------------------------------------
-		tempData = changeValue._NodePtr->_Data;
+		tempData = changeValue.m_nodePtr->m_data;
 
-		BOOL result = InterlockedCompareExchange128((LONG64*)m_FrontCheck, (LONG64)changeValue._ID, (LONG64)changeValue._NodePtr, (LONG64*)&tempFront);
+		BOOL result = InterlockedCompareExchange128((LONG64*)m_frontCheck, (LONG64)changeValue.m_checkID, (LONG64)changeValue.m_nodePtr, (LONG64*)&tempFront);
 		if (result == TRUE)
 		{
 			break;
@@ -216,9 +216,9 @@ inline bool LockFreeQ<T>::DeQ(T* data)
 		}
 	} while (true);
 
-	InterlockedIncrement(&m_DeQTPS);
+	InterlockedIncrement(&m_deQTPS);
 
-	m_MemoryPool.Free(tempFront._NodePtr);
+	m_memoryPool.Free(tempFront.m_nodePtr);
 
 	*data = tempData;
 
