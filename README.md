@@ -25,7 +25,7 @@ IOCP 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL(libpqxx
 
 ---
 
-### 🔌 1. IOCP 기반 고성능 네트워크 시스템
+### 📦 1. IOCP 기반 고성능 네트워크 시스템
 
 **완전 비동기 Recv/Send**
 
@@ -34,9 +34,6 @@ IOCP 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL(libpqxx
 
 **버퍼 구조**
 
-- **RecvQ = RingBuffer**
-  - 연속 버퍼를 사용하는 링 구조로, 재조립 비용 최소화
-  - Zero-copy 스타일 패킷 처리에 유리
 - **SendQ = Lock-Free Queue**
   - 네트워크 스레드와 로직 스레드 간 Lock contention 제거
   - 대량 송신 상황에서도 안정적인 성능 제공
@@ -48,7 +45,7 @@ IOCP 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL(libpqxx
 
 ---
 
-### 🧵 2. Session → Logic Thread 모델
+### 📦 2. Session → Logic Thread 모델
 
 네트워크 스레드는 **I/O만 담당**하고,  
 모든 게임 로직은 **전용 Logic Thread**에서 처리됩니다.
@@ -79,34 +76,72 @@ auto packet = std::make_shared<CLGS_LoginReqT>();
 packet->data1 = a;
 packet->data2 = a;
 // 이후 FlatBuffers 빌더를 통해 직렬화하여 전송
+```
+---
 
-### 📦 4. PostgreSQL(libpqxx) Integration 적용 후 PostgreSQL Schema 자동 생성 & Diff 적용 스크립트 (Python)
+### 📦 4. PostgreSQL Schema 자동 생성 & Diff 적용 스크립트 (Python)
 
 - Schema 파일로 DB 구조 정의
 - 현재 DB와 비교하여 Diff 생성
 - 변경사항만 자동 적용
 - Migration 및 배포 관리 자동화
-
+---
 
 ### 📦 5.Custom Memory Pool & STL Allocator
 MMO 서버 최적화를 위해 제작된 고성능 메모리 풀 + Allocator
 
 핵심 특징
-- Thread-local Pool=
+- Thread-local Pool
+    - 같은 스레드에서 할당/해제 시 거의 Overhead 없음
 - Lock-Free Stack
+    - malloc/free 대비 압도적인 속도
 - Cross-thread Free 처리 지원
+  - 스레드에서 free를 호출해도 안전하게 처리됨
 - 중앙 Chunk Pool
-- Debug Marker(언더플로우/오버플로우 감지)
-- malloc/new 대비 10~30배 빠름
-빠름
+    - 컬 풀이 부족할 경우 중앙 Pool에서 대여
+- Debug Safety
+  - Underflow/Overflow Marker
+  - Memory Corruption 방지
+
+- 성능 요약
+  - SameThread 기준 최대 55% 향상 (ObjectPad=128)
+  - CrossThread에서도 지속적으로 우세 (일부 2배 가까운 구간 존재)
+
+### 📊 MemoryPool Benchmark
+
+<details>
+<summary><strong>📊 벤치마크 보기</strong></summary>
+
+**ObjectPad = 32**
+- SameThread  
+  ![](MemoryPoolBenchmark/pad32_ST.png)
+- CrossThread  
+  ![](MemoryPoolBenchmark/pad32_CT.png)
 
 ---
-<details> <summary><strong>📊 상세 벤치마크 보기</strong></summary> ###
-📊 벤치마크
-#### ObjectPad = 32 - SameThread ![Pad32 ST](MemoryPoolBenchmark/pad32_ST.png) - CrossThread ![Pad32 CT](MemoryPoolBenchmark/pad32_CT.png)
-#### ObjectPad = 128 - SameThread ![Pad128 ST](MemoryPoolBenchmark/pad128_ST.png) - CrossThread ![Pad128 CT](MemoryPoolBenchmark/pad128_CT.png)
-#### ObjectPad = 512 - SameThread ![Pad512 ST](MemoryPoolBenchmark/pad512_ST.png) - CrossThread ![Pad512 CT](MemoryPoolBenchmark/pad512_CT.png)
-#### ObjectPad = 900 - SameThread ![Pad900 ST](MemoryPoolBenchmark/pad900_ST.png) - CrossThread ![Pad900 CT](MemoryPoolBenchmark/pad900_CT.png)
+
+**ObjectPad = 128**
+- SameThread  
+  ![](MemoryPoolBenchmark/pad128_ST.png)
+- CrossThread  
+  ![](MemoryPoolBenchmark/pad128_CT.png)
+
 ---
 
-### 📦 5.Custom Memory Pool & STL Allocator
+**ObjectPad = 512**
+- SameThread  
+  ![](MemoryPoolBenchmark/pad512_ST.png)
+- CrossThread  
+  ![](MemoryPoolBenchmark/pad512_CT.png)
+
+---
+
+**ObjectPad = 900**
+- SameThread  
+  ![](MemoryPoolBenchmark/pad900_ST.png)
+- CrossThread  
+  ![](MemoryPoolBenchmark/pad900_CT.png)
+
+</details>
+
+---
