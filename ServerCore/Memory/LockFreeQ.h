@@ -23,7 +23,7 @@ class LockFreeQ
 	};
 
 public:
-	LockFreeQ(DWORD maxQCount=INT32_MAX)
+	LockFreeQ(DWORD maxQCount = INT32_MAX)
 	{
 		m_maxQCount = maxQCount;
 
@@ -42,7 +42,6 @@ public:
 
 		m_rearCheck->m_nodePtr = m_frontCheck->m_nodePtr;
 		m_rearCheck->m_checkID = m_rearID;
-		//m_rearCheck->m_nodePtr->m_next = (Node*)m_rearCheck->m_checkID;
 
 		m_deQTPS = 0;
 		m_enQTPS = 0;

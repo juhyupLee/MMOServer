@@ -193,7 +193,6 @@
     <ClInclude Include="Test\Test_LockFreeStack.h" />
     <ClInclude Include="Test\Test_MemoryPool.h" />
     <ClInclude Include="Test\Test_MemoryPoolTLS.h" />
-    <ClInclude Include="TimeUtill.h" />
     <ClInclude Include="Utill\LogManager.h" />
     <ClInclude Include="Utill\PointerStack.h" />
     <ClInclude Include="Utill\Singleton.h" />

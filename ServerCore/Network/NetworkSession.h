@@ -11,30 +11,20 @@ struct NetworkPacket
 };
 class NetworkSession : public std::enable_shared_from_this<NetworkSession>
 {
+	friend struct NetworkTaskReceiveIO;
+	friend struct NetworkTaskSend;
+
 public:
-	NetworkSession(JobDispatcher* jobDispatcher)
-		:m_sessionID(UIDGenerator::GetInstance()->GenerateSessionID())
-	{
-		m_jobQueue = MakeMySharedPtr<JobQueue>(jobDispatcher);
-	}
-
-	RingQ _RecvRingQ;
-	LockFreeQ<NetworkPacket*> m_sendQueue;
+	NetworkSession(JobDispatcher* jobDispatcher);
+private:
 	int64_t m_sessionID;
-
-	int32_t m_port;
-	std::string m_ip;
+	RingQ m_recvRingQueue;
+	LockFreeQ<NetworkPacket*> m_sendQueue;
 	std::shared_ptr<JobQueue> m_jobQueue;
 	SOCKET m_socket;
-
-public:
+	int32_t m_port;
+	std::string m_ip;
 	std::atomic<bool> m_isSending;
-	
-public:
-	//------------------------------------------
-	// Contentes
-	//------------------------------------------
-
 
 public:
 

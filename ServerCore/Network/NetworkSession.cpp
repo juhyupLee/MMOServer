@@ -1,5 +1,11 @@
 #include "MessageJob.h"
 
+NetworkSession::NetworkSession(JobDispatcher* jobDispatcher)
+	:m_sessionID(UIDGenerator::GetInstance()->GenerateSessionID())
+{
+	m_jobQueue = MakeMySharedPtr<JobQueue>(jobDispatcher);
+}
+
 bool NetworkSession::Disconnect()
 {
 	closesocket(m_socket);
@@ -34,7 +40,7 @@ void NetworkSession::Listen(int32_t port)
 		int optVal = 0;
 		int optLen = sizeof(optVal);
 
-		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_SNDBUF, (const char*)&optVal, optLen);
+		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_SNDBUF, reinterpret_cast<const char*>(&optVal), optLen);
 		if (rtnOpt != 0)
 		{
 			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
@@ -46,7 +52,7 @@ void NetworkSession::Listen(int32_t port)
 		lingerOpt.l_onoff = 1;
 		lingerOpt.l_linger = 0;
 
-		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_LINGER, (const char*)&lingerOpt, sizeof(lingerOpt));
+		int rtnOpt = setsockopt(listenSocket, SOL_SOCKET, SO_LINGER, reinterpret_cast<const char*>(&lingerOpt), sizeof(lingerOpt));
 		if (rtnOpt != 0)
 		{
 			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
@@ -57,7 +63,7 @@ void NetworkSession::Listen(int32_t port)
 	{
 		BOOL tcpNodelayOpt = true;
 
-		int rtnOpt = setsockopt(listenSocket, IPPROTO_TCP, TCP_NODELAY, (const char*)&tcpNodelayOpt, sizeof(tcpNodelayOpt));
+		int rtnOpt = setsockopt(listenSocket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char*>(&tcpNodelayOpt), sizeof(tcpNodelayOpt));
 		if (rtnOpt != 0)
 		{
 			LOG_ERR("failed - SetSockopt:%", WSAGetLastError());
@@ -79,7 +85,7 @@ void NetworkSession::Listen(int32_t port)
 	SOCKADDR_IN local = { };
 	local.sin_family = AF_INET;
 	local.sin_addr.s_addr = INADDR_ANY;
-	local.sin_port = htons((unsigned short)port);
+	local.sin_port = htons(static_cast<unsigned short>(port));
 	if (bind(listenSocket, reinterpret_cast<SOCKADDR*>(&local) , sizeof(local)) == SOCKET_ERROR)
 	{
 		LOG_ERR("failed - bind:%", WSAGetLastError());
@@ -88,7 +94,6 @@ void NetworkSession::Listen(int32_t port)
 
 	if (listen(listenSocket, SOMAXCONN) == SOCKET_ERROR )
 	{
-		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"listen() error:%d", WSAGetLastError());
 		LOG_ERR("Listen Failed - bind:%", WSAGetLastError());
 		return;
 	}
@@ -155,7 +160,7 @@ LockFreeQ<NetworkPacket*>& NetworkSession::GetSendQueue()
 
 RingQ& NetworkSession::GetRecvRingQueue()
 {
-	return _RecvRingQ;
+	return m_recvRingQueue;
 }
 
 void NetworkSession::OnAccept(std::string ip, int32_t port, SOCKET sock)
@@ -164,11 +169,6 @@ void NetworkSession::OnAccept(std::string ip, int32_t port, SOCKET sock)
 	m_port = port;
 
 	////타임아웃 적용하도록 셋팅
-	//m_ignoreTimeout = false;
-
-	//int64_t currentTime = TimeUtil::GetEpochTimeForNetwork();
-	//m_timeoutTime = currentTime + NETWORK_TIMEOUT_TIME;
-	//m_pingTime = currentTime + NETWORK_PING_TIME;
 
 	//소켓셋팅
 	SetSocket(sock);
@@ -178,15 +178,8 @@ void NetworkSession::OnAccept(std::string ip, int32_t port, SOCKET sock)
 	Send(msg2);
 	//Send(msg);
 	//내부로 접속한 유저가 있다고 알려준다.
-	//FAcceptAckT msg1;
-	//msg1.ip = ip;
-	//msg1.port = port;
-	//ExecuteCallback((HANDLE)m_sessionID, msg1);
-	
+
 	//접속한사람한테 알려준다.
-	//FConnectAckT msg2;
-	//msg2.result = EResultID::R_SUCCESS;
-	//NetworkSystem::GetInstance()->Send(m_sessionID, msg2);
 
 	//receive 요청
 	auto task = new NetworkTaskReceiveIO;
@@ -207,194 +200,3 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 	const auto messageHolder = MessageHolderPtr(packedMessageHolder->UnPack());
 	m_jobQueue->Push(MakeMySharedPtr<MessageJob>(messageHolder, m_sessionID));
 }
-
-//
-//bool NetworkSession::SendPost()
-//{
-//	int loopCount = 0;
-//
-//	do
-//	{
-//		loopCount++;
-//
-//		if (0 == InterlockedExchange(&_SendFlag, 1))
-//		{
-//			//--------------------------------------------------------
-//			// Echo Count가 증가한 범인
-//			//--------------------------------------------------------
-//			if (_SendQ.GetQCount() <= 0)
-//			{
-//				InterlockedExchange(&_SendFlag, 0);
-//				continue;
-//			}
-//			//--------------------------------------------------
-//			// IOCount와 이세션이 WSARecv or WSASend 이후 로그를 위해 Session에 접근할수있기 때문에
-//			// 참조카운트용으로 하나 더 증가시킨다.
-//			//--------------------------------------------------
-//			InterlockedAdd((LONG*)&_IOCount, 2);
-//			//--------------------------------------------------
-//
-//			if (_IOCount <= 0)
-//			{
-//				CRASH();
-//			}
-//
-//	/*		if (_SessionStatus == eSessionStatus::RELEASE)
-//			{
-//				CRASH();
-//			}*/
-//
-//			////-----------------------------------------------------------------------------------------------------------------------
-//			//// SendQ에 있는 LanPackt* 포인터들을 뽑아서 WSABUF를 세팅해준다
-//			////-----------------------------------------------------------------------------------------------------------------------
-//			WSABUF wsaSendBuf[NetworkSession::DEQ_PACKET_ARRAY_SIZE];
-//
-//			int bufCount = 0;
-//
-//			NetPacket* deQPacket = nullptr;
-//
-//			if (_DeQArraySize > 0)
-//			{
-//				CRASH();
-//
-//			}
-//			while (_SendQ.DeQ(&deQPacket))
-//			{
-//				if (deQPacket == nullptr)
-//				{
-//					CRASH();
-//				}
-//				if (_DeQArraySize > NetworkSession::DEQ_PACKET_ARRAY_SIZE - 1)
-//				{
-//					CRASH();
-//				}
-//
-//				if (deQPacket->GetPayloadSize() <= 0)
-//				{
-//					CRASH();
-//				}
-//				wsaSendBuf[_DeQArraySize].buf = deQPacket->GetBufferPtr();
-//				wsaSendBuf[_DeQArraySize].len = deQPacket->GetFullPacketSize();
-//				_SendByte += wsaSendBuf[_DeQArraySize].len;
-//
-//				_DeQPacketArray[_DeQArraySize] = deQPacket;
-//				_DeQArraySize++;
-//			}
-//			//------------------------------------------------------
-//			//   Send 송신바이트 체크하기
-//			//------------------------------------------------------
-//			if (_SendByte <= 0)
-//			{
-//				CRASH();
-//			}
-//
-//			ZeroMemory(&_SendOL, sizeof(_SendOL));
-//
-//			if (_IOCount <= 0)
-//			{
-//				CRASH();
-//			}
-//
-//			//------------------------------------------------------------------
-//			// 	IO Cancel 이 실행됬다면, 입출력을 걸지않고, IOCount를 낮추고 Return한다
-//			//  로그를위한 IOCount +1  WSASend를 위한 +1 
-//			//------------------------------------------------------------------
-//			if (_bIOCancel)
-//			{
-//				for (int i = 0; i < 2; ++i)
-//				{
-//					if (0 == InterlockedDecrement(&_IOCount))
-//					{
-//						_bReleaseReady = true;
-//					}
-//				}
-//
-//				return false;
-//			}
-//
-//
-//			int sendRtn = WSASend(_Socket, wsaSendBuf, _DeQArraySize, NULL, 0, &_SendOL, NULL);
-//
-//			if (_IOCount <= 0)
-//			{
-//				CRASH();
-//			}
-//
-//			if (sendRtn == SOCKET_ERROR)
-//			{
-//				int errorCode = WSAGetLastError();
-//
-//				if (errorCode != WSA_IO_PENDING)
-//				{
-//					_IOFail = true;
-//					//MMOGameLib::SpecialErrorCodeCheck(errorCode);
-//
-//					//---------------------------------------------------------
-//					// WSASend를 걸기위해 증가시킨 IOCount를 감소시킨다.
-//					//---------------------------------------------------------
-//					int tempIOCount = InterlockedDecrement(&_IOCount);
-//
-//					if (0 == tempIOCount)
-//					{
-//						_bReleaseReady = true;
-//					}
-//				}
-//			}
-//
-//			//---------------------------------------------------------
-//			// Log를 위해 올렷던 IOCount를 감소시키고 끝낸다. (Return)
-//			//---------------------------------------------------------
-//			int tempIOCount = InterlockedDecrement(&_IOCount);
-//			if (0 == tempIOCount)
-//			{
-//				_bReleaseReady = true;
-//			}
-//			return true;
-//		}
-//		else
-//		{
-//			break;
-//		}
-//
-//
-//	} while (_SendQ.GetQCount() > 0);
-//
-//	return true;
-//
-//}
-
-//bool NetworkSession::SendPacket(NetPacket* packet)
-//{
-//	(*packet).HeaderSettingAndEncoding();
-//
-//	if (packet->GetPayloadSize() <= 0)
-//	{
-//		CRASH();
-//	}
-//	if (!_SendQ.EnQ(packet))
-//	{
-//		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"SendQ 총갯수 초과(LockFreeQ Qcount 초과함)");
-//		CRASH();
-//	}
-//
-//	return true;
-//}
-
-//void NetworkSession::SendUnicast(NetPacket* packet)
-//{
-//	packet->IncrementRefCount();
-//
-//	if (!SendPacket(packet))
-//	{
-//		if (packet->DecrementRefCount() == 0)
-//		{
-//			packet->Free(packet);
-//		}
-//		return;
-//	}
-//
-//	if (packet->DecrementRefCount() == 0)
-//	{
-//		packet->Free(packet);
-//	}
-//}

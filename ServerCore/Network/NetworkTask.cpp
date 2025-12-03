@@ -176,14 +176,14 @@ bool NetworkTaskReceiveIO::Start()
 		LOG_ERR("Session is null");
 		return false;
 	}
-	if (m_owner->_RecvRingQ.GetWriteSize() <= 0)
+	if (m_owner->m_recvRingQueue.GetWriteSize() <= 0)
 	{
 		return false;
 	}
 
 	std::vector<WSABUF> wsaBufs{ };
 	wsaBufs.reserve(2);
-	m_owner->_RecvRingQ.GetDirectEnQData(wsaBufs);
+	m_owner->m_recvRingQueue.GetDirectEnQData(wsaBufs);
 
 	//receive 요청
 	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
@@ -222,22 +222,22 @@ bool NetworkTaskReceiveIO::Complete(bool result, DWORD transferred)
 	}
 
 	//받은 사이즈 추가
-	m_owner->_RecvRingQ.MoveWitePosition(transferred);
+	m_owner->m_recvRingQueue.MoveWitePosition(transferred);
 
 	//데이터 파싱
 	while (true)
 	{
-		int packetSize = m_owner->_RecvRingQ.GetReadSize();
+		int packetSize = m_owner->m_recvRingQueue.GetReadSize();
 		if (packetSize >= PACKET_HEADER_SIZE)
 		{
-			char* packet = m_owner->_RecvRingQ.GetReadBufferPtr();
+			char* packet = m_owner->m_recvRingQueue.GetReadBufferPtr();
 			int32_t messageSize = flatbuffers::ReadScalar<flatbuffers::uoffset_t>(packet);
 
 			//데이터 사이즈 예외 체크
 			if ( 0 <= messageSize && messageSize <= packetSize - PACKET_HEADER_SIZE)
 			{
 				//읽기 처리
-				m_owner->_RecvRingQ.MoveReadPosition(PACKET_HEADER_SIZE + messageSize);
+				m_owner->m_recvRingQueue.MoveReadPosition(PACKET_HEADER_SIZE + messageSize);
 				NetworkServer::GetInstance()->Convert(packet + PACKET_HEADER_SIZE, messageSize);
 				m_owner->OnRecvMessage(packet , messageSize);
 				continue;
