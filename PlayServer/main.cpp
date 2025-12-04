@@ -5,24 +5,32 @@ int main()
 {
     try
     {
-        pqxx::connection conn{ "dbname=postgres user=postgres password=dlwnguq1! host=juhyup.iptime.org port=5432" };
-        if (conn.is_open())
+        pqxx::connection conn("host=127.0.0.1 port=5432 dbname=test user=postgres password=1234");
+
+        if (!conn.is_open())
         {
-            std::cout << "Connected to " << conn.dbname() << std::endl;
+            std::cout << "DB connection failed\n";
+            return 0;
         }
 
-        pqxx::work txn{ conn };
-        pqxx::result r = txn.exec("SELECT version()");
+        pqxx::work txn(conn);
+
+        pqxx::result r = txn.exec("SELECT id, name FROM users");
 
         for (auto row : r)
         {
-            std::cout << "PostgreSQL version: " << row[0].c_str() << std::endl;
+            int id = row["id"].as<int>();
+            std::string name = row["name"].as<std::string>();
+
+            std::cout << id << " / " << name << "\n";
         }
 
         txn.commit();
     }
     catch (const std::exception& e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cout << "Exception: " << e.what() << "\n";
     }
+
+    return 0;
 }
