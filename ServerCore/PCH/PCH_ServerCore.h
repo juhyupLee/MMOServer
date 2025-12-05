@@ -73,7 +73,7 @@
 #include <spdlog/spdlog.h>
 //개인라이브러리
 #include "../Utill/Singleton.h"
-#include "../Utill/TimeUtill.h"
+#include "../Utill/TimeUtil.h"
 #include "../Utill/LogManager.h"
 #include "../Utill/PointerStack.h"
 #include "../Utill/UIDGenerator.h"

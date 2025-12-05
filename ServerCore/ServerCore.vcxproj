@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -149,9 +149,7 @@
   <ItemGroup>
     <ClCompile Include="Dump\MemoryDump.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Memory\FreeList.cpp" />
     <ClCompile Include="Memory\Global.cpp" />
-    <ClCompile Include="Memory\LockFreeQ.cpp" />
     <ClCompile Include="Memory\MemoryPool.cpp" />
     <ClCompile Include="Memory\RingBuffer.cpp" />
     <ClCompile Include="Network\JobDispatcher.cpp" />
@@ -166,6 +164,7 @@
     <ClCompile Include="Test\Test_MemoryPoolTLS.cpp" />
     <ClCompile Include="Utill\LogManager.cpp" />
     <ClCompile Include="Utill\Singleton.cpp" />
+    <ClCompile Include="Utill\TimeUtil.cpp" />
     <ClCompile Include="Utill\UIDGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +195,7 @@
     <ClInclude Include="Utill\LogManager.h" />
     <ClInclude Include="Utill\PointerStack.h" />
     <ClInclude Include="Utill\Singleton.h" />
+    <ClInclude Include="Utill\TimeUtil.h" />
     <ClInclude Include="Utill\UIDGenerator.h" />
   </ItemGroup>
   <ItemGroup>
