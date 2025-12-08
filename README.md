@@ -65,6 +65,8 @@ IOCP 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL(libpqxx
 
 - libpqxx를 wrappter하여 ORM 만큼의 사용성 증가
 - 수천의 유저 DB 로딩시 병목과 레이스컨디션을 최대한으로 감소할 수 있는 JobDisptatcher 구현.
+- 
+---
 
 ### 📦 4. PostgreSQL Schema 자동 생성 & Diff 적용 스크립트 (Python)
 
