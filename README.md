@@ -61,13 +61,10 @@ IOCP 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL(libpqxx
 
 ---
 
-### 📦 3. FlatBuffers 기반 프로토콜
+### 📦 3.ORM과 흡사한 구조의 DB 래퍼클래스 내장
 
-- 경량 Zero-copy 구조
-- 직렬화/역직렬화 비용 최소화
-- 명확한 스키마 기반 설계
-- 서버–클라이언트 데이터 구조 일관성 유지
-- 기존 FlatBuffers의 다소 불편한 사용성을 옵션 조정으로 개선
+- libpqxx를 wrappter하여 ORM 만큼의 사용성 증가
+- 수천의 유저 DB 로딩시 병목과 레이스컨디션을 최대한으로 감소할 수 있는 JobDisptatcher 구현.
 
 **사용 예시**
 
