@@ -1,0 +1,41 @@
+include "Enum.fbs";
+//include "MMessage.fbs";
+include "GameProtocol.fbs";
+include "ServerProtocol.fbs";
+
+table F_GUEST_MESSAGE_MIN {} // 1
+table F_GUEST_MESSAGE_MAX {} // 99,
+table F_MEMBER_MESSAGE_MIN {} // 100,
+table F_MEMBER_MESSAGE_MAX {} // 19999,
+table S_SERVER_MESSAGE_MIN {} // 20000,
+table S_SERVER_MESSAGE_MAX {} // 39999,
+table P_SERVER_MESSAGE_MIN {} // 40000,
+table P_SERVER_MESSAGE_MAX {} // 49999
+
+union MessageID : int
+{
+	// client(guest), server <-> server
+    F_GUEST_MESSAGE_MIN					= 1,
+	FConnectReq								= 11,
+	FConnectAck								= 12,
+	FAcceptAck								= 13,
+	FDisconnectReq							= 21,
+	FDisconnectAck							= 22,
+
+	FAuthenticationReq						= 41,
+	FAuthenticationAck						= 42,
+
+	CLGS_CONNECT_REQ_					= 9001,
+	CLGS_CONNECT_ACK_					= 9002, 
+	CLGS_AUTHEN_REQ						= 9003,
+	CLGS_AUTHEN_ACK						= 9004,
+	DBGS_Authentication_REQ				= 9005,
+
+    F_MEMBER_MESSAGE_MAX        			= 19999,
+}
+
+table MessageHolder{
+	accountID: [long];
+    message: MessageID;
+}
+root_type MessageHolder;
