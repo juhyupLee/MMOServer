@@ -168,7 +168,7 @@
     <ClCompile Include="Utill\UIDGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\flatbuffers\MessageID.h" />
+    <ClInclude Include="DB\DBSession.h" />
     <ClInclude Include="Dump\MemoryDump.h" />
     <ClInclude Include="Memory\Chunk.h" />
     <ClInclude Include="Memory\FreeList.h" />
@@ -199,7 +199,6 @@
     <ClInclude Include="Utill\UIDGenerator.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\flatbuffers\Enum.fbs" />
     <None Include="..\flatbuffers\Message.fbs" />
     <None Include="..\flatbuffers\GameProtocol.fbs" />
     <None Include="..\flatbuffers\ProtocoID.fbs" />

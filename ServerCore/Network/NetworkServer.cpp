@@ -21,7 +21,6 @@ bool NetworkServer::Initialize()
 	m_IOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 5);
 	if (m_IOCP == nullptr || m_IOCP == INVALID_HANDLE_VALUE)
 	{
-		//LOG_ERR("failed - CreateIoCompletionPort:%", GetLastError());
 		m_IOCP = INVALID_HANDLE_VALUE;
 		return false;
 	}

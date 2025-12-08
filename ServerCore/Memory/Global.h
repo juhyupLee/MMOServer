@@ -5,7 +5,7 @@
 
 
 using  SessionID = int64_t;
-using MessageHolderPtr = std::shared_ptr<MessageHolderT>;
+using PacketHolder = std::shared_ptr<MessageHolderT>;
 
 constexpr int32_t	PACKET_HEADER_SIZE = sizeof(flatbuffers::uoffset_t);
 constexpr int64_t MARK_FRONT = 0x1234567876543210;
@@ -27,7 +27,7 @@ std::shared_ptr<MessageHolderT> CreatePacketHolder(const T& message)
 template<typename T> concept MessageConcept = std::is_base_of_v<flatbuffers::NativeTable, T>&& MessageIDUnionTraits<T>::enum_value != MessageID::NONE;
 
 template<MessageConcept T>
-static MessageHolderPtr CreateMessageHolder(const T& message, const std::unordered_set<int64_t>& accountIDs = {})
+static PacketHolder CreateMessageHolder(const T& message, const std::unordered_set<int64_t>& accountIDs = {})
 {
 	auto messageHolder = MakeMySharedPtr<MessageHolderT>();
 	messageHolder->message.Set(const_cast<T&>(message));

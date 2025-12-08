@@ -57,6 +57,7 @@
 #include <time.h>
 #include <strsafe.h>
 #include <regex>
+#include <pqxx/pqxx>
 
 //네트워크 OS 관련
 #include <process.h>
@@ -101,6 +102,8 @@
 #include "../Network/NetworkTask.h"
 #include "../Network/BaseServerApp.h"
 #include "../Test/Test_MemoryPool.h"
+
+#include "../DB/DBSession.h"
 
 // TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
 

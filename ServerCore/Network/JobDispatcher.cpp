@@ -1,7 +1,7 @@
 #include "JobDispatcher.h"
 #include "BaseJob.h"
 
-JobDispatcher::JobDispatcher(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t timeout, int32_t threadCount)
+JobDispatcher::JobDispatcher(std::function<void(int64_t, PacketHolder)> dispatch, int32_t timeout, int32_t threadCount)
 {
 	for (int32_t n = 0; n < threadCount; ++n)
 	{
@@ -52,7 +52,7 @@ std::shared_ptr<JobQueue> JobDispatcher::PopJobQueue(int32_t timeout)
 	
 }
 
-void JobDispatcher::Run(std::function<void(int64_t, MessageHolderPtr)> dispatch, int32_t timeout)
+void JobDispatcher::Run(std::function<void(int64_t, PacketHolder)> dispatch, int32_t timeout)
 {
 	while (true)
 	{

@@ -172,7 +172,7 @@ public:
 
     //static std::string MessageToJson(const uint8_t* buffer);
 	//static std::string MessageToJson(const char* buffer);
-	//atic std::string MessageToJson(const MessageHolderPtr& messageHolder);
+	//atic std::string MessageToJson(const PacketHolder& messageHolder);
 
 private:
 	void AppendDetailInfo(std::string& result, const std::string& fmt, const std::vector<LogValue>& values);

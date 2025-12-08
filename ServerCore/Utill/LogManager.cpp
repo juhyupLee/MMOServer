@@ -9,16 +9,6 @@
 
 void LogManager::Init()
 {
-	// 현재 시간을 얻어옵니다.
-	auto now = std::chrono::system_clock::now();
-	auto onTime = std::chrono::time_point_cast<std::chrono::hours>(now);
-
-	m_updateTime = onTime.time_since_epoch().count();
-	m_updateTime *= 3600000;
-
-	// 오래된 파일 삭제
-	//OldLogDelete();
-
 	// 로그 생성
 	CreateLog();
 }
@@ -87,7 +77,7 @@ void LogManager::PrintPacket(const std::string& tag, const std::string& log)
 //	//return MessageToJson(reinterpret_cast<const uint8_t*>(buffer));
 //}
 //
-//std::string LogManager::MessageToJson(const MessageHolderPtr& messageHolder)
+//std::string LogManager::MessageToJson(const PacketHolder& messageHolder)
 //{
 //	flatbuffers::FlatBufferBuilder fbb;
 //	auto offset = MessageHolder::Pack(fbb, messageHolder.get());

@@ -197,6 +197,6 @@ void NetworkSession::OnRecvMessage(char* messageBuffer, int32_t messageSize)
 	const auto packedMessageHolder = GetSizePrefixedMessageHolder(messageBuffer);
 	const auto messageID = packedMessageHolder->message_type();
 
-	const auto messageHolder = MessageHolderPtr(packedMessageHolder->UnPack());
+	const auto messageHolder = PacketHolder(packedMessageHolder->UnPack());
 	m_jobQueue->Push(MakeMySharedPtr<MessageJob>(messageHolder, m_sessionID));
 }
