@@ -12,7 +12,7 @@ public:
 	MemoryPool();
 
 	void* Alloc(size_t size);
-	void Free(void* ptr);
+	void Free(void* ptr, size_t size);
 
 private:
 	ObjectPoolBase* m_memory[PAGE_SIZE + 1];
@@ -63,8 +63,7 @@ public:
 
 	void deallocate(T* ptr, size_t n)
 	{
-		n;
-		gMemoryPool.Free(ptr);
+		gMemoryPool.Free(ptr, n * sizeof(T));
 	}
 
 	template<class U>

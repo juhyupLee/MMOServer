@@ -119,20 +119,23 @@ bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
 }
 
 void NetworkServer::WorkerThread()
-{	
+{
 	while (true)
 	{
 		DWORD transferByte = 0;
 		LPOVERLAPPED overlapped = nullptr;
 		ULONG_PTR key = 0;
-		BOOL result = GetQueuedCompletionStatus(NetworkServer::GetInstance()->GetIOCP(), &transferByte, &key, &overlapped, INFINITE);
-		if (overlapped == nullptr  || result == FALSE)
+		BOOL gqcsResult = GetQueuedCompletionStatus(NetworkServer::GetInstance()->GetIOCP(), &transferByte, &key, &overlapped, INFINITE);
+
+		//종료 신호: IOCP handle close 또는 PostQueuedCompletionStatus(NULL)
+		if (overlapped == nullptr)
 		{
 			break;
 		}
 
+		//IO 완료 or 실패: task에 위임 (실패 시 task가 cleanup)
 		auto networkTask = static_cast<NetworkTask*>(overlapped);
-		if(networkTask->Run(result, transferByte) == false)
+		if(networkTask->Run(gqcsResult == TRUE, transferByte) == false)
 		{
 			delete networkTask;
 		}

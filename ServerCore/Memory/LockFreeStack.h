@@ -92,13 +92,13 @@ inline bool LockFreeStack<T>::Push(T data)
 			}
 		}
 
-		if (spinCount >= YIELD_TRY_MAX)
-		{
-			std::this_thread::yield();
-		}
-		else if (spinCount >= MAX_SLEEP_ITERATION)
+		if (spinCount >= MAX_SLEEP_ITERATION)
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(1));
+		}
+		else if (spinCount >= YIELD_TRY_MAX)
+		{
+			std::this_thread::yield();
 		}
 
 	} while (true);
@@ -137,13 +137,13 @@ inline bool LockFreeStack<T>::Pop(T* outData)
 			}
 		}
 
-		if (spinCount >= YIELD_TRY_MAX)
-		{
-			std::this_thread::yield();
-		}
-		else if (spinCount >= MAX_SLEEP_ITERATION)
+		if (spinCount >= MAX_SLEEP_ITERATION)
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(1));
+		}
+		else if (spinCount >= YIELD_TRY_MAX)
+		{
+			std::this_thread::yield();
 		}
 
 	} while (true);

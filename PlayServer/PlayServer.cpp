@@ -39,10 +39,7 @@ bool PlayServer::Start()
 void PlayServer::Run()
 {
 	LOG_INFO("Server Start");
-	while (true)
-	{
-
-	}
+	std::cin.get();
 }
 
 void PlayServer::Release()

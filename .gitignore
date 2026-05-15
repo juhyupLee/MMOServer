@@ -362,7 +362,10 @@ MigrationBackup/
 FodyWeavers.xsd
 
 
-#Juhyup 
+#Juhyup
 *.txt
 *.vcxproj.filters
 db/DBSchema/Backup
+
+# Claude Code session data
+.claude/

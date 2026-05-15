@@ -59,16 +59,15 @@ void* MemoryPool::Alloc(size_t size)
 	}
 }
 
-void MemoryPool::Free(void* ptr)
+void MemoryPool::Free(void* ptr, size_t size)
 {
-	auto metadata = reinterpret_cast<ChunkMetadata*>(static_cast<char*>(ptr) - sizeof(ChunkMetadata));
-	if (metadata->m_size > PAGE_SIZE)
+	if (size > PAGE_SIZE)
 	{
 		_aligned_free(ptr);
 	}
 	else
 	{
-		m_memory[metadata->m_size]->FreeToChunk(ptr);
+		m_memory[size]->FreeToChunk(ptr);
 	}
 }
 

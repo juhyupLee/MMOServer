@@ -271,36 +271,51 @@ bool NetworkTaskSend::Start()
 		return false;
 	}
 
+	//다른 송신이 진행중이면 이 task는 폐기 (워커가 delete)
+	if (m_owner->m_isSending.exchange(true) == true)
+	{
+		return false;
+	}
+
 	//OVERLAPPED 초기화
 	ZeroMemory(static_cast<LPOVERLAPPED>(this), sizeof(OVERLAPPED));
 	std::vector<WSABUF> wsaBufs{ };
 	wsaBufs.reserve(m_owner->GetSendQueue().GetQCount());
-	
+
 	m_totalSize = 0;
 
-	if(m_owner->m_isSending.exchange(true) == false)
+	NetworkPacket* networkPacket = nullptr;
+	while (m_owner->GetSendQueue().DeQ(&networkPacket) == true)
 	{
-		NetworkPacket* networkPacket = nullptr;
-		while (m_owner->GetSendQueue().DeQ(&networkPacket) == true)
+		m_sendingPackets.emplace_back(networkPacket);
+		WSABUF wsabuf;
+		wsabuf.buf = reinterpret_cast<char*>(networkPacket->m_buffer.data());
+		wsabuf.len = static_cast<ULONG>(networkPacket->m_buffer.size());
+		wsaBufs.emplace_back(wsabuf);
+		m_totalSize += wsabuf.len;
+	}
+
+	//큐가 비어있던 경우: 보낼게 없음. isSending 해제하고 task 폐기
+	if (m_sendingPackets.empty())
+	{
+		m_owner->m_isSending.exchange(false);
+		return false;
+	}
+
+	//send 요청
+	DWORD bytes = 0;
+	DWORD flag = 0;
+	if (WSASend(m_owner->GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), &bytes, flag, static_cast<LPOVERLAPPED>(this), nullptr) == SOCKET_ERROR)
+	{
+		int32_t error = WSAGetLastError();
+		if (error != WSA_IO_PENDING)
 		{
-			WSABUF wsabuf;
-			wsabuf.buf = reinterpret_cast<char*>(networkPacket->m_buffer.data());
-			wsabuf.len = static_cast<ULONG>(networkPacket->m_buffer.size());
-			wsaBufs.emplace_back(wsabuf);
-			m_totalSize += wsabuf.len;
-		}
-		//send 요청
-		DWORD bytes = 0;
-		DWORD flag = 0;
-		if (WSASend(m_owner->GetSocket(), wsaBufs.data(), static_cast<DWORD>(wsaBufs.size()), &bytes, flag, static_cast<LPOVERLAPPED>(this), nullptr) == SOCKET_ERROR)
-		{
-			int32_t error = WSAGetLastError();
-			if (error != WSA_IO_PENDING)
-			{
-				LOG_ERR("failed - WSASend:%", error);
-				m_owner.reset();
-				return false;
-			}
+			LOG_ERR("failed - WSASend:%", error);
+			for (auto* p : m_sendingPackets) { delete p; }
+			m_sendingPackets.clear();
+			m_owner->m_isSending.exchange(false);
+			m_owner.reset();
+			return false;
 		}
 	}
 
@@ -309,6 +324,10 @@ bool NetworkTaskSend::Start()
 
 bool NetworkTaskSend::Complete(bool result, DWORD transferred)
 {
+	//WSASend가 끝났으니 inflight 패킷 정리
+	for (auto* p : m_sendingPackets) { delete p; }
+	m_sendingPackets.clear();
+
 	if (m_owner == nullptr)
 	{
 		//이게 발생하면..애초에 구현을 잘못한것..로그만 남긴다

@@ -1,6 +1,7 @@
 #pragma once
 
 class NetworkServer;
+struct NetworkPacket;
 struct NetworkTask : OVERLAPPED
 {
 	std::shared_ptr<NetworkSession> m_owner{ nullptr };
@@ -60,6 +61,7 @@ struct NetworkTaskReceiveIO : NetworkTask
 struct NetworkTaskSend : NetworkTask
 {
 	DWORD m_totalSize{ 0 };
+	std::vector<NetworkPacket*> m_sendingPackets{ };
 
 	virtual bool Run(bool result, DWORD transferred) override;
 
