@@ -1,4 +1,11 @@
 #pragma once
+
+struct BufferSegment
+{
+	char* buf;
+	size_t len;
+};
+
 struct Session;
 class RingQ
 {
@@ -12,22 +19,16 @@ public:
 	RingQ();
 	~RingQ();
 public:
-	//----------------------------------------------------------
-	// For Debug
-	//----------------------------------------------------------
-	//void GetDirectDeQData(DirectData* directSize, Session* curSession);
-	//----------------------------------------------------------
 
-	
 	int Enqueue(char* buffer, int32_t size);
 	int Dequeue(char* buffer, int32_t size);
 
-	int32_t GetWriteSize() const; 
+	int32_t GetWriteSize() const;
 	int32_t GetReadSize() const;
 
 
-	void GetDirectEnQData(std::vector<WSABUF>& wsaBufs);
-	void GetDirectDeQData(std::vector<WSABUF>& wsaBufs);
+	void GetDirectEnQData(std::vector<BufferSegment>& segments);
+	void GetDirectDeQData(std::vector<BufferSegment>& segments);
 
 	int32_t GetDirectWriteSize()const;
 	int32_t GetDirectReadSize()const;
@@ -37,7 +38,7 @@ public:
 	void MoveWitePosition(int size);
 	void MoveReadPosition(int size);
 
-	
+
 	char* GetFrontBufferPtr(int32_t copyFront, int32_t copyRear);
 	char* GetWriteBufferPtr(int32_t copyFront, int32_t copyRear);
 	char* GetReadBufferPtr(void);

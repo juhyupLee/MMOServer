@@ -1,16 +1,24 @@
 #pragma once
-#include <Windows.h>
+#include <cstdint>
+#include <cstring>
+#include <atomic>
 #include <iostream>
 
 class MyMMOServer;
 
+// On non-Windows, SOCKET is just a type alias for log storage
+#ifndef _WIN32
+	#ifndef SOCKET
+		using SOCKET = int;
+	#endif
+#endif
 
 enum eSendFlag
 {
 	SENDPOST_ENTRY,  //0
 	BEFORE_SEND,     //1
 	AFTER_SEND,      //2
-	GQCS_SENDFLAG,   //3 
+	GQCS_SENDFLAG,   //3
 	SEND_COMPLETE_BEFORE, //4
 	SEND_COMPLETE_AFTER,  //5
 	RECVPOST,              //6,
@@ -46,7 +54,7 @@ enum eIOCP_LINE
 	CLOSE_SOCKET_CLOSESOCKET,
 	SENDCOMPLETE_BEFROE_GETUSEDSIZE,
 	SENDCOMPLETE_AFTER_GETUSEDSIZE,
-	CRASH,
+	CRASH_LOG,
 	ON_RECV,
 	ON_RECV_ALLOC,
 	ON_RECV_FREE,
@@ -66,7 +74,7 @@ enum eIOCP_LINE
 
 	UPDATETHREAD_JOB_SWITCH,
 	MESSAGE_MARSHAL,
-	MESSAGE,
+	MESSAGE_LOG,
 	ACQUIRE_SESSION_SUC,
 	ACQUIRE_SESSION_FAIL,
 	ON_CLIENT_LEAVE,
@@ -81,8 +89,6 @@ enum eIOCP_LINE
 
 	SENDTHREAD_SENDFAIL,
 	SENDTHREAD_SENDSUC
-
-
 };
 
 
@@ -90,20 +96,20 @@ struct SendFlag_Log
 {
 	int64_t _No;
 	eSendFlag _Pos;
-	DWORD _ThreadID;
+	uint32_t _ThreadID;
 	SOCKET _Socket;
 	int64_t _CurSession;
 	int64_t _RecvOL;
 	int64_t _SendOL;
-	LONG _SendFlag;
+	int32_t _SendFlag;
 	int32_t _SendQUsedSize;
 
-	void DataSettiong(int64_t no, eSendFlag pos, DWORD threadid, int64_t socket, int64_t curSession, int64_t  recvOL, int64_t  sendOL, LONG snedFlag,int32_t sendQUsedSize)
+	void DataSettiong(int64_t no, eSendFlag pos, uint32_t threadid, int64_t socket, int64_t curSession, int64_t recvOL, int64_t sendOL, int32_t snedFlag, int32_t sendQUsedSize)
 	{
 		_No = no;
 		_Pos = pos;
 		_ThreadID = threadid;
-		_Socket = socket;
+		_Socket = static_cast<SOCKET>(socket);
 		_CurSession = curSession;
 		_RecvOL = recvOL;
 		_SendOL = sendOL;
@@ -112,27 +118,26 @@ struct SendFlag_Log
 	}
 };
 
-enum eRecvMessageType
+enum class eRecvMessageType
 {
 	NOTHING=0,
 	LOGIN=1,
 	SECTOR_MOVE = 3,
 	MESSAGE_RECV=5
-	
-
 };
+
 struct IOCP_Log
 {
 	int64_t _No;
 	eIOCP_LINE _Pos;
-	DWORD _ThreadID;
+	uint32_t _ThreadID;
 	SOCKET _Socket;
-	DWORD _IOCount;
+	uint32_t _IOCount;
 	int64_t _CurSession;
 	uint64_t _CurSessionID;
 	int64_t _RecvOL;
 	int64_t _SendOL;
-	LONG _SendFlag;
+	int32_t _SendFlag;
 	int32_t _JobType;
 	int32_t _JobQCount;
 	eRecvMessageType _RecvMessageType;
@@ -140,14 +145,12 @@ struct IOCP_Log
 	int64_t _AccountNo;
 	int32_t _SessionStatus;
 
-
-
-	void DataSettiong(int64_t no, eIOCP_LINE pos, DWORD threadid, int64_t socket, DWORD ioCount, int64_t curSession, uint64_t curSessionID, int64_t  recvOL, int64_t  sendOL, LONG snedFlag, int32_t jobType=-1, int32_t jobQCount=-1, eRecvMessageType type= eRecvMessageType::NOTHING, int32_t refCount=-1,int64_t accountNo =-1, int32_t sessionStatus=-1)
+	void DataSettiong(int64_t no, eIOCP_LINE pos, uint32_t threadid, int64_t socket, uint32_t ioCount, int64_t curSession, uint64_t curSessionID, int64_t recvOL, int64_t sendOL, int32_t snedFlag, int32_t jobType=-1, int32_t jobQCount=-1, eRecvMessageType type= eRecvMessageType::NOTHING, int32_t refCount=-1,int64_t accountNo =-1, int32_t sessionStatus=-1)
 	{
 		_No = no;
 		_Pos = pos;
 		_ThreadID = threadid;
-		_Socket = socket;
+		_Socket = static_cast<SOCKET>(socket);
 		_IOCount = ioCount;
 		_CurSession = curSession;
 		_CurSessionID = curSessionID;
@@ -177,22 +180,21 @@ struct FreeList_Log
 {
 	int64_t _No;
 	eFreeListPos _POS;
-	DWORD _ThreadID;
+	uint32_t _ThreadID;
 	int64_t _TopPtr;
 	int64_t _TempTopPtr;
 	int64_t _FreeNode;
 	int64_t _ReturnNode;
 
-
-	void DataSettiong(int64_t no, eFreeListPos pos, DWORD threadid, int64_t _TopPtr, int64_t _TempTopPtr,int64_t freeNode,int64_t  _returnNode)
+	void DataSettiong(int64_t no, eFreeListPos pos, uint32_t threadid, int64_t topPtr, int64_t tempTopPtr, int64_t freeNode, int64_t returnNode)
 	{
 		_No = no;
 		_POS = pos;
 		_ThreadID = threadid;
-		_TopPtr = _TopPtr;
-		_TempTopPtr = _TempTopPtr;
+		_TopPtr = topPtr;
+		_TempTopPtr = tempTopPtr;
 		_FreeNode = freeNode;
-		_ReturnNode = _returnNode;
+		_ReturnNode = returnNode;
 	}
 };
 enum class ePOS
@@ -222,14 +224,13 @@ enum class ePOS
 	RETURN_DATA_DEQ,
 	TEMPREAR_NEWNODE_SAME,
 	NEWNODE_NEXT_NOT_NULL
-
-
 };
+
 struct Q_LOG
 {
 	int64_t _No;
 	ePOS _POS;
-	DWORD _ThreadID;
+	uint32_t _ThreadID;
 	int64_t _FrontPtr;
 	int64_t _RearPtr;
 	int64_t _TempFrontPtr;
@@ -239,17 +240,17 @@ struct Q_LOG
 	int64_t _RearNext;
 	int64_t _CurDummyNode;
 	int64_t _NewNext;
-	LONG _Count;
+	int32_t _Count;
 	int32_t _LoopCount;
 
-	void DataSettiong(int64_t no, ePOS pos, DWORD threadid, int64_t frontPtr, int64_t rearPtr, int64_t _tempFrontPtr, int64_t tempRearPtr, int64_t newNodePtr, int64_t data, int64_t rearNext, int64_t curDummy,int64_t newNext=-1, LONG count=-1,int loopCount=-1)
+	void DataSettiong(int64_t no, ePOS pos, uint32_t threadid, int64_t frontPtr, int64_t rearPtr, int64_t tempFrontPtr, int64_t tempRearPtr, int64_t newNodePtr, int64_t data, int64_t rearNext, int64_t curDummy, int64_t newNext=-1, int32_t count=-1, int loopCount=-1)
 	{
 		_No = no;
 		_POS = pos;
 		_ThreadID = threadid;
 		_FrontPtr = frontPtr;
 		_RearPtr = rearPtr;
-		_TempFrontPtr = _tempFrontPtr;
+		_TempFrontPtr = tempFrontPtr;
 		_TempRearPtr = tempRearPtr;
 		_NewNodePtr = newNodePtr;
 		_Data = data;
@@ -261,7 +262,7 @@ struct Q_LOG
 	}
 };
 
-template <typename T,size_t size = 5000 >
+template <typename T, size_t size = 5000>
 class MemoryLogging_New
 {
 public:
@@ -272,10 +273,10 @@ public:
 	};
 public:
 	MemoryLogging_New()
-		:m_Index(0),
-		m_Count(0),
-		m_Buffer{ 0, }
+		: m_Index(0)
+		, m_Count(0)
 	{
+		std::memset(m_Buffer, 0, sizeof(m_Buffer));
 	}
 
 public:
@@ -283,14 +284,14 @@ public:
 	void Clear();
 
 private:
-	T  m_Buffer[MAX_SIZE];
-	uint64_t m_Index;
-	uint64_t m_Count;
+	T m_Buffer[MAX_SIZE];
+	std::atomic<uint64_t> m_Index;
+	std::atomic<uint64_t> m_Count;
 };
-template <size_t size = 5000 >
+
+template <size_t size = 5000>
 class MemoryLogging_ST
 {
-
 public:
 	enum
 	{
@@ -299,10 +300,10 @@ public:
 	};
 public:
 	MemoryLogging_ST()
-		:m_Index(0),
-		m_Count(0),
-		m_Buffer{0,}
+		: m_Index(0)
+		, m_Count(0)
 	{
+		std::memset(m_Buffer, 0, sizeof(m_Buffer));
 	}
 
 public:
@@ -310,9 +311,9 @@ public:
 	void Clear();
 
 private:
-	Q_LOG  m_Buffer[MAX_SIZE];
-	uint64_t m_Index;
-	uint64_t m_Count;
+	Q_LOG m_Buffer[MAX_SIZE];
+	std::atomic<uint64_t> m_Index;
+	std::atomic<uint64_t> m_Count;
 };
 
 template<size_t size>
@@ -322,10 +323,9 @@ inline void MemoryLogging_ST<size>::MemoryLogging(Q_LOG logData)
 	{
 		return;
 	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-	ZeroMemory(&m_Buffer[tempIndex],  sizeof(Q_LOG));
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(&m_Buffer[tempIndex], 0, sizeof(Q_LOG));
 	m_Buffer[tempIndex] = logData;
-
 }
 
 template<typename T, size_t size>
@@ -335,15 +335,15 @@ inline void MemoryLogging_New<T, size>::MemoryLogging(T logData)
 	{
 		return;
 	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-	ZeroMemory(&m_Buffer[tempIndex], sizeof(T));
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(&m_Buffer[tempIndex], 0, sizeof(T));
 	m_Buffer[tempIndex] = logData;
 }
 
 template<typename T, size_t size>
 inline void MemoryLogging_New<T, size>::Clear()
 {
-	memset(m_Buffer, 0, sizeof(T) * MAX_SIZE);
+	std::memset(m_Buffer, 0, sizeof(T) * MAX_SIZE);
 	m_Index = 0;
 	m_Count = 0;
 }
@@ -351,15 +351,14 @@ inline void MemoryLogging_New<T, size>::Clear()
 template<size_t size>
 inline void MemoryLogging_ST<size>::Clear()
 {
-	memset(m_Buffer, 0, sizeof(Q_LOG) * MAX_SIZE);
+	std::memset(m_Buffer, 0, sizeof(Q_LOG) * MAX_SIZE);
 	m_Index = 0;
 	m_Count = 0;
 }
 
 //-------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------
 
-template <typename T,size_t size=5000 >
+template <typename T, size_t size = 5000>
 class MyMemoryLog
 {
 public:
@@ -371,10 +370,10 @@ public:
 	};
 public:
 	MyMemoryLog()
-		:m_Index(0),
-		 m_Count(0)
+		: m_Index(0)
+		, m_Count(0)
 	{
-		memset(m_Buffer, 0, sizeof(T) * MAX_SIZE * MAX_PROPERTY);
+		std::memset(m_Buffer, 0, sizeof(T) * MAX_SIZE * MAX_PROPERTY);
 	}
 
 public:
@@ -389,53 +388,43 @@ public:
 	void Clear();
 
 private:
-	T  m_Buffer[MAX_SIZE][MAX_PROPERTY];
-	uint64_t m_Index;
-	uint64_t m_Count;
+	T m_Buffer[MAX_SIZE][MAX_PROPERTY];
+	std::atomic<uint64_t> m_Index;
+	std::atomic<uint64_t> m_Count;
 };
 
 template<typename T, size_t size>
 inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T data)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = threadID;
 	m_Buffer[tempIndex][2] = pos;
 	m_Buffer[tempIndex][3] = data;
 }
 
-template <typename T, size_t size >
-inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T data)
+template <typename T, size_t size>
+inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T sessionID, T data)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = sessionID;
 	m_Buffer[tempIndex][2] = threadID;
 	m_Buffer[tempIndex][3] = pos;
 	m_Buffer[tempIndex][4] = data;
 }
 
-template <typename T, size_t size >
-inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2)
+template <typename T, size_t size>
+inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = sessionID;
 	m_Buffer[tempIndex][2] = threadID;
 	m_Buffer[tempIndex][3] = pos;
@@ -443,18 +432,13 @@ inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T
 	m_Buffer[tempIndex][5] = data2;
 }
 
-template <typename T, size_t size >
-inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3)
+template <typename T, size_t size>
+inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = sessionID;
 	m_Buffer[tempIndex][2] = threadID;
 	m_Buffer[tempIndex][3] = pos;
@@ -463,18 +447,13 @@ inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T
 	m_Buffer[tempIndex][6] = data3;
 }
 
-template <typename T, size_t size >
-inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3, T data4)
+template <typename T, size_t size>
+inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3, T data4)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = sessionID;
 	m_Buffer[tempIndex][2] = threadID;
 	m_Buffer[tempIndex][3] = pos;
@@ -484,18 +463,13 @@ inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T
 	m_Buffer[tempIndex][7] = data4;
 }
 
-template <typename T, size_t size >
-inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3, T data4, T data5)
+template <typename T, size_t size>
+inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3, T data4, T data5)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = sessionID;
 	m_Buffer[tempIndex][2] = threadID;
 	m_Buffer[tempIndex][3] = pos;
@@ -506,18 +480,13 @@ inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T
 	m_Buffer[tempIndex][8] = data5;
 }
 
-template <typename T, size_t size >
-inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3, T data4, T data5, T data6)
+template <typename T, size_t size>
+inline void MyMemoryLog<T, size>::MemoryLogging(T pos, T threadID, T sessionID, T data1, T data2, T data3, T data4, T data5, T data6)
 {
-	if (!USE_LOG)
-	{
-		return;
-	}
-	uint64_t tempIndex = InterlockedIncrement(&m_Index) % MAX_SIZE;
-
-	ZeroMemory(m_Buffer[tempIndex], MAX_PROPERTY * sizeof(T));
-
-	m_Buffer[tempIndex][0] = (T)InterlockedIncrement(&m_Count);
+	if (!USE_LOG) return;
+	uint64_t tempIndex = m_Index.fetch_add(1) % MAX_SIZE;
+	std::memset(m_Buffer[tempIndex], 0, MAX_PROPERTY * sizeof(T));
+	m_Buffer[tempIndex][0] = (T)m_Count.fetch_add(1);
 	m_Buffer[tempIndex][1] = sessionID;
 	m_Buffer[tempIndex][2] = threadID;
 	m_Buffer[tempIndex][3] = pos;
@@ -532,8 +501,7 @@ inline void MyMemoryLog<T,size>::MemoryLogging(T pos, T threadID, T sessionID, T
 template<typename T, size_t size>
 inline void MyMemoryLog<T, size>::Clear()
 {
-	memset(m_Buffer, 0, sizeof(T) * MAX_SIZE );	
+	std::memset(m_Buffer, 0, sizeof(T) * MAX_SIZE);
 	m_Index = 0;
 	m_Count = 0;
 }
-

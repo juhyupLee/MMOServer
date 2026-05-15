@@ -304,8 +304,8 @@ void StartLockFreeQTest()
 			g_ExitFlag = true;
 			break;
 		}
-		wprintf(L"[Q Count: %d]\n[Memory AllocCount: %d]\n[m_Rear :%p]\n[m_Front :%p]\n[EnQ TPS:%d]\n[DeQ TPS: %d]\n",
-			g_Q.m_count, g_Q.GetMemoryPoolAllocCount(), g_Q.m_rearCheck->m_nodePtr, g_Q.m_frontCheck->m_nodePtr, g_Q.m_enQTPS, g_Q.m_deQTPS);
+		//wprintf(L"[Q Count: %d]\n[Memory AllocCount: %d]\n[m_Rear :%p]\n[m_Front :%p]\n[EnQ TPS:%d]\n[DeQ TPS: %d]\n",
+		//	g_Q.m_count, g_Q.GetMemoryPoolAllocCount(), g_Q.m_rearCheck->m_nodePtr, g_Q.m_frontCheck->m_nodePtr, g_Q.m_enQTPS, g_Q.m_deQTPS);
 
 		g_Q.m_enQTPS = 0;
 		g_Q.m_deQTPS = 0;

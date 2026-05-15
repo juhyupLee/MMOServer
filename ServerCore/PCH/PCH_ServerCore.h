@@ -1,71 +1,89 @@
 #pragma once
 
-#define WIN32_LEAN_AND_MEAN             // 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
-#define NOMINMAX
+// ============================================================
+// Platform Abstraction (must be first)
+// ============================================================
+#include "../Platform/PlatformDef.h"
 
-//Windows 헤더 파일:
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-#pragma comment(lib, "../bin/libpq.lib")
-#pragma comment(lib, "../bin/pqxx.lib")
+// ============================================================
+// Windows-specific headers (guarded)
+// ============================================================
+#ifdef _WIN32
+	#pragma comment(lib, "Ws2_32.lib")
+	#pragma comment(lib, "Mswsock.lib")
+	#pragma comment(lib, "../bin/libpq.lib")
+	#pragma comment(lib, "../bin/pqxx.lib")
+	#include <conio.h>
+	#include <tchar.h>
+	#include <atlstr.h>
+	#include <timeapi.h>
+	#include <process.h>
+	#include <WinSock2.h>
+	#include <Mswsock.h>
+	#include <WS2tcpip.h>
+	#include <psapi.h>
+	#include <Dbghelp.h>
+	#include <strsafe.h>
+#endif
 
-//국가 관련
+// ============================================================
+// Standard C/C++ Headers
+// ============================================================
 #include <locale>
 #include <stdint.h>
-//표준
 #include <stdio.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <ostream>
-#include <conio.h>
 #include <memory>
 #include <cstdint>
 #include <clocale>
-//스레드관련
+#include <cstring>
+
+// Thread
 #include <mutex>
+#include <thread>
+#include <chrono>
+#include <atomic>
+#include <condition_variable>
+#include <functional>
 
-
-//STL 컨테이너
+// STL Containers
 #include <map>
 #include <unordered_map>
 #include <vector>
 #include <queue>
+#include <deque>
 #include <set>
 #include <unordered_set>
 #include <stack>
-//문자열관련
+#include <variant>
+#include <optional>
+#include <ranges>
+#include <algorithm>
 
-#include <tchar.h>
-
+// String
 #include <string>
-#include <atlstr.h>
 
-//기타등등
+// Misc
 #include <assert.h>
 #include <limits.h>
-#include <timeapi.h>
-#include <WS2tcpip.h>
-
 #include <time.h>
-#include <strsafe.h>
 #include <regex>
+#include <concepts>
+#include <new>
+
+// ============================================================
+// Third-party Libraries
+// ============================================================
 #include <pqxx/pqxx>
-
-//네트워크 OS 관련
-#include <process.h>
-#include <WinSock2.h>
-#include <Mswsock.h>
-#include <Windows.h>
-#include <thread>
-#include <fstream>
-#include <chrono>
-
-#include <psapi.h>
-#include <Dbghelp.h>
-
 #include <spdlog/spdlog.h>
-//개인라이브러리
+#include <boost/asio.hpp>
+
+// ============================================================
+// Project Headers
+// ============================================================
 #include "../Utill/Singleton.h"
 #include "../Utill/TimeUtil.h"
 #include "../Utill/LogManager.h"
@@ -97,7 +115,3 @@
 #include "../Test/Test_MemoryPool.h"
 
 #include "../DB/DBSession.h"
-
-// TODO: 프로그램에 필요한 추가 헤더는 여기에서 참조합니다.
-
-

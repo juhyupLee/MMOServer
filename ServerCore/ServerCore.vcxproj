@@ -101,7 +101,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>.\PCH;..\include\spdlog\include\;..\include\spdlog\include\spdlog;..\include\pqxx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\PCH;..\include\spdlog\include\;..\include\spdlog\include\spdlog;..\include\pqxx;..\include\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

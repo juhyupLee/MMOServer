@@ -8,10 +8,9 @@ struct LanHeader
 #pragma pack(push,1)
 struct NetHeader
 {
-	BYTE _Code;
+	uint8_t _Code;
 	uint16_t _Len;
-	BYTE _RandKey;
-	BYTE _CheckSum;
+	uint8_t _RandKey;
+	uint8_t _CheckSum;
 };
 #pragma pack(pop)
-

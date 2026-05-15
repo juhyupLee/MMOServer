@@ -1,4 +1,6 @@
 #pragma once
+
+#ifdef _WIN32
 #pragma comment(lib,"Dbghelp.lib")
 
 class CrashDump
@@ -36,7 +38,7 @@ public:
 		//----------------------------------------------------------------------
 		HANDLE process = 0;
 		PROCESS_MEMORY_COUNTERS pmc;
-	
+
 		process = GetCurrentProcess();
 
 		if (NULL == process)
@@ -69,7 +71,7 @@ public:
 									NULL,
 									CREATE_ALWAYS,
 									FILE_ATTRIBUTE_NORMAL, NULL);
-		
+
 		if (dumpFile != INVALID_HANDLE_VALUE)
 		{
 			_MINIDUMP_EXCEPTION_INFORMATION miniDumpExceptionInformation;
@@ -79,7 +81,7 @@ public:
 			miniDumpExceptionInformation.ClientPointers = TRUE;
 
 			MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpFile, MiniDumpWithFullMemory, &miniDumpExceptionInformation, NULL, NULL);
-			
+
 			CloseHandle(dumpFile);
 			wprintf(L"CrashDump Save Finish!");
 		}
@@ -114,3 +116,45 @@ private:
 	static long m_DumpCount;
 
 };
+
+#else // Linux / macOS
+
+#include <csignal>
+#include <cstdio>
+#include <cstdlib>
+#include <execinfo.h>
+#include <unistd.h>
+
+class CrashDump
+{
+public:
+	CrashDump()
+	{
+		SetHandlerDump();
+	}
+
+	static void SignalHandler(int sig)
+	{
+		fprintf(stderr, "\n!!! Crash Error!!! Signal: %d\n", sig);
+
+		// Print backtrace
+		void* callstack[128];
+		int frames = backtrace(callstack, 128);
+		backtrace_symbols_fd(callstack, frames, STDERR_FILENO);
+
+		// Generate core dump
+		signal(sig, SIG_DFL);
+		raise(sig);
+	}
+
+	static void SetHandlerDump()
+	{
+		signal(SIGSEGV, SignalHandler);
+		signal(SIGABRT, SignalHandler);
+		signal(SIGFPE, SignalHandler);
+		signal(SIGILL, SignalHandler);
+		signal(SIGBUS, SignalHandler);
+	}
+};
+
+#endif

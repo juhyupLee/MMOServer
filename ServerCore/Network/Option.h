@@ -1,28 +1,27 @@
 #pragma once
-#pragma comment(lib,"ws2_32.lib")
-#pragma comment(lib,"Winmm.lib")
-#include <WinSock2.h>
-#include <mstcpip.h>
-#include <WS2tcpip.h>
 
 struct TimeOutOption
 {
 	bool _OptionOn;
-	DWORD _LoginTimeOut;
-	DWORD _HeartBeatTimeOut;
+	uint32_t _LoginTimeOut;
+	uint32_t _HeartBeatTimeOut;
 };
+
 struct SocketOption
 {
 	SocketOption()
-		:_TCPNoDelay(true),
-		_SendBufferZero(true),
-		_Linger(true)
+		: _TCPNoDelay(true)
+		, _SendBufferZero(true)
+		, _Linger(true)
+		, _KeepAlive(false)
+		, _KeepAliveIntervalMs(0)
+		, _KeepAliveTimeMs(0)
 	{
-		ZeroMemory(&_KeepAliveOption, sizeof(tcp_keepalive));
 	}
 	bool _TCPNoDelay;
 	bool _SendBufferZero;
 	bool _Linger;
-	tcp_keepalive _KeepAliveOption;
+	bool _KeepAlive;
+	uint32_t _KeepAliveIntervalMs;
+	uint32_t _KeepAliveTimeMs;
 };
-

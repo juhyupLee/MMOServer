@@ -9,37 +9,21 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 2 &&
-              FLATBUFFERS_VERSION_REVISION == 10,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
-struct FConnectReq;
-struct FConnectReqBuilder;
-struct FConnectReqT;
+struct GSCL_CONNECTED_CMD;
+struct GSCL_CONNECTED_CMDBuilder;
+struct GSCL_CONNECTED_CMDT;
 
-struct FConnectAck;
-struct FConnectAckBuilder;
-struct FConnectAckT;
+struct CLLG_AUTH_REQ;
+struct CLLG_AUTH_REQBuilder;
+struct CLLG_AUTH_REQT;
 
-struct FAcceptAck;
-struct FAcceptAckBuilder;
-struct FAcceptAckT;
-
-struct FDisconnectReq;
-struct FDisconnectReqBuilder;
-struct FDisconnectReqT;
-
-struct FDisconnectAck;
-struct FDisconnectAckBuilder;
-struct FDisconnectAckT;
-
-struct FAuthenticationReq;
-struct FAuthenticationReqBuilder;
-struct FAuthenticationReqT;
-
-struct FAuthenticationAck;
-struct FAuthenticationAckBuilder;
-struct FAuthenticationAckT;
+struct CLLG_AUTH_ACK;
+struct CLLG_AUTH_ACKBuilder;
+struct CLLG_AUTH_ACKT;
 
 struct CLGS_CONNECT_REQ_;
 struct CLGS_CONNECT_REQ_Builder;
@@ -97,19 +81,11 @@ struct MessageHolder;
 struct MessageHolderBuilder;
 struct MessageHolderT;
 
-inline const ::flatbuffers::TypeTable *FConnectReqTypeTable();
+inline const ::flatbuffers::TypeTable *GSCL_CONNECTED_CMDTypeTable();
 
-inline const ::flatbuffers::TypeTable *FConnectAckTypeTable();
+inline const ::flatbuffers::TypeTable *CLLG_AUTH_REQTypeTable();
 
-inline const ::flatbuffers::TypeTable *FAcceptAckTypeTable();
-
-inline const ::flatbuffers::TypeTable *FDisconnectReqTypeTable();
-
-inline const ::flatbuffers::TypeTable *FDisconnectAckTypeTable();
-
-inline const ::flatbuffers::TypeTable *FAuthenticationReqTypeTable();
-
-inline const ::flatbuffers::TypeTable *FAuthenticationAckTypeTable();
+inline const ::flatbuffers::TypeTable *CLLG_AUTH_ACKTypeTable();
 
 inline const ::flatbuffers::TypeTable *CLGS_CONNECT_REQ_TypeTable();
 
@@ -1585,13 +1561,9 @@ inline const char *EnumNameEResultID(EResultID e) {
 enum class MessageID : int32_t {
   NONE = 0,
   F_GUEST_MESSAGE_MIN = 1,
-  FConnectReq = 11,
-  FConnectAck = 12,
-  FAcceptAck = 13,
-  FDisconnectReq = 21,
-  FDisconnectAck = 22,
-  FAuthenticationReq = 41,
-  FAuthenticationAck = 42,
+  GSCL_CONNECTED_CMD = 8000,
+  CLLG_AUTH_REQ = 8001,
+  CLLG_AUTH_ACK = 8002,
   CLGS_CONNECT_REQ_ = 9001,
   CLGS_CONNECT_ACK_ = 9002,
   CLGS_AUTHEN_REQ = 9003,
@@ -1600,17 +1572,13 @@ enum class MessageID : int32_t {
   F_MEMBER_MESSAGE_MAX = 19999
 };
 
-inline const MessageID (&EnumValuesMessageID())[15] {
+inline const MessageID (&EnumValuesMessageID())[11] {
   static const MessageID values[] = {
     MessageID::NONE,
     MessageID::F_GUEST_MESSAGE_MIN,
-    MessageID::FConnectReq,
-    MessageID::FConnectAck,
-    MessageID::FAcceptAck,
-    MessageID::FDisconnectReq,
-    MessageID::FDisconnectAck,
-    MessageID::FAuthenticationReq,
-    MessageID::FAuthenticationAck,
+    MessageID::GSCL_CONNECTED_CMD,
+    MessageID::CLLG_AUTH_REQ,
+    MessageID::CLLG_AUTH_ACK,
     MessageID::CLGS_CONNECT_REQ_,
     MessageID::CLGS_CONNECT_ACK_,
     MessageID::CLGS_AUTHEN_REQ,
@@ -1625,13 +1593,9 @@ inline const char *EnumNameMessageID(MessageID e) {
   switch (e) {
     case MessageID::NONE: return "NONE";
     case MessageID::F_GUEST_MESSAGE_MIN: return "F_GUEST_MESSAGE_MIN";
-    case MessageID::FConnectReq: return "FConnectReq";
-    case MessageID::FConnectAck: return "FConnectAck";
-    case MessageID::FAcceptAck: return "FAcceptAck";
-    case MessageID::FDisconnectReq: return "FDisconnectReq";
-    case MessageID::FDisconnectAck: return "FDisconnectAck";
-    case MessageID::FAuthenticationReq: return "FAuthenticationReq";
-    case MessageID::FAuthenticationAck: return "FAuthenticationAck";
+    case MessageID::GSCL_CONNECTED_CMD: return "GSCL_CONNECTED_CMD";
+    case MessageID::CLLG_AUTH_REQ: return "CLLG_AUTH_REQ";
+    case MessageID::CLLG_AUTH_ACK: return "CLLG_AUTH_ACK";
     case MessageID::CLGS_CONNECT_REQ_: return "CLGS_CONNECT_REQ_";
     case MessageID::CLGS_CONNECT_ACK_: return "CLGS_CONNECT_ACK_";
     case MessageID::CLGS_AUTHEN_REQ: return "CLGS_AUTHEN_REQ";
@@ -1650,32 +1614,16 @@ template<> struct MessageIDTraits<F_GUEST_MESSAGE_MIN> {
   static const MessageID enum_value = MessageID::F_GUEST_MESSAGE_MIN;
 };
 
-template<> struct MessageIDTraits<FConnectReq> {
-  static const MessageID enum_value = MessageID::FConnectReq;
+template<> struct MessageIDTraits<GSCL_CONNECTED_CMD> {
+  static const MessageID enum_value = MessageID::GSCL_CONNECTED_CMD;
 };
 
-template<> struct MessageIDTraits<FConnectAck> {
-  static const MessageID enum_value = MessageID::FConnectAck;
+template<> struct MessageIDTraits<CLLG_AUTH_REQ> {
+  static const MessageID enum_value = MessageID::CLLG_AUTH_REQ;
 };
 
-template<> struct MessageIDTraits<FAcceptAck> {
-  static const MessageID enum_value = MessageID::FAcceptAck;
-};
-
-template<> struct MessageIDTraits<FDisconnectReq> {
-  static const MessageID enum_value = MessageID::FDisconnectReq;
-};
-
-template<> struct MessageIDTraits<FDisconnectAck> {
-  static const MessageID enum_value = MessageID::FDisconnectAck;
-};
-
-template<> struct MessageIDTraits<FAuthenticationReq> {
-  static const MessageID enum_value = MessageID::FAuthenticationReq;
-};
-
-template<> struct MessageIDTraits<FAuthenticationAck> {
-  static const MessageID enum_value = MessageID::FAuthenticationAck;
+template<> struct MessageIDTraits<CLLG_AUTH_ACK> {
+  static const MessageID enum_value = MessageID::CLLG_AUTH_ACK;
 };
 
 template<> struct MessageIDTraits<CLGS_CONNECT_REQ_> {
@@ -1710,32 +1658,16 @@ template<> struct MessageIDUnionTraits<F_GUEST_MESSAGE_MINT> {
   static const MessageID enum_value = MessageID::F_GUEST_MESSAGE_MIN;
 };
 
-template<> struct MessageIDUnionTraits<FConnectReqT> {
-  static const MessageID enum_value = MessageID::FConnectReq;
+template<> struct MessageIDUnionTraits<GSCL_CONNECTED_CMDT> {
+  static const MessageID enum_value = MessageID::GSCL_CONNECTED_CMD;
 };
 
-template<> struct MessageIDUnionTraits<FConnectAckT> {
-  static const MessageID enum_value = MessageID::FConnectAck;
+template<> struct MessageIDUnionTraits<CLLG_AUTH_REQT> {
+  static const MessageID enum_value = MessageID::CLLG_AUTH_REQ;
 };
 
-template<> struct MessageIDUnionTraits<FAcceptAckT> {
-  static const MessageID enum_value = MessageID::FAcceptAck;
-};
-
-template<> struct MessageIDUnionTraits<FDisconnectReqT> {
-  static const MessageID enum_value = MessageID::FDisconnectReq;
-};
-
-template<> struct MessageIDUnionTraits<FDisconnectAckT> {
-  static const MessageID enum_value = MessageID::FDisconnectAck;
-};
-
-template<> struct MessageIDUnionTraits<FAuthenticationReqT> {
-  static const MessageID enum_value = MessageID::FAuthenticationReq;
-};
-
-template<> struct MessageIDUnionTraits<FAuthenticationAckT> {
-  static const MessageID enum_value = MessageID::FAuthenticationAck;
+template<> struct MessageIDUnionTraits<CLLG_AUTH_ACKT> {
+  static const MessageID enum_value = MessageID::CLLG_AUTH_ACK;
 };
 
 template<> struct MessageIDUnionTraits<CLGS_CONNECT_REQ_T> {
@@ -1800,61 +1732,29 @@ struct MessageIDUnion {
     return type == MessageID::F_GUEST_MESSAGE_MIN ?
       reinterpret_cast<const F_GUEST_MESSAGE_MINT *>(value) : nullptr;
   }
-  FConnectReqT *AsFConnectReq() {
-    return type == MessageID::FConnectReq ?
-      reinterpret_cast<FConnectReqT *>(value) : nullptr;
+  GSCL_CONNECTED_CMDT *AsGSCL_CONNECTED_CMD() {
+    return type == MessageID::GSCL_CONNECTED_CMD ?
+      reinterpret_cast<GSCL_CONNECTED_CMDT *>(value) : nullptr;
   }
-  const FConnectReqT *AsFConnectReq() const {
-    return type == MessageID::FConnectReq ?
-      reinterpret_cast<const FConnectReqT *>(value) : nullptr;
+  const GSCL_CONNECTED_CMDT *AsGSCL_CONNECTED_CMD() const {
+    return type == MessageID::GSCL_CONNECTED_CMD ?
+      reinterpret_cast<const GSCL_CONNECTED_CMDT *>(value) : nullptr;
   }
-  FConnectAckT *AsFConnectAck() {
-    return type == MessageID::FConnectAck ?
-      reinterpret_cast<FConnectAckT *>(value) : nullptr;
+  CLLG_AUTH_REQT *AsCLLG_AUTH_REQ() {
+    return type == MessageID::CLLG_AUTH_REQ ?
+      reinterpret_cast<CLLG_AUTH_REQT *>(value) : nullptr;
   }
-  const FConnectAckT *AsFConnectAck() const {
-    return type == MessageID::FConnectAck ?
-      reinterpret_cast<const FConnectAckT *>(value) : nullptr;
+  const CLLG_AUTH_REQT *AsCLLG_AUTH_REQ() const {
+    return type == MessageID::CLLG_AUTH_REQ ?
+      reinterpret_cast<const CLLG_AUTH_REQT *>(value) : nullptr;
   }
-  FAcceptAckT *AsFAcceptAck() {
-    return type == MessageID::FAcceptAck ?
-      reinterpret_cast<FAcceptAckT *>(value) : nullptr;
+  CLLG_AUTH_ACKT *AsCLLG_AUTH_ACK() {
+    return type == MessageID::CLLG_AUTH_ACK ?
+      reinterpret_cast<CLLG_AUTH_ACKT *>(value) : nullptr;
   }
-  const FAcceptAckT *AsFAcceptAck() const {
-    return type == MessageID::FAcceptAck ?
-      reinterpret_cast<const FAcceptAckT *>(value) : nullptr;
-  }
-  FDisconnectReqT *AsFDisconnectReq() {
-    return type == MessageID::FDisconnectReq ?
-      reinterpret_cast<FDisconnectReqT *>(value) : nullptr;
-  }
-  const FDisconnectReqT *AsFDisconnectReq() const {
-    return type == MessageID::FDisconnectReq ?
-      reinterpret_cast<const FDisconnectReqT *>(value) : nullptr;
-  }
-  FDisconnectAckT *AsFDisconnectAck() {
-    return type == MessageID::FDisconnectAck ?
-      reinterpret_cast<FDisconnectAckT *>(value) : nullptr;
-  }
-  const FDisconnectAckT *AsFDisconnectAck() const {
-    return type == MessageID::FDisconnectAck ?
-      reinterpret_cast<const FDisconnectAckT *>(value) : nullptr;
-  }
-  FAuthenticationReqT *AsFAuthenticationReq() {
-    return type == MessageID::FAuthenticationReq ?
-      reinterpret_cast<FAuthenticationReqT *>(value) : nullptr;
-  }
-  const FAuthenticationReqT *AsFAuthenticationReq() const {
-    return type == MessageID::FAuthenticationReq ?
-      reinterpret_cast<const FAuthenticationReqT *>(value) : nullptr;
-  }
-  FAuthenticationAckT *AsFAuthenticationAck() {
-    return type == MessageID::FAuthenticationAck ?
-      reinterpret_cast<FAuthenticationAckT *>(value) : nullptr;
-  }
-  const FAuthenticationAckT *AsFAuthenticationAck() const {
-    return type == MessageID::FAuthenticationAck ?
-      reinterpret_cast<const FAuthenticationAckT *>(value) : nullptr;
+  const CLLG_AUTH_ACKT *AsCLLG_AUTH_ACK() const {
+    return type == MessageID::CLLG_AUTH_ACK ?
+      reinterpret_cast<const CLLG_AUTH_ACKT *>(value) : nullptr;
   }
   CLGS_CONNECT_REQ_T *AsCLGS_CONNECT_REQ_() {
     return type == MessageID::CLGS_CONNECT_REQ_ ?
@@ -1906,299 +1806,22 @@ struct MessageIDUnion {
   }
 };
 
-bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, MessageID type);
-bool VerifyMessageIDVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types);
+template <bool B = false>
+bool VerifyMessageID(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, MessageID type);
+template <bool B = false>
+bool VerifyMessageIDVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types);
 
-struct FConnectReqT : public ::flatbuffers::NativeTable {
-  typedef FConnectReq TableType;
-  int32_t seq = 0;
-  std::string ip{};
-  int32_t port = 0;
-};
-
-struct FConnectReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FConnectReqT NativeTableType;
-  typedef FConnectReqBuilder Builder;
-  struct Traits;
-  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FConnectReqTypeTable();
-  }
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SEQ = 4,
-    VT_IP = 6,
-    VT_PORT = 8
-  };
-  int32_t seq() const {
-    return GetField<int32_t>(VT_SEQ, 0);
-  }
-  const ::flatbuffers::String *ip() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_IP);
-  }
-  int32_t port() const {
-    return GetField<int32_t>(VT_PORT, 0);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
-           VerifyOffset(verifier, VT_IP) &&
-           verifier.VerifyString(ip()) &&
-           VerifyField<int32_t>(verifier, VT_PORT, 4) &&
-           verifier.EndTable();
-  }
-  FConnectReqT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FConnectReqT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FConnectReq> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-};
-
-struct FConnectReqBuilder {
-  typedef FConnectReq Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FConnectReq::VT_SEQ, seq, 0);
-  }
-  void add_ip(::flatbuffers::Offset<::flatbuffers::String> ip) {
-    fbb_.AddOffset(FConnectReq::VT_IP, ip);
-  }
-  void add_port(int32_t port) {
-    fbb_.AddElement<int32_t>(FConnectReq::VT_PORT, port, 0);
-  }
-  explicit FConnectReqBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<FConnectReq> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FConnectReq>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<FConnectReq> CreateFConnectReq(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t seq = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> ip = 0,
-    int32_t port = 0) {
-  FConnectReqBuilder builder_(_fbb);
-  builder_.add_port(port);
-  builder_.add_ip(ip);
-  builder_.add_seq(seq);
-  return builder_.Finish();
-}
-
-struct FConnectReq::Traits {
-  using type = FConnectReq;
-  static auto constexpr Create = CreateFConnectReq;
-};
-
-inline ::flatbuffers::Offset<FConnectReq> CreateFConnectReqDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t seq = 0,
-    const char *ip = nullptr,
-    int32_t port = 0) {
-  auto ip__ = ip ? _fbb.CreateString(ip) : 0;
-  return CreateFConnectReq(
-      _fbb,
-      seq,
-      ip__,
-      port);
-}
-
-::flatbuffers::Offset<FConnectReq> CreateFConnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct FConnectAckT : public ::flatbuffers::NativeTable {
-  typedef FConnectAck TableType;
-  int32_t seq = 0;
-  EResultID result = EResultID::R_NONE;
-};
-
-struct FConnectAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FConnectAckT NativeTableType;
-  typedef FConnectAckBuilder Builder;
-  struct Traits;
-  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FConnectAckTypeTable();
-  }
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SEQ = 4,
-    VT_RESULT = 6
-  };
-  int32_t seq() const {
-    return GetField<int32_t>(VT_SEQ, 0);
-  }
-  EResultID result() const {
-    return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
-           VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
-           verifier.EndTable();
-  }
-  FConnectAckT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FConnectAckT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FConnectAck> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-};
-
-struct FConnectAckBuilder {
-  typedef FConnectAck Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FConnectAck::VT_SEQ, seq, 0);
-  }
-  void add_result(EResultID result) {
-    fbb_.AddElement<int32_t>(FConnectAck::VT_RESULT, static_cast<int32_t>(result), 0);
-  }
-  explicit FConnectAckBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<FConnectAck> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FConnectAck>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<FConnectAck> CreateFConnectAck(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t seq = 0,
-    EResultID result = EResultID::R_NONE) {
-  FConnectAckBuilder builder_(_fbb);
-  builder_.add_result(result);
-  builder_.add_seq(seq);
-  return builder_.Finish();
-}
-
-struct FConnectAck::Traits {
-  using type = FConnectAck;
-  static auto constexpr Create = CreateFConnectAck;
-};
-
-::flatbuffers::Offset<FConnectAck> CreateFConnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct FAcceptAckT : public ::flatbuffers::NativeTable {
-  typedef FAcceptAck TableType;
-  int32_t seq = 0;
-  EResultID result = EResultID::R_NONE;
-  std::string ip{};
-  int32_t port = 0;
-};
-
-struct FAcceptAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FAcceptAckT NativeTableType;
-  typedef FAcceptAckBuilder Builder;
-  struct Traits;
-  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FAcceptAckTypeTable();
-  }
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SEQ = 4,
-    VT_RESULT = 6,
-    VT_IP = 8,
-    VT_PORT = 10
-  };
-  int32_t seq() const {
-    return GetField<int32_t>(VT_SEQ, 0);
-  }
-  EResultID result() const {
-    return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
-  }
-  const ::flatbuffers::String *ip() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_IP);
-  }
-  int32_t port() const {
-    return GetField<int32_t>(VT_PORT, 0);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
-           VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
-           VerifyOffset(verifier, VT_IP) &&
-           verifier.VerifyString(ip()) &&
-           VerifyField<int32_t>(verifier, VT_PORT, 4) &&
-           verifier.EndTable();
-  }
-  FAcceptAckT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FAcceptAckT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FAcceptAck> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-};
-
-struct FAcceptAckBuilder {
-  typedef FAcceptAck Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FAcceptAck::VT_SEQ, seq, 0);
-  }
-  void add_result(EResultID result) {
-    fbb_.AddElement<int32_t>(FAcceptAck::VT_RESULT, static_cast<int32_t>(result), 0);
-  }
-  void add_ip(::flatbuffers::Offset<::flatbuffers::String> ip) {
-    fbb_.AddOffset(FAcceptAck::VT_IP, ip);
-  }
-  void add_port(int32_t port) {
-    fbb_.AddElement<int32_t>(FAcceptAck::VT_PORT, port, 0);
-  }
-  explicit FAcceptAckBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<FAcceptAck> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FAcceptAck>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<FAcceptAck> CreateFAcceptAck(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t seq = 0,
-    EResultID result = EResultID::R_NONE,
-    ::flatbuffers::Offset<::flatbuffers::String> ip = 0,
-    int32_t port = 0) {
-  FAcceptAckBuilder builder_(_fbb);
-  builder_.add_port(port);
-  builder_.add_ip(ip);
-  builder_.add_result(result);
-  builder_.add_seq(seq);
-  return builder_.Finish();
-}
-
-struct FAcceptAck::Traits {
-  using type = FAcceptAck;
-  static auto constexpr Create = CreateFAcceptAck;
-};
-
-inline ::flatbuffers::Offset<FAcceptAck> CreateFAcceptAckDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t seq = 0,
-    EResultID result = EResultID::R_NONE,
-    const char *ip = nullptr,
-    int32_t port = 0) {
-  auto ip__ = ip ? _fbb.CreateString(ip) : 0;
-  return CreateFAcceptAck(
-      _fbb,
-      seq,
-      result,
-      ip__,
-      port);
-}
-
-::flatbuffers::Offset<FAcceptAck> CreateFAcceptAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct FDisconnectReqT : public ::flatbuffers::NativeTable {
-  typedef FDisconnectReq TableType;
+struct GSCL_CONNECTED_CMDT : public ::flatbuffers::NativeTable {
+  typedef GSCL_CONNECTED_CMD TableType;
   int32_t seq = 0;
 };
 
-struct FDisconnectReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FDisconnectReqT NativeTableType;
-  typedef FDisconnectReqBuilder Builder;
+struct GSCL_CONNECTED_CMD FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef GSCL_CONNECTED_CMDT NativeTableType;
+  typedef GSCL_CONNECTED_CMDBuilder Builder;
   struct Traits;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FDisconnectReqTypeTable();
+    return GSCL_CONNECTED_CMDTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SEQ = 4
@@ -2206,251 +1829,170 @@ struct FDisconnectReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t seq() const {
     return GetField<int32_t>(VT_SEQ, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            verifier.EndTable();
   }
-  FDisconnectReqT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FDisconnectReqT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FDisconnectReq> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  GSCL_CONNECTED_CMDT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(GSCL_CONNECTED_CMDT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<GSCL_CONNECTED_CMD> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const GSCL_CONNECTED_CMDT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
-struct FDisconnectReqBuilder {
-  typedef FDisconnectReq Table;
+struct GSCL_CONNECTED_CMDBuilder {
+  typedef GSCL_CONNECTED_CMD Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FDisconnectReq::VT_SEQ, seq, 0);
+    fbb_.AddElement<int32_t>(GSCL_CONNECTED_CMD::VT_SEQ, seq, 0);
   }
-  explicit FDisconnectReqBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  explicit GSCL_CONNECTED_CMDBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<FDisconnectReq> Finish() {
+  ::flatbuffers::Offset<GSCL_CONNECTED_CMD> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FDisconnectReq>(end);
+    auto o = ::flatbuffers::Offset<GSCL_CONNECTED_CMD>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<FDisconnectReq> CreateFDisconnectReq(
+inline ::flatbuffers::Offset<GSCL_CONNECTED_CMD> CreateGSCL_CONNECTED_CMD(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t seq = 0) {
-  FDisconnectReqBuilder builder_(_fbb);
+  GSCL_CONNECTED_CMDBuilder builder_(_fbb);
   builder_.add_seq(seq);
   return builder_.Finish();
 }
 
-struct FDisconnectReq::Traits {
-  using type = FDisconnectReq;
-  static auto constexpr Create = CreateFDisconnectReq;
+struct GSCL_CONNECTED_CMD::Traits {
+  using type = GSCL_CONNECTED_CMD;
+  static auto constexpr Create = CreateGSCL_CONNECTED_CMD;
 };
 
-::flatbuffers::Offset<FDisconnectReq> CreateFDisconnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<GSCL_CONNECTED_CMD> CreateGSCL_CONNECTED_CMD(::flatbuffers::FlatBufferBuilder &_fbb, const GSCL_CONNECTED_CMDT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-struct FDisconnectAckT : public ::flatbuffers::NativeTable {
-  typedef FDisconnectAck TableType;
+struct CLLG_AUTH_REQT : public ::flatbuffers::NativeTable {
+  typedef CLLG_AUTH_REQ TableType;
   int32_t seq = 0;
-  EResultID result = EResultID::R_NONE;
+  std::string accountID{};
+  std::string password{};
 };
 
-struct FDisconnectAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FDisconnectAckT NativeTableType;
-  typedef FDisconnectAckBuilder Builder;
+struct CLLG_AUTH_REQ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef CLLG_AUTH_REQT NativeTableType;
+  typedef CLLG_AUTH_REQBuilder Builder;
   struct Traits;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FDisconnectAckTypeTable();
+    return CLLG_AUTH_REQTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SEQ = 4,
-    VT_RESULT = 6
+    VT_ACCOUNTID = 6,
+    VT_PASSWORD = 8
   };
   int32_t seq() const {
     return GetField<int32_t>(VT_SEQ, 0);
   }
-  EResultID result() const {
-    return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
+  const ::flatbuffers::String *accountID() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ACCOUNTID);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  const ::flatbuffers::String *password() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_PASSWORD);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
-           VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
+           VerifyOffset(verifier, VT_ACCOUNTID) &&
+           verifier.VerifyString(accountID()) &&
+           VerifyOffset(verifier, VT_PASSWORD) &&
+           verifier.VerifyString(password()) &&
            verifier.EndTable();
   }
-  FDisconnectAckT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FDisconnectAckT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FDisconnectAck> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  CLLG_AUTH_REQT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(CLLG_AUTH_REQT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<CLLG_AUTH_REQ> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
-struct FDisconnectAckBuilder {
-  typedef FDisconnectAck Table;
+struct CLLG_AUTH_REQBuilder {
+  typedef CLLG_AUTH_REQ Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FDisconnectAck::VT_SEQ, seq, 0);
+    fbb_.AddElement<int32_t>(CLLG_AUTH_REQ::VT_SEQ, seq, 0);
   }
-  void add_result(EResultID result) {
-    fbb_.AddElement<int32_t>(FDisconnectAck::VT_RESULT, static_cast<int32_t>(result), 0);
+  void add_accountID(::flatbuffers::Offset<::flatbuffers::String> accountID) {
+    fbb_.AddOffset(CLLG_AUTH_REQ::VT_ACCOUNTID, accountID);
   }
-  explicit FDisconnectAckBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  void add_password(::flatbuffers::Offset<::flatbuffers::String> password) {
+    fbb_.AddOffset(CLLG_AUTH_REQ::VT_PASSWORD, password);
+  }
+  explicit CLLG_AUTH_REQBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<FDisconnectAck> Finish() {
+  ::flatbuffers::Offset<CLLG_AUTH_REQ> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FDisconnectAck>(end);
+    auto o = ::flatbuffers::Offset<CLLG_AUTH_REQ>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<FDisconnectAck> CreateFDisconnectAck(
+inline ::flatbuffers::Offset<CLLG_AUTH_REQ> CreateCLLG_AUTH_REQ(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t seq = 0,
-    EResultID result = EResultID::R_NONE) {
-  FDisconnectAckBuilder builder_(_fbb);
-  builder_.add_result(result);
+    ::flatbuffers::Offset<::flatbuffers::String> accountID = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> password = 0) {
+  CLLG_AUTH_REQBuilder builder_(_fbb);
+  builder_.add_password(password);
+  builder_.add_accountID(accountID);
   builder_.add_seq(seq);
   return builder_.Finish();
 }
 
-struct FDisconnectAck::Traits {
-  using type = FDisconnectAck;
-  static auto constexpr Create = CreateFDisconnectAck;
+struct CLLG_AUTH_REQ::Traits {
+  using type = CLLG_AUTH_REQ;
+  static auto constexpr Create = CreateCLLG_AUTH_REQ;
 };
 
-::flatbuffers::Offset<FDisconnectAck> CreateFDisconnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-
-struct FAuthenticationReqT : public ::flatbuffers::NativeTable {
-  typedef FAuthenticationReq TableType;
-  int32_t seq = 0;
-  std::string accounttoken{};
-  bool reconnect = false;
-  std::string connectSessionKey{};
-};
-
-struct FAuthenticationReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FAuthenticationReqT NativeTableType;
-  typedef FAuthenticationReqBuilder Builder;
-  struct Traits;
-  static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FAuthenticationReqTypeTable();
-  }
-  enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
-    VT_SEQ = 4,
-    VT_ACCOUNTTOKEN = 6,
-    VT_RECONNECT = 8,
-    VT_CONNECTSESSIONKEY = 10
-  };
-  int32_t seq() const {
-    return GetField<int32_t>(VT_SEQ, 0);
-  }
-  const ::flatbuffers::String *accounttoken() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_ACCOUNTTOKEN);
-  }
-  bool reconnect() const {
-    return GetField<uint8_t>(VT_RECONNECT, 0) != 0;
-  }
-  const ::flatbuffers::String *connectSessionKey() const {
-    return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
-  }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
-    return VerifyTableStart(verifier) &&
-           VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
-           VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
-           verifier.VerifyString(accounttoken()) &&
-           VerifyField<uint8_t>(verifier, VT_RECONNECT, 1) &&
-           VerifyOffset(verifier, VT_CONNECTSESSIONKEY) &&
-           verifier.VerifyString(connectSessionKey()) &&
-           verifier.EndTable();
-  }
-  FAuthenticationReqT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FAuthenticationReqT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FAuthenticationReq> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
-};
-
-struct FAuthenticationReqBuilder {
-  typedef FAuthenticationReq Table;
-  ::flatbuffers::FlatBufferBuilder &fbb_;
-  ::flatbuffers::uoffset_t start_;
-  void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FAuthenticationReq::VT_SEQ, seq, 0);
-  }
-  void add_accounttoken(::flatbuffers::Offset<::flatbuffers::String> accounttoken) {
-    fbb_.AddOffset(FAuthenticationReq::VT_ACCOUNTTOKEN, accounttoken);
-  }
-  void add_reconnect(bool reconnect) {
-    fbb_.AddElement<uint8_t>(FAuthenticationReq::VT_RECONNECT, static_cast<uint8_t>(reconnect), 0);
-  }
-  void add_connectSessionKey(::flatbuffers::Offset<::flatbuffers::String> connectSessionKey) {
-    fbb_.AddOffset(FAuthenticationReq::VT_CONNECTSESSIONKEY, connectSessionKey);
-  }
-  explicit FAuthenticationReqBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
-        : fbb_(_fbb) {
-    start_ = fbb_.StartTable();
-  }
-  ::flatbuffers::Offset<FAuthenticationReq> Finish() {
-    const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FAuthenticationReq>(end);
-    return o;
-  }
-};
-
-inline ::flatbuffers::Offset<FAuthenticationReq> CreateFAuthenticationReq(
+inline ::flatbuffers::Offset<CLLG_AUTH_REQ> CreateCLLG_AUTH_REQDirect(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t seq = 0,
-    ::flatbuffers::Offset<::flatbuffers::String> accounttoken = 0,
-    bool reconnect = false,
-    ::flatbuffers::Offset<::flatbuffers::String> connectSessionKey = 0) {
-  FAuthenticationReqBuilder builder_(_fbb);
-  builder_.add_connectSessionKey(connectSessionKey);
-  builder_.add_accounttoken(accounttoken);
-  builder_.add_seq(seq);
-  builder_.add_reconnect(reconnect);
-  return builder_.Finish();
-}
-
-struct FAuthenticationReq::Traits {
-  using type = FAuthenticationReq;
-  static auto constexpr Create = CreateFAuthenticationReq;
-};
-
-inline ::flatbuffers::Offset<FAuthenticationReq> CreateFAuthenticationReqDirect(
-    ::flatbuffers::FlatBufferBuilder &_fbb,
-    int32_t seq = 0,
-    const char *accounttoken = nullptr,
-    bool reconnect = false,
-    const char *connectSessionKey = nullptr) {
-  auto accounttoken__ = accounttoken ? _fbb.CreateString(accounttoken) : 0;
-  auto connectSessionKey__ = connectSessionKey ? _fbb.CreateString(connectSessionKey) : 0;
-  return CreateFAuthenticationReq(
+    const char *accountID = nullptr,
+    const char *password = nullptr) {
+  auto accountID__ = accountID ? _fbb.CreateString(accountID) : 0;
+  auto password__ = password ? _fbb.CreateString(password) : 0;
+  return CreateCLLG_AUTH_REQ(
       _fbb,
       seq,
-      accounttoken__,
-      reconnect,
-      connectSessionKey__);
+      accountID__,
+      password__);
 }
 
-::flatbuffers::Offset<FAuthenticationReq> CreateFAuthenticationReq(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+::flatbuffers::Offset<CLLG_AUTH_REQ> CreateCLLG_AUTH_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-struct FAuthenticationAckT : public ::flatbuffers::NativeTable {
-  typedef FAuthenticationAck TableType;
+struct CLLG_AUTH_ACKT : public ::flatbuffers::NativeTable {
+  typedef CLLG_AUTH_ACK TableType;
   int32_t seq = 0;
   EResultID result = EResultID::R_NONE;
-  int64_t accountID = 0;
+  std::string accountToken{};
+  std::string sessionKey{};
 };
 
-struct FAuthenticationAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
-  typedef FAuthenticationAckT NativeTableType;
-  typedef FAuthenticationAckBuilder Builder;
+struct CLLG_AUTH_ACK FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
+  typedef CLLG_AUTH_ACKT NativeTableType;
+  typedef CLLG_AUTH_ACKBuilder Builder;
   struct Traits;
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
-    return FAuthenticationAckTypeTable();
+    return CLLG_AUTH_ACKTypeTable();
   }
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_SEQ = 4,
     VT_RESULT = 6,
-    VT_ACCOUNTID = 8
+    VT_ACCOUNTTOKEN = 8,
+    VT_SESSIONKEY = 10
   };
   int32_t seq() const {
     return GetField<int32_t>(VT_SEQ, 0);
@@ -2458,63 +2000,91 @@ struct FAuthenticationAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   EResultID result() const {
     return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
   }
-  int64_t accountID() const {
-    return GetField<int64_t>(VT_ACCOUNTID, 0);
+  const ::flatbuffers::String *accountToken() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_ACCOUNTTOKEN);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  const ::flatbuffers::String *sessionKey() const {
+    return GetPointer<const ::flatbuffers::String *>(VT_SESSIONKEY);
+  }
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
-           VerifyField<int64_t>(verifier, VT_ACCOUNTID, 8) &&
+           VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
+           verifier.VerifyString(accountToken()) &&
+           VerifyOffset(verifier, VT_SESSIONKEY) &&
+           verifier.VerifyString(sessionKey()) &&
            verifier.EndTable();
   }
-  FAuthenticationAckT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  void UnPackTo(FAuthenticationAckT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
-  static ::flatbuffers::Offset<FAuthenticationAck> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+  CLLG_AUTH_ACKT *UnPack(const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  void UnPackTo(CLLG_AUTH_ACKT *_o, const ::flatbuffers::resolver_function_t *_resolver = nullptr) const;
+  static ::flatbuffers::Offset<CLLG_AUTH_ACK> Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_ACKT* _o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 };
 
-struct FAuthenticationAckBuilder {
-  typedef FAuthenticationAck Table;
+struct CLLG_AUTH_ACKBuilder {
+  typedef CLLG_AUTH_ACK Table;
   ::flatbuffers::FlatBufferBuilder &fbb_;
   ::flatbuffers::uoffset_t start_;
   void add_seq(int32_t seq) {
-    fbb_.AddElement<int32_t>(FAuthenticationAck::VT_SEQ, seq, 0);
+    fbb_.AddElement<int32_t>(CLLG_AUTH_ACK::VT_SEQ, seq, 0);
   }
   void add_result(EResultID result) {
-    fbb_.AddElement<int32_t>(FAuthenticationAck::VT_RESULT, static_cast<int32_t>(result), 0);
+    fbb_.AddElement<int32_t>(CLLG_AUTH_ACK::VT_RESULT, static_cast<int32_t>(result), 0);
   }
-  void add_accountID(int64_t accountID) {
-    fbb_.AddElement<int64_t>(FAuthenticationAck::VT_ACCOUNTID, accountID, 0);
+  void add_accountToken(::flatbuffers::Offset<::flatbuffers::String> accountToken) {
+    fbb_.AddOffset(CLLG_AUTH_ACK::VT_ACCOUNTTOKEN, accountToken);
   }
-  explicit FAuthenticationAckBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
+  void add_sessionKey(::flatbuffers::Offset<::flatbuffers::String> sessionKey) {
+    fbb_.AddOffset(CLLG_AUTH_ACK::VT_SESSIONKEY, sessionKey);
+  }
+  explicit CLLG_AUTH_ACKBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  ::flatbuffers::Offset<FAuthenticationAck> Finish() {
+  ::flatbuffers::Offset<CLLG_AUTH_ACK> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = ::flatbuffers::Offset<FAuthenticationAck>(end);
+    auto o = ::flatbuffers::Offset<CLLG_AUTH_ACK>(end);
     return o;
   }
 };
 
-inline ::flatbuffers::Offset<FAuthenticationAck> CreateFAuthenticationAck(
+inline ::flatbuffers::Offset<CLLG_AUTH_ACK> CreateCLLG_AUTH_ACK(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t seq = 0,
     EResultID result = EResultID::R_NONE,
-    int64_t accountID = 0) {
-  FAuthenticationAckBuilder builder_(_fbb);
-  builder_.add_accountID(accountID);
+    ::flatbuffers::Offset<::flatbuffers::String> accountToken = 0,
+    ::flatbuffers::Offset<::flatbuffers::String> sessionKey = 0) {
+  CLLG_AUTH_ACKBuilder builder_(_fbb);
+  builder_.add_sessionKey(sessionKey);
+  builder_.add_accountToken(accountToken);
   builder_.add_result(result);
   builder_.add_seq(seq);
   return builder_.Finish();
 }
 
-struct FAuthenticationAck::Traits {
-  using type = FAuthenticationAck;
-  static auto constexpr Create = CreateFAuthenticationAck;
+struct CLLG_AUTH_ACK::Traits {
+  using type = CLLG_AUTH_ACK;
+  static auto constexpr Create = CreateCLLG_AUTH_ACK;
 };
 
-::flatbuffers::Offset<FAuthenticationAck> CreateFAuthenticationAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
+inline ::flatbuffers::Offset<CLLG_AUTH_ACK> CreateCLLG_AUTH_ACKDirect(
+    ::flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t seq = 0,
+    EResultID result = EResultID::R_NONE,
+    const char *accountToken = nullptr,
+    const char *sessionKey = nullptr) {
+  auto accountToken__ = accountToken ? _fbb.CreateString(accountToken) : 0;
+  auto sessionKey__ = sessionKey ? _fbb.CreateString(sessionKey) : 0;
+  return CreateCLLG_AUTH_ACK(
+      _fbb,
+      seq,
+      result,
+      accountToken__,
+      sessionKey__);
+}
+
+::flatbuffers::Offset<CLLG_AUTH_ACK> CreateCLLG_AUTH_ACK(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_ACKT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
 struct CLGS_CONNECT_REQ_T : public ::flatbuffers::NativeTable {
   typedef CLGS_CONNECT_REQ_ TableType;
@@ -2549,7 +2119,8 @@ struct CLGS_CONNECT_REQ_ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
@@ -2651,7 +2222,8 @@ struct CLGS_CONNECT_ACK_ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   int32_t result() const {
     return GetField<int32_t>(VT_RESULT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2733,7 +2305,8 @@ struct CLGS_AUTHEN_REQ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
@@ -2815,7 +2388,7 @@ inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CreateCLGS_AUTHEN_REQDirect(
 struct CLGS_AUTHEN_ACKT : public ::flatbuffers::NativeTable {
   typedef CLGS_AUTHEN_ACK TableType;
   int32_t seq = 0;
-  int32_t result = 0;
+  EResultID result = EResultID::R_NONE;
 };
 
 struct CLGS_AUTHEN_ACK FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
@@ -2832,10 +2405,11 @@ struct CLGS_AUTHEN_ACK FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t seq() const {
     return GetField<int32_t>(VT_SEQ, 0);
   }
-  int32_t result() const {
-    return GetField<int32_t>(VT_RESULT, 0);
+  EResultID result() const {
+    return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2853,8 +2427,8 @@ struct CLGS_AUTHEN_ACKBuilder {
   void add_seq(int32_t seq) {
     fbb_.AddElement<int32_t>(CLGS_AUTHEN_ACK::VT_SEQ, seq, 0);
   }
-  void add_result(int32_t result) {
-    fbb_.AddElement<int32_t>(CLGS_AUTHEN_ACK::VT_RESULT, result, 0);
+  void add_result(EResultID result) {
+    fbb_.AddElement<int32_t>(CLGS_AUTHEN_ACK::VT_RESULT, static_cast<int32_t>(result), 0);
   }
   explicit CLGS_AUTHEN_ACKBuilder(::flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -2870,7 +2444,7 @@ struct CLGS_AUTHEN_ACKBuilder {
 inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CreateCLGS_AUTHEN_ACK(
     ::flatbuffers::FlatBufferBuilder &_fbb,
     int32_t seq = 0,
-    int32_t result = 0) {
+    EResultID result = EResultID::R_NONE) {
   CLGS_AUTHEN_ACKBuilder builder_(_fbb);
   builder_.add_result(result);
   builder_.add_seq(seq);
@@ -2922,7 +2496,8 @@ struct DBGS_Authentication_REQ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_SESSIONID, 4) &&
@@ -3020,7 +2595,8 @@ struct F_GUEST_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_GUEST_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3068,7 +2644,8 @@ struct F_GUEST_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_GUEST_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3116,7 +2693,8 @@ struct F_MEMBER_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_MEMBER_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3164,7 +2742,8 @@ struct F_MEMBER_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_MEMBER_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3212,7 +2791,8 @@ struct S_SERVER_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return S_SERVER_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3260,7 +2840,8 @@ struct S_SERVER_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return S_SERVER_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3308,7 +2889,8 @@ struct P_SERVER_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return P_SERVER_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3356,7 +2938,8 @@ struct P_SERVER_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return P_SERVER_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3424,26 +3007,14 @@ struct MessageHolder FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const F_GUEST_MESSAGE_MIN *message_as_F_GUEST_MESSAGE_MIN() const {
     return message_type() == MessageID::F_GUEST_MESSAGE_MIN ? static_cast<const F_GUEST_MESSAGE_MIN *>(message()) : nullptr;
   }
-  const FConnectReq *message_as_FConnectReq() const {
-    return message_type() == MessageID::FConnectReq ? static_cast<const FConnectReq *>(message()) : nullptr;
+  const GSCL_CONNECTED_CMD *message_as_GSCL_CONNECTED_CMD() const {
+    return message_type() == MessageID::GSCL_CONNECTED_CMD ? static_cast<const GSCL_CONNECTED_CMD *>(message()) : nullptr;
   }
-  const FConnectAck *message_as_FConnectAck() const {
-    return message_type() == MessageID::FConnectAck ? static_cast<const FConnectAck *>(message()) : nullptr;
+  const CLLG_AUTH_REQ *message_as_CLLG_AUTH_REQ() const {
+    return message_type() == MessageID::CLLG_AUTH_REQ ? static_cast<const CLLG_AUTH_REQ *>(message()) : nullptr;
   }
-  const FAcceptAck *message_as_FAcceptAck() const {
-    return message_type() == MessageID::FAcceptAck ? static_cast<const FAcceptAck *>(message()) : nullptr;
-  }
-  const FDisconnectReq *message_as_FDisconnectReq() const {
-    return message_type() == MessageID::FDisconnectReq ? static_cast<const FDisconnectReq *>(message()) : nullptr;
-  }
-  const FDisconnectAck *message_as_FDisconnectAck() const {
-    return message_type() == MessageID::FDisconnectAck ? static_cast<const FDisconnectAck *>(message()) : nullptr;
-  }
-  const FAuthenticationReq *message_as_FAuthenticationReq() const {
-    return message_type() == MessageID::FAuthenticationReq ? static_cast<const FAuthenticationReq *>(message()) : nullptr;
-  }
-  const FAuthenticationAck *message_as_FAuthenticationAck() const {
-    return message_type() == MessageID::FAuthenticationAck ? static_cast<const FAuthenticationAck *>(message()) : nullptr;
+  const CLLG_AUTH_ACK *message_as_CLLG_AUTH_ACK() const {
+    return message_type() == MessageID::CLLG_AUTH_ACK ? static_cast<const CLLG_AUTH_ACK *>(message()) : nullptr;
   }
   const CLGS_CONNECT_REQ_ *message_as_CLGS_CONNECT_REQ_() const {
     return message_type() == MessageID::CLGS_CONNECT_REQ_ ? static_cast<const CLGS_CONNECT_REQ_ *>(message()) : nullptr;
@@ -3463,7 +3034,8 @@ struct MessageHolder FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const F_MEMBER_MESSAGE_MAX *message_as_F_MEMBER_MESSAGE_MAX() const {
     return message_type() == MessageID::F_MEMBER_MESSAGE_MAX ? static_cast<const F_MEMBER_MESSAGE_MAX *>(message()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ACCOUNTID) &&
            verifier.VerifyVector(accountID()) &&
@@ -3481,32 +3053,16 @@ template<> inline const F_GUEST_MESSAGE_MIN *MessageHolder::message_as<F_GUEST_M
   return message_as_F_GUEST_MESSAGE_MIN();
 }
 
-template<> inline const FConnectReq *MessageHolder::message_as<FConnectReq>() const {
-  return message_as_FConnectReq();
+template<> inline const GSCL_CONNECTED_CMD *MessageHolder::message_as<GSCL_CONNECTED_CMD>() const {
+  return message_as_GSCL_CONNECTED_CMD();
 }
 
-template<> inline const FConnectAck *MessageHolder::message_as<FConnectAck>() const {
-  return message_as_FConnectAck();
+template<> inline const CLLG_AUTH_REQ *MessageHolder::message_as<CLLG_AUTH_REQ>() const {
+  return message_as_CLLG_AUTH_REQ();
 }
 
-template<> inline const FAcceptAck *MessageHolder::message_as<FAcceptAck>() const {
-  return message_as_FAcceptAck();
-}
-
-template<> inline const FDisconnectReq *MessageHolder::message_as<FDisconnectReq>() const {
-  return message_as_FDisconnectReq();
-}
-
-template<> inline const FDisconnectAck *MessageHolder::message_as<FDisconnectAck>() const {
-  return message_as_FDisconnectAck();
-}
-
-template<> inline const FAuthenticationReq *MessageHolder::message_as<FAuthenticationReq>() const {
-  return message_as_FAuthenticationReq();
-}
-
-template<> inline const FAuthenticationAck *MessageHolder::message_as<FAuthenticationAck>() const {
-  return message_as_FAuthenticationAck();
+template<> inline const CLLG_AUTH_ACK *MessageHolder::message_as<CLLG_AUTH_ACK>() const {
+  return message_as_CLLG_AUTH_ACK();
 }
 
 template<> inline const CLGS_CONNECT_REQ_ *MessageHolder::message_as<CLGS_CONNECT_REQ_>() const {
@@ -3589,222 +3145,97 @@ inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolderDirect(
 
 ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT *_o, const ::flatbuffers::rehasher_function_t *_rehasher = nullptr);
 
-inline FConnectReqT *FConnectReq::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FConnectReqT>();
+inline GSCL_CONNECTED_CMDT *GSCL_CONNECTED_CMD::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::make_unique<GSCL_CONNECTED_CMDT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
 
-inline void FConnectReq::UnPackTo(FConnectReqT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = seq(); _o->seq = _e; }
-  { auto _e = ip(); if (_e) _o->ip = _e->str(); }
-  { auto _e = port(); _o->port = _e; }
-}
-
-inline ::flatbuffers::Offset<FConnectReq> FConnectReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFConnectReq(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<FConnectReq> CreateFConnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FConnectReqT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _seq = _o->seq;
-  auto _ip = _o->ip.empty() ? 0 : _fbb.CreateString(_o->ip);
-  auto _port = _o->port;
-  return CreateFConnectReq(
-      _fbb,
-      _seq,
-      _ip,
-      _port);
-}
-
-inline FConnectAckT *FConnectAck::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FConnectAckT>();
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FConnectAck::UnPackTo(FConnectAckT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = seq(); _o->seq = _e; }
-  { auto _e = result(); _o->result = _e; }
-}
-
-inline ::flatbuffers::Offset<FConnectAck> FConnectAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFConnectAck(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<FConnectAck> CreateFConnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FConnectAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _seq = _o->seq;
-  auto _result = _o->result;
-  return CreateFConnectAck(
-      _fbb,
-      _seq,
-      _result);
-}
-
-inline FAcceptAckT *FAcceptAck::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FAcceptAckT>();
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FAcceptAck::UnPackTo(FAcceptAckT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = seq(); _o->seq = _e; }
-  { auto _e = result(); _o->result = _e; }
-  { auto _e = ip(); if (_e) _o->ip = _e->str(); }
-  { auto _e = port(); _o->port = _e; }
-}
-
-inline ::flatbuffers::Offset<FAcceptAck> FAcceptAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFAcceptAck(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<FAcceptAck> CreateFAcceptAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FAcceptAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _seq = _o->seq;
-  auto _result = _o->result;
-  auto _ip = _o->ip.empty() ? 0 : _fbb.CreateString(_o->ip);
-  auto _port = _o->port;
-  return CreateFAcceptAck(
-      _fbb,
-      _seq,
-      _result,
-      _ip,
-      _port);
-}
-
-inline FDisconnectReqT *FDisconnectReq::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FDisconnectReqT>();
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FDisconnectReq::UnPackTo(FDisconnectReqT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+inline void GSCL_CONNECTED_CMD::UnPackTo(GSCL_CONNECTED_CMDT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
   { auto _e = seq(); _o->seq = _e; }
 }
 
-inline ::flatbuffers::Offset<FDisconnectReq> FDisconnectReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFDisconnectReq(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<GSCL_CONNECTED_CMD> CreateGSCL_CONNECTED_CMD(::flatbuffers::FlatBufferBuilder &_fbb, const GSCL_CONNECTED_CMDT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return GSCL_CONNECTED_CMD::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FDisconnectReq> CreateFDisconnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<GSCL_CONNECTED_CMD> GSCL_CONNECTED_CMD::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const GSCL_CONNECTED_CMDT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FDisconnectReqT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const GSCL_CONNECTED_CMDT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _seq = _o->seq;
-  return CreateFDisconnectReq(
+  return CreateGSCL_CONNECTED_CMD(
       _fbb,
       _seq);
 }
 
-inline FDisconnectAckT *FDisconnectAck::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FDisconnectAckT>();
+inline CLLG_AUTH_REQT *CLLG_AUTH_REQ::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::make_unique<CLLG_AUTH_REQT>();
   UnPackTo(_o.get(), _resolver);
   return _o.release();
 }
 
-inline void FDisconnectAck::UnPackTo(FDisconnectAckT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+inline void CLLG_AUTH_REQ::UnPackTo(CLLG_AUTH_REQT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
+  (void)_o;
+  (void)_resolver;
+  { auto _e = seq(); _o->seq = _e; }
+  { auto _e = accountID(); if (_e) _o->accountID = _e->str(); }
+  { auto _e = password(); if (_e) _o->password = _e->str(); }
+}
+
+inline ::flatbuffers::Offset<CLLG_AUTH_REQ> CreateCLLG_AUTH_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLLG_AUTH_REQ::Pack(_fbb, _o, _rehasher);
+}
+
+inline ::flatbuffers::Offset<CLLG_AUTH_REQ> CLLG_AUTH_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  (void)_rehasher;
+  (void)_o;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLLG_AUTH_REQT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  auto _seq = _o->seq;
+  auto _accountID = _o->accountID.empty() ? 0 : _fbb.CreateString(_o->accountID);
+  auto _password = _o->password.empty() ? 0 : _fbb.CreateString(_o->password);
+  return CreateCLLG_AUTH_REQ(
+      _fbb,
+      _seq,
+      _accountID,
+      _password);
+}
+
+inline CLLG_AUTH_ACKT *CLLG_AUTH_ACK::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
+  auto _o = std::make_unique<CLLG_AUTH_ACKT>();
+  UnPackTo(_o.get(), _resolver);
+  return _o.release();
+}
+
+inline void CLLG_AUTH_ACK::UnPackTo(CLLG_AUTH_ACKT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
   (void)_o;
   (void)_resolver;
   { auto _e = seq(); _o->seq = _e; }
   { auto _e = result(); _o->result = _e; }
+  { auto _e = accountToken(); if (_e) _o->accountToken = _e->str(); }
+  { auto _e = sessionKey(); if (_e) _o->sessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<FDisconnectAck> FDisconnectAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFDisconnectAck(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLLG_AUTH_ACK> CreateCLLG_AUTH_ACK(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_ACKT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLLG_AUTH_ACK::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FDisconnectAck> CreateFDisconnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLLG_AUTH_ACK> CLLG_AUTH_ACK::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLLG_AUTH_ACKT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FDisconnectAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
+  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLLG_AUTH_ACKT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
   auto _seq = _o->seq;
   auto _result = _o->result;
-  return CreateFDisconnectAck(
-      _fbb,
-      _seq,
-      _result);
-}
-
-inline FAuthenticationReqT *FAuthenticationReq::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FAuthenticationReqT>();
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FAuthenticationReq::UnPackTo(FAuthenticationReqT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = seq(); _o->seq = _e; }
-  { auto _e = accounttoken(); if (_e) _o->accounttoken = _e->str(); }
-  { auto _e = reconnect(); _o->reconnect = _e; }
-  { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
-}
-
-inline ::flatbuffers::Offset<FAuthenticationReq> FAuthenticationReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFAuthenticationReq(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<FAuthenticationReq> CreateFAuthenticationReq(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FAuthenticationReqT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _seq = _o->seq;
-  auto _accounttoken = _o->accounttoken.empty() ? 0 : _fbb.CreateString(_o->accounttoken);
-  auto _reconnect = _o->reconnect;
-  auto _connectSessionKey = _o->connectSessionKey.empty() ? 0 : _fbb.CreateString(_o->connectSessionKey);
-  return CreateFAuthenticationReq(
-      _fbb,
-      _seq,
-      _accounttoken,
-      _reconnect,
-      _connectSessionKey);
-}
-
-inline FAuthenticationAckT *FAuthenticationAck::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
-  auto _o = std::make_unique<FAuthenticationAckT>();
-  UnPackTo(_o.get(), _resolver);
-  return _o.release();
-}
-
-inline void FAuthenticationAck::UnPackTo(FAuthenticationAckT *_o, const ::flatbuffers::resolver_function_t *_resolver) const {
-  (void)_o;
-  (void)_resolver;
-  { auto _e = seq(); _o->seq = _e; }
-  { auto _e = result(); _o->result = _e; }
-  { auto _e = accountID(); _o->accountID = _e; }
-}
-
-inline ::flatbuffers::Offset<FAuthenticationAck> FAuthenticationAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFAuthenticationAck(_fbb, _o, _rehasher);
-}
-
-inline ::flatbuffers::Offset<FAuthenticationAck> CreateFAuthenticationAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  (void)_rehasher;
-  (void)_o;
-  struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FAuthenticationAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
-  auto _seq = _o->seq;
-  auto _result = _o->result;
-  auto _accountID = _o->accountID;
-  return CreateFAuthenticationAck(
+  auto _accountToken = _o->accountToken.empty() ? 0 : _fbb.CreateString(_o->accountToken);
+  auto _sessionKey = _o->sessionKey.empty() ? 0 : _fbb.CreateString(_o->sessionKey);
+  return CreateCLLG_AUTH_ACK(
       _fbb,
       _seq,
       _result,
-      _accountID);
+      _accountToken,
+      _sessionKey);
 }
 
 inline CLGS_CONNECT_REQ_T *CLGS_CONNECT_REQ_::UnPack(const ::flatbuffers::resolver_function_t *_resolver) const {
@@ -3822,11 +3253,11 @@ inline void CLGS_CONNECT_REQ_::UnPackTo(CLGS_CONNECT_REQ_T *_o, const ::flatbuff
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CLGS_CONNECT_REQ_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_CONNECT_REQ_(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CreateCLGS_CONNECT_REQ_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_CONNECT_REQ_::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CreateCLGS_CONNECT_REQ_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CLGS_CONNECT_REQ_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_CONNECT_REQ_T* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3855,11 +3286,11 @@ inline void CLGS_CONNECT_ACK_::UnPackTo(CLGS_CONNECT_ACK_T *_o, const ::flatbuff
   { auto _e = result(); _o->result = _e; }
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CLGS_CONNECT_ACK_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_CONNECT_ACK_(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CreateCLGS_CONNECT_ACK_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_CONNECT_ACK_::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CreateCLGS_CONNECT_ACK_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CLGS_CONNECT_ACK_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_CONNECT_ACK_T* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3886,11 +3317,11 @@ inline void CLGS_AUTHEN_REQ::UnPackTo(CLGS_AUTHEN_REQT *_o, const ::flatbuffers:
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CLGS_AUTHEN_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_AUTHEN_REQ(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CreateCLGS_AUTHEN_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_AUTHEN_REQ::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CreateCLGS_AUTHEN_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CLGS_AUTHEN_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_AUTHEN_REQT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3919,11 +3350,11 @@ inline void CLGS_AUTHEN_ACK::UnPackTo(CLGS_AUTHEN_ACKT *_o, const ::flatbuffers:
   { auto _e = result(); _o->result = _e; }
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CLGS_AUTHEN_ACK::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_AUTHEN_ACK(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CreateCLGS_AUTHEN_ACK(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_AUTHEN_ACK::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CreateCLGS_AUTHEN_ACK(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CLGS_AUTHEN_ACK::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_AUTHEN_ACKT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3951,11 +3382,11 @@ inline void DBGS_Authentication_REQ::UnPackTo(DBGS_Authentication_REQT *_o, cons
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<DBGS_Authentication_REQ> DBGS_Authentication_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDBGS_Authentication_REQ(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<DBGS_Authentication_REQ> CreateDBGS_Authentication_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return DBGS_Authentication_REQ::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<DBGS_Authentication_REQ> CreateDBGS_Authentication_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<DBGS_Authentication_REQ> DBGS_Authentication_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DBGS_Authentication_REQT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3984,11 +3415,11 @@ inline void F_GUEST_MESSAGE_MIN::UnPackTo(F_GUEST_MESSAGE_MINT *_o, const ::flat
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> F_GUEST_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_GUEST_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> CreateF_GUEST_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_GUEST_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> CreateF_GUEST_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> F_GUEST_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_GUEST_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4007,11 +3438,11 @@ inline void F_GUEST_MESSAGE_MAX::UnPackTo(F_GUEST_MESSAGE_MAXT *_o, const ::flat
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> F_GUEST_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_GUEST_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> CreateF_GUEST_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_GUEST_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> CreateF_GUEST_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> F_GUEST_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_GUEST_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4030,11 +3461,11 @@ inline void F_MEMBER_MESSAGE_MIN::UnPackTo(F_MEMBER_MESSAGE_MINT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> F_MEMBER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_MEMBER_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> CreateF_MEMBER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_MEMBER_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> CreateF_MEMBER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> F_MEMBER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_MEMBER_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4053,11 +3484,11 @@ inline void F_MEMBER_MESSAGE_MAX::UnPackTo(F_MEMBER_MESSAGE_MAXT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> F_MEMBER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_MEMBER_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> CreateF_MEMBER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_MEMBER_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> CreateF_MEMBER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> F_MEMBER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_MEMBER_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4076,11 +3507,11 @@ inline void S_SERVER_MESSAGE_MIN::UnPackTo(S_SERVER_MESSAGE_MINT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> S_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateS_SERVER_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> CreateS_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return S_SERVER_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> CreateS_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> S_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const S_SERVER_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4099,11 +3530,11 @@ inline void S_SERVER_MESSAGE_MAX::UnPackTo(S_SERVER_MESSAGE_MAXT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> S_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateS_SERVER_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> CreateS_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return S_SERVER_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> CreateS_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> S_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const S_SERVER_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4122,11 +3553,11 @@ inline void P_SERVER_MESSAGE_MIN::UnPackTo(P_SERVER_MESSAGE_MINT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> P_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateP_SERVER_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> CreateP_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return P_SERVER_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> CreateP_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> P_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const P_SERVER_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4145,11 +3576,11 @@ inline void P_SERVER_MESSAGE_MAX::UnPackTo(P_SERVER_MESSAGE_MAXT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> P_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateP_SERVER_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> CreateP_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return P_SERVER_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> CreateP_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> P_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const P_SERVER_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4171,11 +3602,11 @@ inline void MessageHolder::UnPackTo(MessageHolderT *_o, const ::flatbuffers::res
   { auto _e = message(); if (_e) _o->message.value = MessageIDUnion::UnPack(_e, message_type(), _resolver); }
 }
 
-inline ::flatbuffers::Offset<MessageHolder> MessageHolder::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMessageHolder(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return MessageHolder::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MessageHolder> MessageHolder::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MessageHolderT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4189,7 +3620,8 @@ inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::F
       _message);
 }
 
-inline bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, MessageID type) {
+template <bool B>
+inline bool VerifyMessageID(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, MessageID type) {
   switch (type) {
     case MessageID::NONE: {
       return true;
@@ -4198,32 +3630,16 @@ inline bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, 
       auto ptr = reinterpret_cast<const F_GUEST_MESSAGE_MIN *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case MessageID::FConnectReq: {
-      auto ptr = reinterpret_cast<const FConnectReq *>(obj);
+    case MessageID::GSCL_CONNECTED_CMD: {
+      auto ptr = reinterpret_cast<const GSCL_CONNECTED_CMD *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case MessageID::FConnectAck: {
-      auto ptr = reinterpret_cast<const FConnectAck *>(obj);
+    case MessageID::CLLG_AUTH_REQ: {
+      auto ptr = reinterpret_cast<const CLLG_AUTH_REQ *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case MessageID::FAcceptAck: {
-      auto ptr = reinterpret_cast<const FAcceptAck *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case MessageID::FDisconnectReq: {
-      auto ptr = reinterpret_cast<const FDisconnectReq *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case MessageID::FDisconnectAck: {
-      auto ptr = reinterpret_cast<const FDisconnectAck *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case MessageID::FAuthenticationReq: {
-      auto ptr = reinterpret_cast<const FAuthenticationReq *>(obj);
-      return verifier.VerifyTable(ptr);
-    }
-    case MessageID::FAuthenticationAck: {
-      auto ptr = reinterpret_cast<const FAuthenticationAck *>(obj);
+    case MessageID::CLLG_AUTH_ACK: {
+      auto ptr = reinterpret_cast<const CLLG_AUTH_ACK *>(obj);
       return verifier.VerifyTable(ptr);
     }
     case MessageID::CLGS_CONNECT_REQ_: {
@@ -4254,7 +3670,8 @@ inline bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, 
   }
 }
 
-inline bool VerifyMessageIDVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types) {
+template <bool B>
+inline bool VerifyMessageIDVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -4273,32 +3690,16 @@ inline void *MessageIDUnion::UnPack(const void *obj, MessageID type, const ::fla
       auto ptr = reinterpret_cast<const F_GUEST_MESSAGE_MIN *>(obj);
       return ptr->UnPack(resolver);
     }
-    case MessageID::FConnectReq: {
-      auto ptr = reinterpret_cast<const FConnectReq *>(obj);
+    case MessageID::GSCL_CONNECTED_CMD: {
+      auto ptr = reinterpret_cast<const GSCL_CONNECTED_CMD *>(obj);
       return ptr->UnPack(resolver);
     }
-    case MessageID::FConnectAck: {
-      auto ptr = reinterpret_cast<const FConnectAck *>(obj);
+    case MessageID::CLLG_AUTH_REQ: {
+      auto ptr = reinterpret_cast<const CLLG_AUTH_REQ *>(obj);
       return ptr->UnPack(resolver);
     }
-    case MessageID::FAcceptAck: {
-      auto ptr = reinterpret_cast<const FAcceptAck *>(obj);
-      return ptr->UnPack(resolver);
-    }
-    case MessageID::FDisconnectReq: {
-      auto ptr = reinterpret_cast<const FDisconnectReq *>(obj);
-      return ptr->UnPack(resolver);
-    }
-    case MessageID::FDisconnectAck: {
-      auto ptr = reinterpret_cast<const FDisconnectAck *>(obj);
-      return ptr->UnPack(resolver);
-    }
-    case MessageID::FAuthenticationReq: {
-      auto ptr = reinterpret_cast<const FAuthenticationReq *>(obj);
-      return ptr->UnPack(resolver);
-    }
-    case MessageID::FAuthenticationAck: {
-      auto ptr = reinterpret_cast<const FAuthenticationAck *>(obj);
+    case MessageID::CLLG_AUTH_ACK: {
+      auto ptr = reinterpret_cast<const CLLG_AUTH_ACK *>(obj);
       return ptr->UnPack(resolver);
     }
     case MessageID::CLGS_CONNECT_REQ_: {
@@ -4336,33 +3737,17 @@ inline ::flatbuffers::Offset<void> MessageIDUnion::Pack(::flatbuffers::FlatBuffe
       auto ptr = reinterpret_cast<const F_GUEST_MESSAGE_MINT *>(value);
       return CreateF_GUEST_MESSAGE_MIN(_fbb, ptr, _rehasher).Union();
     }
-    case MessageID::FConnectReq: {
-      auto ptr = reinterpret_cast<const FConnectReqT *>(value);
-      return CreateFConnectReq(_fbb, ptr, _rehasher).Union();
+    case MessageID::GSCL_CONNECTED_CMD: {
+      auto ptr = reinterpret_cast<const GSCL_CONNECTED_CMDT *>(value);
+      return CreateGSCL_CONNECTED_CMD(_fbb, ptr, _rehasher).Union();
     }
-    case MessageID::FConnectAck: {
-      auto ptr = reinterpret_cast<const FConnectAckT *>(value);
-      return CreateFConnectAck(_fbb, ptr, _rehasher).Union();
+    case MessageID::CLLG_AUTH_REQ: {
+      auto ptr = reinterpret_cast<const CLLG_AUTH_REQT *>(value);
+      return CreateCLLG_AUTH_REQ(_fbb, ptr, _rehasher).Union();
     }
-    case MessageID::FAcceptAck: {
-      auto ptr = reinterpret_cast<const FAcceptAckT *>(value);
-      return CreateFAcceptAck(_fbb, ptr, _rehasher).Union();
-    }
-    case MessageID::FDisconnectReq: {
-      auto ptr = reinterpret_cast<const FDisconnectReqT *>(value);
-      return CreateFDisconnectReq(_fbb, ptr, _rehasher).Union();
-    }
-    case MessageID::FDisconnectAck: {
-      auto ptr = reinterpret_cast<const FDisconnectAckT *>(value);
-      return CreateFDisconnectAck(_fbb, ptr, _rehasher).Union();
-    }
-    case MessageID::FAuthenticationReq: {
-      auto ptr = reinterpret_cast<const FAuthenticationReqT *>(value);
-      return CreateFAuthenticationReq(_fbb, ptr, _rehasher).Union();
-    }
-    case MessageID::FAuthenticationAck: {
-      auto ptr = reinterpret_cast<const FAuthenticationAckT *>(value);
-      return CreateFAuthenticationAck(_fbb, ptr, _rehasher).Union();
+    case MessageID::CLLG_AUTH_ACK: {
+      auto ptr = reinterpret_cast<const CLLG_AUTH_ACKT *>(value);
+      return CreateCLLG_AUTH_ACK(_fbb, ptr, _rehasher).Union();
     }
     case MessageID::CLGS_CONNECT_REQ_: {
       auto ptr = reinterpret_cast<const CLGS_CONNECT_REQ_T *>(value);
@@ -4398,32 +3783,16 @@ inline MessageIDUnion::MessageIDUnion(const MessageIDUnion &u) : type(u.type), v
       value = new F_GUEST_MESSAGE_MINT(*reinterpret_cast<F_GUEST_MESSAGE_MINT *>(u.value));
       break;
     }
-    case MessageID::FConnectReq: {
-      value = new FConnectReqT(*reinterpret_cast<FConnectReqT *>(u.value));
+    case MessageID::GSCL_CONNECTED_CMD: {
+      value = new GSCL_CONNECTED_CMDT(*reinterpret_cast<GSCL_CONNECTED_CMDT *>(u.value));
       break;
     }
-    case MessageID::FConnectAck: {
-      value = new FConnectAckT(*reinterpret_cast<FConnectAckT *>(u.value));
+    case MessageID::CLLG_AUTH_REQ: {
+      value = new CLLG_AUTH_REQT(*reinterpret_cast<CLLG_AUTH_REQT *>(u.value));
       break;
     }
-    case MessageID::FAcceptAck: {
-      value = new FAcceptAckT(*reinterpret_cast<FAcceptAckT *>(u.value));
-      break;
-    }
-    case MessageID::FDisconnectReq: {
-      value = new FDisconnectReqT(*reinterpret_cast<FDisconnectReqT *>(u.value));
-      break;
-    }
-    case MessageID::FDisconnectAck: {
-      value = new FDisconnectAckT(*reinterpret_cast<FDisconnectAckT *>(u.value));
-      break;
-    }
-    case MessageID::FAuthenticationReq: {
-      value = new FAuthenticationReqT(*reinterpret_cast<FAuthenticationReqT *>(u.value));
-      break;
-    }
-    case MessageID::FAuthenticationAck: {
-      value = new FAuthenticationAckT(*reinterpret_cast<FAuthenticationAckT *>(u.value));
+    case MessageID::CLLG_AUTH_ACK: {
+      value = new CLLG_AUTH_ACKT(*reinterpret_cast<CLLG_AUTH_ACKT *>(u.value));
       break;
     }
     case MessageID::CLGS_CONNECT_REQ_: {
@@ -4462,38 +3831,18 @@ inline void MessageIDUnion::Reset() {
       delete ptr;
       break;
     }
-    case MessageID::FConnectReq: {
-      auto ptr = reinterpret_cast<FConnectReqT *>(value);
+    case MessageID::GSCL_CONNECTED_CMD: {
+      auto ptr = reinterpret_cast<GSCL_CONNECTED_CMDT *>(value);
       delete ptr;
       break;
     }
-    case MessageID::FConnectAck: {
-      auto ptr = reinterpret_cast<FConnectAckT *>(value);
+    case MessageID::CLLG_AUTH_REQ: {
+      auto ptr = reinterpret_cast<CLLG_AUTH_REQT *>(value);
       delete ptr;
       break;
     }
-    case MessageID::FAcceptAck: {
-      auto ptr = reinterpret_cast<FAcceptAckT *>(value);
-      delete ptr;
-      break;
-    }
-    case MessageID::FDisconnectReq: {
-      auto ptr = reinterpret_cast<FDisconnectReqT *>(value);
-      delete ptr;
-      break;
-    }
-    case MessageID::FDisconnectAck: {
-      auto ptr = reinterpret_cast<FDisconnectAckT *>(value);
-      delete ptr;
-      break;
-    }
-    case MessageID::FAuthenticationReq: {
-      auto ptr = reinterpret_cast<FAuthenticationReqT *>(value);
-      delete ptr;
-      break;
-    }
-    case MessageID::FAuthenticationAck: {
-      auto ptr = reinterpret_cast<FAuthenticationAckT *>(value);
+    case MessageID::CLLG_AUTH_ACK: {
+      auto ptr = reinterpret_cast<CLLG_AUTH_ACKT *>(value);
       delete ptr;
       break;
     }
@@ -5517,21 +4866,13 @@ inline const ::flatbuffers::TypeTable *MessageIDTypeTable() {
     { ::flatbuffers::ET_SEQUENCE, 0, 6 },
     { ::flatbuffers::ET_SEQUENCE, 0, 7 },
     { ::flatbuffers::ET_SEQUENCE, 0, 8 },
-    { ::flatbuffers::ET_SEQUENCE, 0, 9 },
-    { ::flatbuffers::ET_SEQUENCE, 0, 10 },
-    { ::flatbuffers::ET_SEQUENCE, 0, 11 },
-    { ::flatbuffers::ET_SEQUENCE, 0, 12 },
-    { ::flatbuffers::ET_SEQUENCE, 0, 13 }
+    { ::flatbuffers::ET_SEQUENCE, 0, 9 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
     F_GUEST_MESSAGE_MINTypeTable,
-    FConnectReqTypeTable,
-    FConnectAckTypeTable,
-    FAcceptAckTypeTable,
-    FDisconnectReqTypeTable,
-    FDisconnectAckTypeTable,
-    FAuthenticationReqTypeTable,
-    FAuthenticationAckTypeTable,
+    GSCL_CONNECTED_CMDTypeTable,
+    CLLG_AUTH_REQTypeTable,
+    CLLG_AUTH_ACKTypeTable,
     CLGS_CONNECT_REQ_TypeTable,
     CLGS_CONNECT_ACK_TypeTable,
     CLGS_AUTHEN_REQTypeTable,
@@ -5539,17 +4880,13 @@ inline const ::flatbuffers::TypeTable *MessageIDTypeTable() {
     DBGS_Authentication_REQTypeTable,
     F_MEMBER_MESSAGE_MAXTypeTable
   };
-  static const int64_t values[] = { 0, 1, 11, 12, 13, 21, 22, 41, 42, 9001, 9002, 9003, 9004, 9005, 19999 };
+  static const int64_t values[] = { 0, 1, 8000, 8001, 8002, 9001, 9002, 9003, 9004, 9005, 19999 };
   static const char * const names[] = {
     "NONE",
     "F_GUEST_MESSAGE_MIN",
-    "FConnectReq",
-    "FConnectAck",
-    "FAcceptAck",
-    "FDisconnectReq",
-    "FDisconnectAck",
-    "FAuthenticationReq",
-    "FAuthenticationAck",
+    "GSCL_CONNECTED_CMD",
+    "CLLG_AUTH_REQ",
+    "CLLG_AUTH_ACK",
     "CLGS_CONNECT_REQ_",
     "CLGS_CONNECT_ACK_",
     "CLGS_AUTHEN_REQ",
@@ -5558,69 +4895,12 @@ inline const ::flatbuffers::TypeTable *MessageIDTypeTable() {
     "F_MEMBER_MESSAGE_MAX"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_UNION, 15, type_codes, type_refs, nullptr, values, names
+    ::flatbuffers::ST_UNION, 11, type_codes, type_refs, nullptr, values, names
   };
   return &tt;
 }
 
-inline const ::flatbuffers::TypeTable *FConnectReqTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_STRING, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, -1 }
-  };
-  static const char * const names[] = {
-    "seq",
-    "ip",
-    "port"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const ::flatbuffers::TypeTable *FConnectAckTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, 0 }
-  };
-  static const ::flatbuffers::TypeFunction type_refs[] = {
-    EResultIDTypeTable
-  };
-  static const char * const names[] = {
-    "seq",
-    "result"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const ::flatbuffers::TypeTable *FAcceptAckTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, 0 },
-    { ::flatbuffers::ET_STRING, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, -1 }
-  };
-  static const ::flatbuffers::TypeFunction type_refs[] = {
-    EResultIDTypeTable
-  };
-  static const char * const names[] = {
-    "seq",
-    "result",
-    "ip",
-    "port"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const ::flatbuffers::TypeTable *FDisconnectReqTypeTable() {
+inline const ::flatbuffers::TypeTable *GSCL_CONNECTED_CMDTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_INT, 0, -1 }
   };
@@ -5633,48 +4913,29 @@ inline const ::flatbuffers::TypeTable *FDisconnectReqTypeTable() {
   return &tt;
 }
 
-inline const ::flatbuffers::TypeTable *FDisconnectAckTypeTable() {
-  static const ::flatbuffers::TypeCode type_codes[] = {
-    { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, 0 }
-  };
-  static const ::flatbuffers::TypeFunction type_refs[] = {
-    EResultIDTypeTable
-  };
-  static const char * const names[] = {
-    "seq",
-    "result"
-  };
-  static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, nullptr, names
-  };
-  return &tt;
-}
-
-inline const ::flatbuffers::TypeTable *FAuthenticationReqTypeTable() {
+inline const ::flatbuffers::TypeTable *CLLG_AUTH_REQTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_INT, 0, -1 },
     { ::flatbuffers::ET_STRING, 0, -1 },
-    { ::flatbuffers::ET_BOOL, 0, -1 },
     { ::flatbuffers::ET_STRING, 0, -1 }
   };
   static const char * const names[] = {
     "seq",
-    "accounttoken",
-    "reconnect",
-    "connectSessionKey"
+    "accountID",
+    "password"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 4, type_codes, nullptr, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 3, type_codes, nullptr, nullptr, nullptr, names
   };
   return &tt;
 }
 
-inline const ::flatbuffers::TypeTable *FAuthenticationAckTypeTable() {
+inline const ::flatbuffers::TypeTable *CLLG_AUTH_ACKTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_INT, 0, -1 },
     { ::flatbuffers::ET_INT, 0, 0 },
-    { ::flatbuffers::ET_LONG, 0, -1 }
+    { ::flatbuffers::ET_STRING, 0, -1 },
+    { ::flatbuffers::ET_STRING, 0, -1 }
   };
   static const ::flatbuffers::TypeFunction type_refs[] = {
     EResultIDTypeTable
@@ -5682,10 +4943,11 @@ inline const ::flatbuffers::TypeTable *FAuthenticationAckTypeTable() {
   static const char * const names[] = {
     "seq",
     "result",
-    "accountID"
+    "accountToken",
+    "sessionKey"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 3, type_codes, type_refs, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 4, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -5746,14 +5008,17 @@ inline const ::flatbuffers::TypeTable *CLGS_AUTHEN_REQTypeTable() {
 inline const ::flatbuffers::TypeTable *CLGS_AUTHEN_ACKTypeTable() {
   static const ::flatbuffers::TypeCode type_codes[] = {
     { ::flatbuffers::ET_INT, 0, -1 },
-    { ::flatbuffers::ET_INT, 0, -1 }
+    { ::flatbuffers::ET_INT, 0, 0 }
+  };
+  static const ::flatbuffers::TypeFunction type_refs[] = {
+    EResultIDTypeTable
   };
   static const char * const names[] = {
     "seq",
     "result"
   };
   static const ::flatbuffers::TypeTable tt = {
-    ::flatbuffers::ST_TABLE, 2, type_codes, nullptr, nullptr, nullptr, names
+    ::flatbuffers::ST_TABLE, 2, type_codes, type_refs, nullptr, nullptr, names
   };
   return &tt;
 }
@@ -5863,14 +5128,16 @@ inline const MessageHolder *GetSizePrefixedMessageHolder(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<MessageHolder>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyMessageHolderBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<MessageHolder>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<MessageHolder>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedMessageHolderBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<MessageHolder>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<MessageHolder>(nullptr);
 }
 
 inline void FinishMessageHolderBuffer(

@@ -1,7 +1,5 @@
 #pragma once
-#include <iostream>
-#include <Windows.h>
-
+#include <cstdint>
 
 template <typename T>
 class TemplateQ
@@ -16,11 +14,11 @@ public:
 	TemplateQ();
 	~TemplateQ();
 public:
-	bool Enqueue(__in T data);
-	bool Dequeue(__out T*  data);
+	bool Enqueue(T data);
+	bool Dequeue(T* data);
 
 
-	int32_t GetFreeSize() const; 
+	int32_t GetFreeSize() const;
 	int32_t GetUsedSize() const;
 
 	void ClearBuffer();

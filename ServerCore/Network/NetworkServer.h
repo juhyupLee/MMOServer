@@ -1,7 +1,7 @@
 #pragma once
+#include <boost/asio.hpp>
 
 class NetworkSession;
-struct NetworkTask;
 
 class NetworkServer : public Singleton<NetworkServer>
 {
@@ -9,13 +9,12 @@ public:
 	NetworkServer();
 	~NetworkServer();
 	bool Initialize();
-	bool InitializeWorkerThread(DWORD workerThreadCount);
+	bool InitializeWorkerThread(uint32_t workerThreadCount);
 
 public:
 	//Network IO
 	void Listen(int32_t port, JobDispatcher* jobDispatcher);
 	void Connect(std::string ip, int32_t port, JobDispatcher* jobDispatcher);
-	bool RegisterSocketToIOCP(SOCKET socket);
 
 public:
 	//Session
@@ -27,19 +26,18 @@ public:
 	void Convert(char* buffer, int32_t bufferSize);
 
 public:
-	bool WorkerPush(NetworkTask* networkTask);
-
-public:
-	// Getter Setter
-	HANDLE GetIOCP();
+	boost::asio::io_context& GetIOContext();
 
 private:
-	static void WorkerThread();
+	void DoAccept(std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor, JobDispatcher* jobDispatcher);
+
 private:
 	std::unordered_map<int64_t, std::shared_ptr<NetworkSession>> m_sessions;
 	std::recursive_mutex m_lock;
 	std::vector<std::thread> m_workerThread;
-	DWORD m_WorkerThreadCount;
-	HANDLE m_IOCP;
-};
+	uint32_t m_WorkerThreadCount;
 
+	boost::asio::io_context m_ioContext;
+	std::unique_ptr<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> m_workGuard;
+	std::vector<std::shared_ptr<boost::asio::ip::tcp::acceptor>> m_acceptors;
+};

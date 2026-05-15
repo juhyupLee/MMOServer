@@ -10,7 +10,6 @@ using PacketHolder = std::shared_ptr<MessageHolderT>;
 constexpr int32_t	PACKET_HEADER_SIZE = sizeof(flatbuffers::uoffset_t);
 constexpr int64_t MARK_FRONT = 0x1234567876543210;
 constexpr int64_t MARK_REAR = 0x8765432101234567;
-constexpr int32_t	MAX_ADDRESS_SIZE = (sizeof(SOCKADDR_IN) + 16) * 2;
 
 
 void CRASH();
@@ -58,4 +57,3 @@ enum class IOType
 	IO_CONSLOE_PRINT,
 	IO_FILE_WRITE
 };
-

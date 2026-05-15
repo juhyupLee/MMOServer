@@ -11,12 +11,16 @@ void PlayServer::ON_CLGS_AUTHEN_REQ(int64_t sessionID, std::shared_ptr<CLGS_AUTH
 {
 	CLGS_AUTHEN_ACKT ack;
 	ack.seq = msg->seq;
+	ack.result = EResultID::R_SUCCESS;
 
 	auto token = msg->accounttoken;
 	if (token.empty())
 	{
 		return;
 	}
+
+	auto curSession = NetworkServer::GetInstance()->FindSession(sessionID);
+	curSession->Send(ack);
 
 	//DB검증 요청
 }
@@ -31,7 +35,7 @@ bool PlayServer::Initialize()
 bool PlayServer::Start()
 {
 	NetworkServer::GetInstance()->Listen(7777, &m_main);
-	NetworkServer::GetInstance()->Connect("127.0.0.1", 13001, &m_main);
+	//NetworkServer::GetInstance()->Connect("127.0.0.1", 13001, &m_main);
 	
 	return true;
 }

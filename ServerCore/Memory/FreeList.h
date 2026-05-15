@@ -51,7 +51,7 @@ public:
 		m_allocCount(0),
 		m_freeListUID(++g_FreeListUID)
 	{
-		m_TopCheck = static_cast<TopCheck*>(_aligned_malloc(sizeof(TopCheck), 16));
+		m_TopCheck = static_cast<TopCheck*>(AlignedMalloc(sizeof(TopCheck), 16));
 		m_TopCheck->m_topPtr = nullptr;
 		m_TopCheck->m_checkID = 0;
 
@@ -63,7 +63,7 @@ public:
 		m_poolCount(0),
 		m_allocCount(0)
 	{
-		m_TopCheck = static_cast<TopCheck*>(_aligned_malloc(sizeof(TopCheck), 16));
+		m_TopCheck = static_cast<TopCheck*>(AlignedMalloc(sizeof(TopCheck), 16));
 		m_TopCheck->m_topPtr = nullptr;
 		m_TopCheck->m_checkID = 0;
 
@@ -84,10 +84,10 @@ public:
 		{
 			auto delNode = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(curNode) - offsetof(AllocMemory, m_node));
 			curNode = curNode->m_next;
-			_aligned_free(delNode);
+			AlignedFree(delNode);
 		}
 
-		_aligned_free(m_TopCheck);
+		AlignedFree(m_TopCheck);
 	}
 
 	int64_t GetFreeListUID();
@@ -108,9 +108,9 @@ private:
 	TopCheck* m_TopCheck;
 	const int64_t m_freeListUID;
 
-	LONG m_poolCount;
-	LONG m_useCount;
-	LONG m_allocCount;
+	std::atomic<int32_t> m_poolCount;
+	std::atomic<int32_t> m_useCount;
+	std::atomic<int32_t> m_allocCount;
 };
 
 template <typename T>
@@ -122,19 +122,19 @@ int64_t FreeList<T>::GetFreeListUID()
 template<typename T>
 inline int32_t FreeList<T>::GetPoolCount()
 {
-	return m_poolCount;
+	return m_poolCount.load();
 }
 
 template<typename T>
 inline int32_t FreeList<T>::GetUseCount()
 {
-	return m_useCount;
+	return m_useCount.load();
 }
 
 template<typename T>
 inline int32_t FreeList<T>::GetAllocCount()
 {
-	return m_allocCount;
+	return m_allocCount.load();
 }
 
 template <typename T>
@@ -149,7 +149,7 @@ inline T* FreeList<T>::AllocateMemoryFromHeap(size_t size)
 	//--------------------------------------------------------------------------
 	// 언더플로우 체크용 mark ID  + data(Payload)  + 오버플로우 체크용 mark ID  할당
 	//--------------------------------------------------------------------------
-	AllocMemory* allocMemory = static_cast<AllocMemory*>(_aligned_malloc(sizeof(AllocMemory), 16));
+	AllocMemory* allocMemory = static_cast<AllocMemory*>(AlignedMalloc(sizeof(AllocMemory), 16));
 	allocMemory->m_frontMark.m_freeFlag = false;
 	allocMemory->m_frontMark.m_size = size;
 	allocMemory->m_frontMark.m_markID = m_freeListUID;
@@ -193,8 +193,8 @@ bool FreeList<T>::Free(T* data)
 		//-------------------------------------------------------------------------------------------
 		freeNode->m_next = tempTop.m_topPtr;
 
-		auto result = InterlockedCompareExchange128(reinterpret_cast<int64_t*>(m_TopCheck), static_cast <int64_t>(tempTop.m_checkID) + 1, reinterpret_cast<int64_t>(freeNode), reinterpret_cast<int64_t*>(&tempTop));
-		if(result == TRUE)
+		auto result = AtomicCompareExchange128(reinterpret_cast<int64_t*>(m_TopCheck), static_cast <int64_t>(tempTop.m_checkID) + 1, reinterpret_cast<int64_t>(freeNode), reinterpret_cast<int64_t*>(&tempTop));
+		if(result)
 		{
 			break;
 		}
@@ -236,8 +236,8 @@ T* FreeList<T>::Alloc(size_t size)
 		{
 			return AllocateMemoryFromHeap(size);
 		}
-		auto result = InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_TopCheck), static_cast<LONG64>(tempTop.m_checkID) + 1, reinterpret_cast<LONG64>(tempTop.m_topPtr->m_next), reinterpret_cast<LONG64*>(&tempTop));
-		if (result == TRUE)
+		auto result = AtomicCompareExchange128(reinterpret_cast<int64_t*>(m_TopCheck), static_cast<int64_t>(tempTop.m_checkID) + 1, reinterpret_cast<int64_t>(tempTop.m_topPtr->m_next), reinterpret_cast<int64_t*>(&tempTop));
+		if (result)
 		{
 			break;
 		}
@@ -258,16 +258,13 @@ T* FreeList<T>::Alloc(size_t size)
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(1));
 		}
-		
+
 
 	} while (true);
 
 	spinCount = 0;
 	auto allocMemory = reinterpret_cast<AllocMemory*>(reinterpret_cast<char*>(tempTop.m_topPtr) - offsetof(AllocMemory, m_node));
 	allocMemory->m_frontMark.m_freeFlag.exchange(false);
-
-	//InterlockedIncrement(&m_useCount);
-	//InterlockedDecrement(&m_poolCount);
 
 	Node* rtnNode = tempTop.m_topPtr;
 	std::construct_at(rtnNode);

@@ -16,14 +16,9 @@ union MessageID : int
 {
 	// client(guest), server <-> server
     F_GUEST_MESSAGE_MIN					= 1,
-	FConnectReq								= 11,
-	FConnectAck								= 12,
-	FAcceptAck								= 13,
-	FDisconnectReq							= 21,
-	FDisconnectAck							= 22,
-
-	FAuthenticationReq						= 41,
-	FAuthenticationAck						= 42,
+	GSCL_CONNECTED_CMD					= 8000,
+	CLLG_AUTH_REQ						= 8001,
+	CLLG_AUTH_ACK						= 8002,
 
 	CLGS_CONNECT_REQ_					= 9001,
 	CLGS_CONNECT_ACK_					= 9002, 

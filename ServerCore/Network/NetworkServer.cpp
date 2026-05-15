@@ -2,28 +2,31 @@
 #include "NetworkServer.h"
 
 NetworkServer::NetworkServer()
+	: m_WorkerThreadCount(0)
 {
 	setlocale(LC_ALL, "");
-	WSAData wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-	{
-		//_LOG->WriteLog(SERVER_NAME, SysLog::eLogLevel::LOG_LEVEL_ERROR, L"WSAStartUp() Error:%d", WSAGetLastError());
-	}
-
 }
 
 NetworkServer::~NetworkServer()
 {
+	if (m_workGuard)
+	{
+		m_workGuard.reset();
+	}
+	m_ioContext.stop();
+	for (auto& t : m_workerThread)
+	{
+		if (t.joinable())
+		{
+			t.join();
+		}
+	}
 }
 
 bool NetworkServer::Initialize()
 {
-	m_IOCP = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, NULL, 5);
-	if (m_IOCP == nullptr || m_IOCP == INVALID_HANDLE_VALUE)
-	{
-		m_IOCP = INVALID_HANDLE_VALUE;
-		return false;
-	}
+	m_workGuard = std::make_unique<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>>(
+		boost::asio::make_work_guard(m_ioContext));
 
 	InitializeWorkerThread(5);
 	return true;
@@ -44,7 +47,7 @@ void NetworkServer::Convert(char* buffer, int32_t bufferSize)
 	}
 }
 
-bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
+bool NetworkServer::InitializeWorkerThread(uint32_t workerThreadCount)
 {
 	m_WorkerThreadCount = workerThreadCount;
 
@@ -52,7 +55,7 @@ bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
 	{
 		m_workerThread.emplace_back([this]()
 		{
-			NetworkServer::WorkerThread();
+			m_ioContext.run();
 		});
 	}
 	return true;
@@ -61,7 +64,7 @@ bool NetworkServer::InitializeWorkerThread(DWORD workerThreadCount)
 std::shared_ptr<NetworkSession> NetworkServer::CreateNewSession(JobDispatcher* jobDispatcher)
 {
 	std::lock_guard guard(m_lock);
-	auto newSession = MakeMySharedPtr<NetworkSession>(jobDispatcher);
+	auto newSession = MakeMySharedPtr<NetworkSession>(m_ioContext, jobDispatcher);
 	auto it = m_sessions.insert({ newSession->GetSessionID(), newSession });
 	if (it.second == false)
 	{
@@ -74,7 +77,7 @@ bool NetworkServer::RemoveSession(int64_t sessionID)
 {
 	std::lock_guard guard(m_lock);
 	auto findSession = FindSession(sessionID);
-	if(findSession == nullptr)
+	if (findSession == nullptr)
 	{
 		return false;
 	}
@@ -92,60 +95,68 @@ std::shared_ptr<NetworkSession> NetworkServer::FindSession(int64_t sessionID)
 
 void NetworkServer::Listen(int32_t port, JobDispatcher* jobDispatcher)
 {
-	auto task = new NetworkTaskListen;
-	task->m_jobDispatcher = jobDispatcher;
-	task->m_port = port;
-	WorkerPush(task);
+	try
+	{
+		auto endpoint = boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), static_cast<unsigned short>(port));
+		auto acceptor = std::make_shared<boost::asio::ip::tcp::acceptor>(m_ioContext, endpoint);
+
+		acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+		acceptor->set_option(boost::asio::ip::tcp::no_delay(true));
+
+		m_acceptors.push_back(acceptor);
+
+		LOG_INFO("Listen on port:%", port);
+		DoAccept(acceptor, jobDispatcher);
+	}
+	catch (const boost::system::system_error& e)
+	{
+		LOG_ERR("Listen failed:%", e.what());
+	}
+}
+
+void NetworkServer::DoAccept(std::shared_ptr<boost::asio::ip::tcp::acceptor> acceptor, JobDispatcher* jobDispatcher)
+{
+	acceptor->async_accept(
+		[this, acceptor, jobDispatcher](boost::system::error_code ec, boost::asio::ip::tcp::socket socket)
+		{
+			if (!ec)
+			{
+				auto remoteEndpoint = socket.remote_endpoint();
+				auto ip = remoteEndpoint.address().to_string();
+				auto port = static_cast<int32_t>(remoteEndpoint.port());
+
+				std::cout << "IP: " << ip << std::endl;
+				LOG_INFO("IP:%", ip);
+
+				auto session = CreateNewSession(jobDispatcher);
+				if (session != nullptr)
+				{
+					session->OnAccept(std::move(socket), ip, port);
+				}
+			}
+			else
+			{
+				LOG_ERR("Accept failed:%", ec.message());
+			}
+
+			DoAccept(acceptor, jobDispatcher);
+		}
+	);
 }
 
 void NetworkServer::Connect(std::string ip, int32_t port, JobDispatcher* jobDispatcher)
 {
-	auto task = new NetworkTaskConnect;
-	task->m_ip = ip;
-	task->m_port = port;
-	task->m_jobDispatcher = jobDispatcher;
-	WorkerPush(task);
-}
-
-
-bool NetworkServer::RegisterSocketToIOCP(SOCKET socket)
-{
-	if (CreateIoCompletionPort((HANDLE)socket, m_IOCP, 0, 0) == nullptr)
+	auto session = CreateNewSession(jobDispatcher);
+	if (session == nullptr)
 	{
-		LOG_ERR("IOCP Register Fail:%", WSAGetLastError());
-		return false;
+		LOG_ERR("CreateSession failed");
+		return;
 	}
-	return true;
+
+	session->Connect(ip, port);
 }
 
-void NetworkServer::WorkerThread()
-{	
-	while (true)
-	{
-		DWORD transferByte = 0;
-		LPOVERLAPPED overlapped = nullptr;
-		ULONG_PTR key = 0;
-		BOOL result = GetQueuedCompletionStatus(NetworkServer::GetInstance()->GetIOCP(), &transferByte, &key, &overlapped, INFINITE);
-		if (overlapped == nullptr  || result == FALSE)
-		{
-			break;
-		}
-
-		auto networkTask = static_cast<NetworkTask*>(overlapped);
-		if(networkTask->Run(result, transferByte) == false)
-		{
-			delete networkTask;
-		}
-	}
-}
-
-bool NetworkServer::WorkerPush(NetworkTask* networkTask)
+boost::asio::io_context& NetworkServer::GetIOContext()
 {
-	PostQueuedCompletionStatus(m_IOCP, 0, NULL, static_cast<LPOVERLAPPED>(networkTask));
-	return true;
-}
-
-HANDLE NetworkServer::GetIOCP()
-{
-	return m_IOCP;
+	return m_ioContext;
 }

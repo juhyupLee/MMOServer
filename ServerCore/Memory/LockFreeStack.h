@@ -40,9 +40,9 @@ public:
 template<typename T>
 inline LockFreeStack<T>::LockFreeStack()
 {
-	m_count =0;
+	m_count = 0;
 
-	m_topCheck = static_cast<TopCheck*>(_aligned_malloc(sizeof(TopCheck), 16));
+	m_topCheck = static_cast<TopCheck*>(AlignedMalloc(sizeof(TopCheck), 16));
 	m_topCheck->m_topPtr = nullptr;
 	m_topCheck->m_checkID = -1;
 
@@ -60,7 +60,7 @@ inline LockFreeStack<T>::~LockFreeStack()
 		curNode = curNode->m_next;
 		m_memoryPool.Free(delNode);
 	}
-	_aligned_free(m_topCheck);
+	AlignedFree(m_topCheck);
 }
 
 template<typename T>
@@ -72,14 +72,14 @@ inline bool LockFreeStack<T>::Push(T data)
 	newNode->m_next = nullptr;
 
 	TopCheck tempTop;
-	
+
 	tempTop.m_topPtr = m_topCheck->m_topPtr;
 	tempTop.m_checkID = m_topCheck->m_checkID;
 	int64_t spinCount = 0;
 	do
 	{
 		newNode->m_next = tempTop.m_topPtr;
-		if(InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_topCheck), static_cast<LONG64>(tempTop.m_checkID) + 1, reinterpret_cast<LONG64>(newNode), reinterpret_cast<LONG64*>(&tempTop)))
+		if(AtomicCompareExchange128(reinterpret_cast<int64_t*>(m_topCheck), static_cast<int64_t>(tempTop.m_checkID) + 1, reinterpret_cast<int64_t>(newNode), reinterpret_cast<int64_t*>(&tempTop)))
 		{
 			break;
 		}
@@ -124,7 +124,7 @@ inline bool LockFreeStack<T>::Pop(T* outData)
 	int64_t spinCount = 0;
 	do
 	{
-		if (InterlockedCompareExchange128(reinterpret_cast<LONG64*>(m_topCheck), static_cast<LONG64>(tempTop.m_checkID) + 1, reinterpret_cast<LONG64>(tempTop.m_topPtr->m_next), reinterpret_cast<LONG64*>(&tempTop)))
+		if (AtomicCompareExchange128(reinterpret_cast<int64_t*>(m_topCheck), static_cast<int64_t>(tempTop.m_checkID) + 1, reinterpret_cast<int64_t>(tempTop.m_topPtr->m_next), reinterpret_cast<int64_t*>(&tempTop)))
 		{
 			break;
 		}

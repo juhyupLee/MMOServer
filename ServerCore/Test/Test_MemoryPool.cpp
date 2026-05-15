@@ -252,8 +252,14 @@
 //   cl /O2 /std:c++20 PoolVsNew_Benchmark.cpp /EHsc /MD /DUSE_MY_ALLOC /Ipath\to\your\headers /link Psapi.lib
 //   (Make sure MyAllocator<T> models std::allocator traits.)
 
+#ifdef _WIN32
 #include <Windows.h>
 #include <Psapi.h>
+#else
+#include <unistd.h>
+#include <fstream>
+#include <string>
+#endif
 
 #include <atomic>
 #include <chrono>
@@ -296,11 +302,21 @@ static constexpr long long DELAY_MEDIUM_NS = 50'000;    // 50 us
 // ===== Utility: memory usage ===============================================
 static size_t GetMemoryUsageBytes()
 {
+#ifdef _WIN32
     PROCESS_MEMORY_COUNTERS pmc{};
     if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
         return pmc.WorkingSetSize;
     }
     return 0;
+#else
+    // Linux: read from /proc/self/statm
+    std::ifstream statm("/proc/self/statm");
+    size_t pages = 0;
+    if (statm >> pages) {
+        return pages * static_cast<size_t>(sysconf(_SC_PAGESIZE));
+    }
+    return 0;
+#endif
 }
 
 // ===== Utility: timer =======================================================

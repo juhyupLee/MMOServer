@@ -1,42 +1,22 @@
 
-table FConnectReq {
+
+table GSCL_CONNECTED_CMD {
 	seq: int;
-	ip: string;
-	port: int;
 }
 
-table FConnectAck {
+
+table CLLG_AUTH_REQ
+{
+	seq: int;
+	accountID: string;
+	password: string;
+}
+
+table CLLG_AUTH_ACK {
 	seq: int;
 	result: EResultID;
-}
-
-table FAcceptAck {
-	seq: int;
-	result: EResultID;
-	ip: string;
-	port: int;
-}
-
-table FDisconnectReq {
-	seq: int;
-}
-
-table FDisconnectAck {
-	seq: int;
-	result: EResultID;
-}
-
-table FAuthenticationReq {
-	seq: int;
-	accounttoken: string;
-	reconnect: bool;
-	connectSessionKey: string;
-}
-
-table FAuthenticationAck {
-	seq: int;
-	result: EResultID;
-	accountID: long;
+	accountToken: string;
+	sessionKey: string;
 }
 
 
@@ -61,6 +41,6 @@ table CLGS_AUTHEN_REQ {
 
 table CLGS_AUTHEN_ACK {
 	seq: int;
-	result: int;
+	result: EResultID;
 }
 

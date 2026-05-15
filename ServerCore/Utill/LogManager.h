@@ -2,13 +2,25 @@
 
 #define _MEMO(s)					#s
 #define MEMO(s)						_MEMO(s)
-#define LOG(fmt, ...)				LogManager::GetInstance()->InfoPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, __VA_ARGS__)
-#define LOG_DEBUG(fmt, ...)			LogManager::GetInstance()->DebugPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, __VA_ARGS__)
-#define LOG_INFO(fmt, ...)			LogManager::GetInstance()->InfoPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, __VA_ARGS__)
-#define LOG_WARN(fmt, ...)			LogManager::GetInstance()->WarningPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, __VA_ARGS__)
-#define LOG_ERR(fmt, ...)			LogManager::GetInstance()->ErrorPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, __VA_ARGS__)
-#define LOG_CRI(fmt, ...)			LogManager::GetInstance()->CriticalPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, __VA_ARGS__)
-#define PERFORMANCE(fmt, ...)		LogManager::GetInstance()->InfoPrint(fmt, __VA_ARGS__)
+
+#ifdef _MSC_VER
+	#define LOG(fmt, ...)				LogManager::GetInstance()->InfoPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_DEBUG(fmt, ...)			LogManager::GetInstance()->DebugPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_INFO(fmt, ...)			LogManager::GetInstance()->InfoPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_WARN(fmt, ...)			LogManager::GetInstance()->WarningPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_ERR(fmt, ...)			LogManager::GetInstance()->ErrorPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_CRI(fmt, ...)			LogManager::GetInstance()->CriticalPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define PERFORMANCE(fmt, ...)		LogManager::GetInstance()->InfoPrint(fmt, ##__VA_ARGS__)
+#else
+	// GCC/Clang: __FUNCTION__ is not a string literal, so build prefix at runtime
+	#define LOG(fmt, ...)				LogManager::GetInstance()->InfoPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_DEBUG(fmt, ...)			LogManager::GetInstance()->DebugPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_INFO(fmt, ...)			LogManager::GetInstance()->InfoPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_WARN(fmt, ...)			LogManager::GetInstance()->WarningPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_ERR(fmt, ...)			LogManager::GetInstance()->ErrorPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define LOG_CRI(fmt, ...)			LogManager::GetInstance()->CriticalPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
+	#define PERFORMANCE(fmt, ...)		LogManager::GetInstance()->InfoPrint(fmt, ##__VA_ARGS__)
+#endif
 
 #ifndef _DEBUG
     #define SPDLOG_NO_EXCEPTIONS
@@ -167,14 +179,9 @@ public:
 	{
 		SPDLOG_CRITICAL(fmt);
 	}
-	
-	void PrintPacket(const std::string& tag, const std::string& log);
 
-    //static std::string MessageToJson(const uint8_t* buffer);
-	//static std::string MessageToJson(const char* buffer);
-	//atic std::string MessageToJson(const PacketHolder& messageHolder);
+	void PrintPacket(const std::string& tag, const std::string& log);
 
 private:
 	void AppendDetailInfo(std::string& result, const std::string& fmt, const std::vector<LogValue>& values);
 };
-

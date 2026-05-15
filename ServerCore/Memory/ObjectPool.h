@@ -32,7 +32,7 @@ public:
 
 	ChunkPage<T>* GetCurrentTLSChunk();
 	ChunkPage<T>* ChunkAlloc();
-	 void ChunkFree(ChunkPage<T>* chunk);
+	void ChunkFree(ChunkPage<T>* chunk);
 	int32_t GetChunkCount();
 	int32_t GetPoolCount();
 	int32_t GetUseCount();
@@ -43,8 +43,14 @@ public:
 public:
 	FreeList<ChunkPage<T>> m_chunkPool;
 	LockFreeStack<GlobalBatch<T, SLOT_COUNT>> m_globalBatchStack;
-	DWORD m_TLSChunkIndex;
+
+	// thread_local chunk per ObjectPool instance
+	// We use a static thread_local map keyed by ObjectPool pointer
+	static thread_local std::unordered_map<void*, ChunkPage<T>*> s_tlsChunkMap;
 };
+
+template<typename T, int32_t SLOT_COUNT>
+thread_local std::unordered_map<void*, ChunkPage<T>*> ObjectPool<T, SLOT_COUNT>::s_tlsChunkMap;
 
 template<typename T, int32_t SLOT_COUNT >
 void* ObjectPool<T, SLOT_COUNT>::AllocFromChunk(size_t size)
@@ -67,24 +73,18 @@ void ObjectPool<T, SLOT_COUNT>::FreeToChunk(void* ptr)
 template<typename T, int32_t SLOT_COUNT>
 ObjectPool<T, SLOT_COUNT>::ObjectPool()
 {
-	m_TLSChunkIndex = TlsAlloc();
-	if (m_TLSChunkIndex == TLS_OUT_OF_INDEXES)
-	{
-		CRASH();
-	}
 	ChunkAlloc();
 }
 
 template<typename T, int32_t SLOT_COUNT>
 inline ObjectPool<T, SLOT_COUNT>::~ObjectPool()
 {
-	TlsFree(m_TLSChunkIndex);
 }
 
 template<typename T, int32_t SLOT_COUNT>
 inline T* ObjectPool<T, SLOT_COUNT>::Alloc(size_t size)
 {
-	auto chunkPage = static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
+	auto chunkPage = GetCurrentTLSChunk();
 	if (chunkPage == nullptr)
 	{
 		chunkPage = ChunkAlloc();
@@ -104,7 +104,12 @@ inline bool ObjectPool<T, SLOT_COUNT>::Free(T* data)
 template<typename T, int32_t SLOT_COUNT>
 ChunkPage<T>* ObjectPool<T, SLOT_COUNT>::GetCurrentTLSChunk()
 {
-	return static_cast<ChunkPage<T>*>(TlsGetValue(m_TLSChunkIndex));
+	auto it = s_tlsChunkMap.find(this);
+	if (it != s_tlsChunkMap.end())
+	{
+		return it->second;
+	}
+	return nullptr;
 }
 
 template<typename T, int32_t SLOT_COUNT>
@@ -113,7 +118,7 @@ ChunkPage<T>* ObjectPool<T, SLOT_COUNT>::ChunkAlloc()
 	ChunkPage<T>* chunkPtr = m_chunkPool.Alloc();
 	chunkPtr->SetOwner(this);
 
-	TlsSetValue(m_TLSChunkIndex, chunkPtr);
+	s_tlsChunkMap[this] = chunkPtr;
 	return chunkPtr;
 }
 
