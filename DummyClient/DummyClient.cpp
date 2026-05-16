@@ -22,21 +22,25 @@ bool DummyClient::Start()
 
 void DummyClient::Run()
 {
-	LOG_INFO("DummyClient running. Ctrl+C or Enter to stop.");
+	LOG_INFO("DummyClient running. Press Enter to stop.");
 
-	//메인 tick 루프 — 모든 봇 시나리오 완료까지 또는 사용자 Enter
-	while (!m_botMgr.AllDone())
+	//별도 스레드: 키 입력 대기. Enter 누르면 stop 요청
+	std::thread([this]
+		{
+			std::cin.get();
+			m_botMgr.RequestStop();
+		}).detach();
+
+	//메인 tick 루프 — 사용자 Enter 누를 때까지 무한 반복 부하
+	while (!m_botMgr.StopRequested())
 	{
 		m_botMgr.Tick();
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 
-	//완료 후 잠시 idle (마지막 ack 받을 시간 + 통계 안정화)
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	//종료 후 마지막 통계 출력
+	std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	m_botMgr.PrintSummary();
-
-	LOG_INFO("Press Enter to exit.");
-	std::cin.get();
 }
 
 void DummyClient::Release()

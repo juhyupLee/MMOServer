@@ -31,15 +31,16 @@ bool PlayServer::Initialize()
 bool PlayServer::Start()
 {
 	NetworkServer::GetInstance()->Listen(7777, &m_main);
-	NetworkServer::GetInstance()->Connect("127.0.0.1", 13001, &m_main);
-	
 	return true;
 }
 
 void PlayServer::Run()
 {
 	LOG_INFO("Server Start");
-	std::cin.get();
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 }
 
 void PlayServer::Release()

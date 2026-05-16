@@ -42,7 +42,9 @@ public:
 	void Initialize(const BotConfig& cfg, JobDispatcher* dispatcher);
 	void Start();
 	void Tick();
-	bool AllDone() const;
+
+	void RequestStop()        { m_stopRequested = true; }
+	bool StopRequested() const { return m_stopRequested; }
 
 	void PrintLiveStats();
 	void PrintSummary();
@@ -65,4 +67,6 @@ private:
 	int64_t                                m_totalDisconnects{ 0 };
 	int64_t                                m_totalReconnects{ 0 };
 	int64_t                                m_totalSendErrors{ 0 };
+
+	std::atomic<bool>                      m_stopRequested{ false };
 };

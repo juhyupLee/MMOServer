@@ -99,6 +99,11 @@ bool BotManager::ShouldThisBotReconnect(int32_t slot) const
 
 void BotManager::Tick()
 {
+	if (m_stopRequested)
+	{
+		return;
+	}
+
 	auto now = std::chrono::steady_clock::now();
 
 	TryAssignSessionIDs();
@@ -107,7 +112,7 @@ void BotManager::Tick()
 	{
 		if (bot.state == BotState::Connected)
 		{
-			//패킷 송신
+			//패킷 송신 (한 사이클 = packetsPerBot 개)
 			if (bot.packetsSent < m_cfg.packetsPerBot && now >= bot.nextSendTime)
 			{
 				if (SendPacket(bot))
@@ -123,22 +128,36 @@ void BotManager::Tick()
 				bot.nextSendTime = now + std::chrono::milliseconds(m_cfg.packetIntervalMs);
 			}
 
-			//시나리오별 끊기 트리거
+			//사이클 종료 → 시나리오별 다음 동작 (무한 반복)
 			if (bot.packetsSent >= m_cfg.packetsPerBot)
 			{
-				if (m_cfg.scenario == BotScenario::DisconnectOnly)
+				if (m_cfg.scenario == BotScenario::StaticSendRecv)
 				{
-					DisconnectBot(bot);  //전부 끊기, 재접속 X
+					//송신만 계속 — 카운터 reset 후 다음 사이클
+					bot.packetsSent = 0;
 				}
-				else if (m_cfg.scenario == BotScenario::Reconnect && ShouldThisBotReconnect(bot.slot))
+				else if (m_cfg.scenario == BotScenario::DisconnectOnly)
 				{
-					DisconnectBot(bot);  //일부만 끊고 재접속 큐
+					//끊었다 다시 붙는 connect 사이클 부하
+					DisconnectBot(bot);
+				}
+				else if (m_cfg.scenario == BotScenario::Reconnect)
+				{
+					if (ShouldThisBotReconnect(bot.slot))
+					{
+						DisconnectBot(bot);  //비율 봇만 끊기
+					}
+					else
+					{
+						bot.packetsSent = 0;  //나머지 봇은 계속 송신
+					}
 				}
 			}
 		}
 		else if (bot.state == BotState::Disconnected)
 		{
-			if (m_cfg.scenario == BotScenario::Reconnect && now >= bot.nextActionTime)
+			//시나리오 2, 3 모두 무한 반복: reconnectDelay 후 재접속
+			if (now >= bot.nextActionTime)
 			{
 				ReconnectBot(bot);
 			}
@@ -151,30 +170,6 @@ void BotManager::Tick()
 		PrintLiveStats();
 		m_nextStatsTime = now + std::chrono::seconds(1);
 	}
-}
-
-bool BotManager::AllDone() const
-{
-	for (const auto& bot : m_bots)
-	{
-		if (bot.state == BotState::Connecting)
-		{
-			return false;
-		}
-		if (bot.state == BotState::Connected && bot.packetsSent < m_cfg.packetsPerBot)
-		{
-			return false;
-		}
-		//재접속 시나리오: Disconnected 상태인 봇이 재접속 예정인지 확인
-		if (m_cfg.scenario == BotScenario::Reconnect &&
-			bot.state == BotState::Disconnected &&
-			ShouldThisBotReconnect(bot.slot) &&
-			bot.reconnectCount < 1)  //최소 1회 재접속 후 종료
-		{
-			return false;
-		}
-	}
-	return true;
 }
 
 void BotManager::PrintLiveStats()
