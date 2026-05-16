@@ -5,7 +5,7 @@ class JobDispatcher
 {
 protected: 
 	volatile bool m_running{false};
-	std::vector<std::thread> m_threads{ };
+	std::vector<std::jthread> m_threads{ };
 
 	std::deque<std::shared_ptr<JobQueue>> m_activeJobQueue;
 	std::condition_variable m_signal;

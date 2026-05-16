@@ -38,7 +38,7 @@ private:
 private:
 	std::unordered_map<int64_t, std::shared_ptr<NetworkSession>> m_sessions;
 	std::recursive_mutex m_lock;
-	std::vector<std::thread> m_workerThread;
+	std::vector<std::jthread> m_workerThread;
 	DWORD m_WorkerThreadCount;
 	HANDLE m_IOCP;
 };
