@@ -1,5 +1,10 @@
 #pragma once
 
+#include "Singleton.h"
+
+#include <atomic>
+#include <cstdint>
+
 class UIDGenerator : public Singleton<UIDGenerator>
 {
 private:

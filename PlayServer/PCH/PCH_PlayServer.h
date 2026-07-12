@@ -1,5 +1,5 @@
 #pragma once
-#ifdef _WIN32
+#ifndef MMO_CMAKE_BUILD
 	#ifdef _DEBUG
 	#	pragma comment (lib, "../bin/ServerCore_Debug.lib")
 	#else

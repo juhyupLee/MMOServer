@@ -1,7 +1,21 @@
 #pragma once
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <Windows.h>
+#include <DbgHelp.h>
+#include <Psapi.h>
+#include <crtdbg.h>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <new.h>
+
 #pragma comment(lib,"Dbghelp.lib")
+
+void CRASH();
 
 class CrashDump
 {
@@ -27,7 +41,7 @@ public:
 
 	}
 
-	static LONG WINAPI MyExceptionFilter(__in PEXCEPTION_POINTERS exceptionPointer)
+	static LONG WINAPI MyExceptionFilter(PEXCEPTION_POINTERS exceptionPointer)
 	{
 		int workingMemory = 0;
 		SYSTEMTIME nowTime;
@@ -50,8 +64,6 @@ public:
 		{
 			workingMemory = (int)(pmc.WorkingSetSize / 1024 / 1024);
 		}
-		CloseHandle(process);
-
 		//----------------------------------------------------------------------
 		// 현재 날짜와 시간을 알아 온다
 		//----------------------------------------------------------------------
@@ -78,7 +90,7 @@ public:
 
 			miniDumpExceptionInformation.ThreadId = GetCurrentThreadId();
 			miniDumpExceptionInformation.ExceptionPointers = exceptionPointer;
-			miniDumpExceptionInformation.ClientPointers = TRUE;
+			miniDumpExceptionInformation.ClientPointers = FALSE;
 
 			MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), dumpFile, MiniDumpWithFullMemory, &miniDumpExceptionInformation, NULL, NULL);
 
@@ -117,11 +129,10 @@ private:
 
 };
 
-#else // Linux / macOS
+#else
 
 #include <csignal>
 #include <cstdio>
-#include <cstdlib>
 #include <execinfo.h>
 #include <unistd.h>
 
@@ -133,27 +144,25 @@ public:
 		SetHandlerDump();
 	}
 
-	static void SignalHandler(int sig)
+private:
+	static void SignalHandler(int signalNumber)
 	{
-		fprintf(stderr, "\n!!! Crash Error!!! Signal: %d\n", sig);
+		std::fprintf(stderr, "\n!!! Crash Error!!! signal=%d\n", signalNumber);
+		void* callstack[128]{};
+		const int frameCount = backtrace(callstack, 128);
+		backtrace_symbols_fd(callstack, frameCount, STDERR_FILENO);
 
-		// Print backtrace
-		void* callstack[128];
-		int frames = backtrace(callstack, 128);
-		backtrace_symbols_fd(callstack, frames, STDERR_FILENO);
-
-		// Generate core dump
-		signal(sig, SIG_DFL);
-		raise(sig);
+		std::signal(signalNumber, SIG_DFL);
+		std::raise(signalNumber);
 	}
 
 	static void SetHandlerDump()
 	{
-		signal(SIGSEGV, SignalHandler);
-		signal(SIGABRT, SignalHandler);
-		signal(SIGFPE, SignalHandler);
-		signal(SIGILL, SignalHandler);
-		signal(SIGBUS, SignalHandler);
+		std::signal(SIGSEGV, SignalHandler);
+		std::signal(SIGABRT, SignalHandler);
+		std::signal(SIGFPE, SignalHandler);
+		std::signal(SIGILL, SignalHandler);
+		std::signal(SIGBUS, SignalHandler);
 	}
 };
 

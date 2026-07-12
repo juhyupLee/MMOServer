@@ -1,0 +1,1465 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>MMO Server Thread Architecture</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;max-width:736px;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+</head>
+<body>
+<iframe sandbox="allow-scripts" referrerpolicy="no-referrer" title="MMO Server Thread Architecture" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;MMO Server Thread Architecture&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(--background) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: light-dark(rgb(255 255 255), rgb(24 24 24));
+  --foreground: light-dark(rgb(26 28 31), rgb(255 255 255));
+  --card: color-mix(in oklab, var(--foreground) 5%, transparent);
+  --card-foreground: var(--foreground);
+  --popover: light-dark(rgb(255 255 255), rgb(45 45 45));
+  --popover-foreground: var(--foreground);
+  --primary: light-dark(rgb(51 156 255), rgb(131 195 255));
+  --primary-foreground: light-dark(rgb(255 255 255), rgb(13 13 13));
+  --secondary: light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%));
+  --secondary-foreground: var(--foreground);
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: light-dark(
+    rgb(26 28 31 / 49.4%),
+    rgb(255 255 255 / 49.8%)
+  );
+  --accent: light-dark(rgb(229 242 255), rgb(13 39 63));
+  --accent-foreground: var(--primary);
+  --destructive: light-dark(rgb(226 85 7), rgb(255 133 73));
+  --border: light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%));
+  --input: light-dark(
+    rgb(26 28 31 / 11.8%),
+    color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+  );
+  --ring: light-dark(rgb(51 156 255), rgb(131 195 255 / 76%));
+  --font-size-base: 14px;
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans: -apple-system, system-ui, &quot;Segoe UI&quot;, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 430;
+  --font-weight-medium: 500;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --radius: 12.5px;
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 1.6);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+  --color-background-primary: var(--background);
+  --color-text-primary: var(--foreground);
+  --color-border-secondary: var(--border);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  margin: 0;
+  padding: 5px;
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-normal);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: pointer;
+  font-weight: var(--viz-font-weight-medium);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+
+h1 {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h2 {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.3;
+}
+
+b,
+strong,
+th {
+  font-weight: var(--font-weight-medium);
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: superellipse(1.5);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+#widget &gt; :not(.card) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--popover-foreground);
+  background: var(--popover);
+  box-shadow: none;
+  font-size: var(--font-size-tooltip);
+  line-height: var(--line-height-tooltip);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.viz-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  color: var(--accent-foreground);
+  background: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+
+small,
+.text-small,
+.viz-badge {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+.btn {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn-primary {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: padding-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: padding-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background: var(--secondary);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  padding: 0;
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  min-height: 26px;
+  margin-right: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: 28px;
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: superellipse(1.5);
+}
+
+textarea.form-control {
+  height: auto;
+  min-height: 72px;
+  padding: 8px 10px;
+  resize: vertical;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  margin: 0;
+  padding: 0 32px 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-lg);
+  corner-shape: superellipse(1.5);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),
+    linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-repeat: no-repeat;
+  background-size: 4px 4px;
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-select:focus-visible {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-check {
+  display: flex;
+  min-height: 20px;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  border-color: var(--input);
+  border-radius: var(--radius-sm);
+  corner-shape: superellipse(1.5);
+  background-color: var(--secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:checked {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 2px solid var(--primary);
+  background:
+    radial-gradient(circle, var(--primary-foreground) 0 2.5px, transparent 3px),
+    var(--primary);
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--primary);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 28px;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  outline: none;
+  border: 0;
+  accent-color: var(--primary);
+  background: linear-gradient(
+      color-mix(in srgb, var(--foreground) 7%, transparent),
+      color-mix(in srgb, var(--foreground) 7%, transparent)
+    )
+    center / 100% 2px no-repeat;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-webkit-slider-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range::-moz-range-track {
+  height: 28px;
+  background: transparent;
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: light-dark(var(--primary-foreground), var(--foreground));
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  border-color: var(--ring);
+  box-shadow: inset 0 0 0 1px var(--ring);
+}
+
+.form-range:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+    [aria-pressed=&quot;true&quot;],
+    [aria-selected=&quot;true&quot;],
+    .is-selected
+  ) {
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;mmo-server-thread-architecture&quot;&gt;
+  &lt;style&gt;
+    #mmo-server-thread-architecture {
+      color: var(--foreground);
+      display: grid;
+      gap: 1rem;
+      min-width: 0;
+    }
+
+    #mmo-server-thread-architecture .mode-detail {
+      margin: 0;
+      min-height: 1.5em;
+      color: var(--muted-foreground);
+    }
+
+    #mmo-server-thread-architecture .view[hidden] {
+      display: none;
+    }
+
+    #mmo-server-thread-architecture .architecture {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    #mmo-server-thread-architecture .control-band {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.4fr);
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    #mmo-server-thread-architecture .system-flow {
+      display: grid;
+      grid-template-columns: minmax(0, 0.8fr) auto minmax(0, 1.2fr) auto minmax(0, 1.35fr) auto minmax(0, 1.15fr);
+      align-items: stretch;
+      gap: 0.4rem;
+    }
+
+    #mmo-server-thread-architecture .runtime-summary {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+    }
+
+    #mmo-server-thread-architecture .diagram-node {
+      min-width: 0;
+      padding: 0.7rem;
+      border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
+      border-radius: 0.55rem;
+      background: color-mix(in srgb, var(--node-color, var(--muted)) 10%, transparent);
+    }
+
+    #mmo-server-thread-architecture .diagram-node strong,
+    #mmo-server-thread-architecture .diagram-node span {
+      display: block;
+    }
+
+    #mmo-server-thread-architecture .diagram-node span + span {
+      margin-top: 0.25rem;
+    }
+
+    #mmo-server-thread-architecture .owner-control {
+      --node-color: var(--viz-series-1);
+    }
+
+    #mmo-server-thread-architecture .owner-io {
+      --node-color: var(--viz-series-2);
+    }
+
+    #mmo-server-thread-architecture .owner-strand {
+      --node-color: var(--viz-series-3);
+    }
+
+    #mmo-server-thread-architecture .owner-logic {
+      --node-color: var(--viz-series-4);
+    }
+
+    #mmo-server-thread-architecture .owner-safety {
+      --node-color: var(--viz-series-5);
+    }
+
+    #mmo-server-thread-architecture .arrow {
+      align-self: center;
+      color: var(--muted-foreground);
+      text-align: center;
+    }
+
+    #mmo-server-thread-architecture .arrow span {
+      display: block;
+    }
+
+    #mmo-server-thread-architecture .ownership {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    #mmo-server-thread-architecture .ownership-row {
+      display: grid;
+      grid-template-columns: minmax(8rem, 0.8fr) minmax(0, 2fr);
+      gap: 0.75rem;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    }
+
+    #mmo-server-thread-architecture .ownership-row:last-child {
+      border-bottom: 0;
+    }
+
+    #mmo-server-thread-architecture .owner-label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    #mmo-server-thread-architecture .owner-mark {
+      width: 0.75rem;
+      height: 0.75rem;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--node-color);
+    }
+
+    #mmo-server-thread-architecture .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+      gap: 0.6rem;
+      counter-reset: flow-step;
+    }
+
+    #mmo-server-thread-architecture .flow-step {
+      counter-increment: flow-step;
+      position: relative;
+      min-width: 0;
+      padding: 0.75rem;
+      border-top: 3px solid var(--node-color, var(--border));
+      background: color-mix(in srgb, var(--node-color, var(--muted)) 8%, transparent);
+    }
+
+    #mmo-server-thread-architecture .flow-step::before {
+      content: counter(flow-step);
+      display: inline-grid;
+      place-items: center;
+      width: 1.6rem;
+      height: 1.6rem;
+      margin-bottom: 0.45rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--node-color, var(--muted)) 24%, transparent);
+      color: var(--foreground);
+    }
+
+    #mmo-server-thread-architecture .flow-step strong,
+    #mmo-server-thread-architecture .flow-step span {
+      display: block;
+    }
+
+    #mmo-server-thread-architecture .flow-step span {
+      margin-top: 0.25rem;
+    }
+
+    #mmo-server-thread-architecture .timeline {
+      display: grid;
+      gap: 0;
+    }
+
+    #mmo-server-thread-architecture .timeline-step {
+      display: grid;
+      grid-template-columns: 2rem minmax(0, 1fr);
+      gap: 0.65rem;
+      position: relative;
+      padding-bottom: 0.8rem;
+    }
+
+    #mmo-server-thread-architecture .timeline-step:not(:last-child)::after {
+      content: &quot;&quot;;
+      position: absolute;
+      left: 0.95rem;
+      top: 1.8rem;
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    #mmo-server-thread-architecture .timeline-index {
+      display: grid;
+      place-items: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--node-color, var(--muted)) 20%, transparent);
+    }
+
+    #mmo-server-thread-architecture .timeline-copy {
+      min-width: 0;
+      padding-top: 0.2rem;
+    }
+
+    #mmo-server-thread-architecture .timeline-copy strong,
+    #mmo-server-thread-architecture .timeline-copy span {
+      display: block;
+    }
+
+    #mmo-server-thread-architecture .timeline-copy span {
+      margin-top: 0.2rem;
+    }
+
+    #mmo-server-thread-architecture code {
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 650px) {
+      #mmo-server-thread-architecture .control-band,
+      #mmo-server-thread-architecture .system-flow,
+      #mmo-server-thread-architecture .runtime-summary {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      #mmo-server-thread-architecture .arrow {
+        transform: none;
+      }
+
+      #mmo-server-thread-architecture .arrow &gt; span:first-child {
+        display: none;
+      }
+
+      #mmo-server-thread-architecture .arrow::before {
+        content: &quot;↓&quot;;
+        display: block;
+      }
+
+      #mmo-server-thread-architecture .ownership-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.25rem;
+      }
+    }
+  &lt;/style&gt;
+
+  &lt;div class=&quot;viz-controls&quot; role=&quot;group&quot; aria-label=&quot;표시할 서버 흐름 선택&quot;&gt;
+    &lt;button type=&quot;button&quot; class=&quot;btn btn-primary&quot; data-mode=&quot;overview&quot; aria-pressed=&quot;true&quot;&gt;전체 구조&lt;/button&gt;
+    &lt;button type=&quot;button&quot; class=&quot;btn&quot; data-mode=&quot;receive&quot; aria-pressed=&quot;false&quot;&gt;수신 경로&lt;/button&gt;
+    &lt;button type=&quot;button&quot; class=&quot;btn&quot; data-mode=&quot;send&quot; aria-pressed=&quot;false&quot;&gt;송신 경로&lt;/button&gt;
+    &lt;button type=&quot;button&quot; class=&quot;btn&quot; data-mode=&quot;shutdown&quot; aria-pressed=&quot;false&quot;&gt;종료 순서&lt;/button&gt;
+  &lt;/div&gt;
+
+  &lt;p class=&quot;mode-detail text-small&quot; aria-live=&quot;polite&quot;&gt;PlayServer는 보통 7 threads이며, I/O·세션 상태·게임 로직 책임을 분리한다.&lt;/p&gt;
+
+  &lt;section class=&quot;view architecture&quot; data-view=&quot;overview&quot; aria-label=&quot;MMO 서버 런타임 스레드 구조&quot;&gt;
+    &lt;div class=&quot;control-band&quot;&gt;
+      &lt;div class=&quot;diagram-node owner-control&quot;&gt;
+        &lt;strong&gt;Main / control thread&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;&lt;code&gt;Initialize → Listen → Run&lt;/code&gt;&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;현재 &lt;code&gt;Run()&lt;/code&gt;은 5초 통계 loop에서 종료되지 않음&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;arrow&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;→&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;diagram-node owner-safety&quot;&gt;
+        &lt;strong&gt;NetworkServer lifecycle&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;lifecycle lock · session map mutex · 최대 4,096 sessions&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;system-flow&quot; role=&quot;img&quot; aria-label=&quot;클라이언트에서 Asio I/O worker, 세션 strand, JobDispatcher logic thread로 이어지는 구조&quot;&gt;
+      &lt;div class=&quot;diagram-node&quot;&gt;
+        &lt;strong&gt;TCP clients&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;Play client / DummyClient bots&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;arrow&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;→&lt;/span&gt;&lt;span class=&quot;text-small&quot;&gt;TCP&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;diagram-node owner-io&quot;&gt;
+        &lt;strong&gt;Boost.Asio &lt;code&gt;io_context&lt;/code&gt;&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;Windows IOCP / Linux epoll&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;I/O jthreads: 기본 &lt;code&gt;clamp(hw, 1, 4)&lt;/code&gt;&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;&lt;code&gt;accept · resolve · connect · read · write&lt;/code&gt;&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;arrow&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;→&lt;/span&gt;&lt;span class=&quot;text-small&quot;&gt;post&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;diagram-node owner-strand&quot;&gt;
+        &lt;strong&gt;NetworkSession strand&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;세션별 콜백 비동시 실행&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;Recv: RingQ 7,000B + FrameDecoder&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;Send: bounded deque + 256KiB 예약&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;arrow&quot; aria-hidden=&quot;true&quot;&gt;&lt;span&gt;→&lt;/span&gt;&lt;span class=&quot;text-small&quot;&gt;job&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;diagram-node owner-logic&quot;&gt;
+        &lt;strong&gt;JobDispatcher logic jthread&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;세션별 JobQueue · 기본 최대 256 jobs&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;active queue + condition_variable&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;PlayServer main dispatcher: 1 thread&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;sub dispatcher: 1 thread · 현재 미사용&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;runtime-summary&quot; aria-label=&quot;PlayServer 실제 기본 스레드 수와 비용 주의점&quot;&gt;
+      &lt;div class=&quot;diagram-node owner-control&quot;&gt;
+        &lt;strong&gt;4코어 이상에서 보통 7 threads&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;main 1 + Asio 4 + main dispatcher 1 + unused sub dispatcher 1&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;diagram-node owner-safety&quot;&gt;
+        &lt;strong&gt;현재 비용 주의&lt;/strong&gt;
+        &lt;span class=&quot;text-small text-destructive&quot;&gt;&lt;code&gt;JobDispatcher(..., 1)&lt;/code&gt;의 1은 thread 수가 아니라 1µs timeout&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;main/sub 둘 다 빈 queue에서도 짧은 &lt;code&gt;wait_for&lt;/code&gt;를 반복하며, sub는 사용되지 않음&lt;/span&gt;
+        &lt;span class=&quot;text-small&quot;&gt;&lt;code&gt;timeout=0&lt;/code&gt;이면 condition_variable notify까지 대기&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;div class=&quot;ownership&quot; aria-label=&quot;스레드별 소유 상태&quot;&gt;
+      &lt;div class=&quot;ownership-row&quot;&gt;
+        &lt;div class=&quot;owner-label owner-control&quot;&gt;&lt;span class=&quot;owner-mark&quot;&gt;&lt;/span&gt;&lt;strong&gt;Control thread&lt;/strong&gt;&lt;/div&gt;
+        &lt;span class=&quot;text-small&quot;&gt;서버 시작·리스닝·종료를 조정하며, &lt;code&gt;Shutdown()&lt;/code&gt;은 I/O worker에서 호출하지 않는다.&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;ownership-row&quot;&gt;
+        &lt;div class=&quot;owner-label owner-io&quot;&gt;&lt;span class=&quot;owner-mark&quot;&gt;&lt;/span&gt;&lt;strong&gt;Asio I/O workers&lt;/strong&gt;&lt;/div&gt;
+        &lt;span class=&quot;text-small&quot;&gt;준비된 비동기 completion을 실행한다. 여러 worker가 있어도 같은 세션 상태에는 strand를 통해 진입한다.&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;ownership-row&quot;&gt;
+        &lt;div class=&quot;owner-label owner-strand&quot;&gt;&lt;span class=&quot;owner-mark&quot;&gt;&lt;/span&gt;&lt;strong&gt;Session strand&lt;/strong&gt;&lt;/div&gt;
+        &lt;span class=&quot;text-small&quot;&gt;socket, RingQ, send deque, &lt;code&gt;m_closeStarted&lt;/code&gt;를 직렬 소유한다.&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;ownership-row&quot;&gt;
+        &lt;div class=&quot;owner-label owner-logic&quot;&gt;&lt;span class=&quot;owner-mark&quot;&gt;&lt;/span&gt;&lt;strong&gt;Logic jthread&lt;/strong&gt;&lt;/div&gt;
+        &lt;span class=&quot;text-small&quot;&gt;FlatBuffers native message를 게임 핸들러로 전달한다. 현재 main 1개가 모든 세션을 처리하고 sub 1개는 미사용 상태로 1µs polling한다.&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;ownership-row&quot;&gt;
+        &lt;div class=&quot;owner-label owner-safety&quot;&gt;&lt;span class=&quot;owner-mark&quot;&gt;&lt;/span&gt;&lt;strong&gt;Send callers&lt;/strong&gt;&lt;/div&gt;
+        &lt;span class=&quot;text-small&quot;&gt;직렬화·암호화 후 admission mutex로 bytes를 먼저 예약한다. 동시 호출은 안전하지만 의미적 호출 순서는 별도 보장하지 않는다.&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section class=&quot;view&quot; data-view=&quot;receive&quot; aria-label=&quot;패킷 수신 처리 흐름&quot; hidden&gt;
+    &lt;div class=&quot;flow-steps&quot;&gt;
+      &lt;div class=&quot;flow-step owner-io&quot;&gt;
+        &lt;strong&gt;TCP bytes 도착&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;OS backend가 socket readiness/completion을 전달&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-io&quot;&gt;
+        &lt;strong&gt;&lt;code&gt;async_read_some&lt;/code&gt;&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;I/O worker가 completion handler 실행&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;세션 strand 진입&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;같은 세션의 read/write/close 상태를 직렬화&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;RingQ에 commit&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;wrap 시 최대 두 writable segment 사용&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;FrameDecoder&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;4B header를 Peek; 부족하면 대기, 완성되면 전체 Dequeue&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;검증·변환&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;XOR Convert → FlatBuffers Verifier → UnPack&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-safety&quot;&gt;
+        &lt;strong&gt;JobQueue admission&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;세션당 기본 256 outstanding jobs 초과 시 disconnect&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-logic&quot;&gt;
+        &lt;strong&gt;게임 핸들러 실행&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;Logic jthread가 active queue를 pop하여 순차 처리&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section class=&quot;view&quot; data-view=&quot;send&quot; aria-label=&quot;패킷 송신 처리 흐름&quot; hidden&gt;
+    &lt;div class=&quot;flow-steps&quot;&gt;
+      &lt;div class=&quot;flow-step owner-logic&quot;&gt;
+        &lt;strong&gt;&lt;code&gt;NetworkSession::Send&lt;/code&gt;&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;게임 로직 또는 다른 caller thread에서 호출&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-safety&quot;&gt;
+        &lt;strong&gt;직렬화·암호화&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;FlatBuffer size-prefix 생성 후 body에 Convert 적용&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-safety&quot;&gt;
+        &lt;strong&gt;pre-post bytes 예약&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;admission mutex에서 256KiB 한도를 먼저 검사&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;strand에 &lt;code&gt;post&lt;/code&gt;&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;Shutdown 이후 새 packet이 남지 않도록 close gate와 직렬화&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;bounded send deque&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;&lt;code&gt;shared_ptr&amp;lt;NetworkPacket&amp;gt;&lt;/code&gt;으로 buffer lifetime 보장&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-io&quot;&gt;
+        &lt;strong&gt;&lt;code&gt;async_write&lt;/code&gt;&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;한 세션에서 동시에 하나의 full-frame write만 진행&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-strand&quot;&gt;
+        &lt;strong&gt;completion&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;front pop · pending bytes 감소 · 다음 packet 시작&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;flow-step owner-safety&quot;&gt;
+        &lt;strong&gt;slow-client 차단&lt;/strong&gt;
+        &lt;span class=&quot;text-small&quot;&gt;한도 초과 또는 post 실패 시 send gate를 닫고 session 제거&lt;/span&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;section class=&quot;view&quot; data-view=&quot;shutdown&quot; aria-label=&quot;안전한 서버 종료 순서&quot; hidden&gt;
+    &lt;div class=&quot;timeline&quot;&gt;
+      &lt;div class=&quot;timeline-step owner-control&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;1&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;Control thread에서 lifecycle 독점&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;I/O worker가 직접 호출하면 self-join을 피하기 위해 거부한다. PlayServer에는 아직 무한 &lt;code&gt;Run()&lt;/code&gt;을 끝낼 정상 종료 trigger가 필요하다.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;timeline-step owner-safety&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;2&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;&lt;code&gt;m_initialized = false&lt;/code&gt;&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;새 Listen, Connect, session admission을 즉시 차단한다.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;timeline-step owner-io&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;3&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;acceptor cancel / close 게시&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;accept 실패 재시도 timer도 initialized gate에서 멈춘다.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;timeline-step owner-safety&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;4&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;session map snapshot 후 clear&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;map mutex 안에서 상태를 비운 뒤, lock 밖에서 각 session을 닫는다.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;timeline-step owner-strand&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;5&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;각 strand에서 &lt;code&gt;CloseInternal&lt;/code&gt;&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;send admission 차단 · resolver/socket cancel · queues와 RingQ 정리.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;timeline-step owner-io&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;6&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;late completion drain&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;close 뒤 도착한 resolve/connect/read/write handler는 &lt;code&gt;m_closeStarted&lt;/code&gt;에서 즉시 종료한다.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;timeline-step owner-control&quot;&gt;
+        &lt;div class=&quot;timeline-index&quot;&gt;7&lt;/div&gt;
+        &lt;div class=&quot;timeline-copy&quot;&gt;&lt;strong&gt;work guard reset 후 I/O jthreads join&lt;/strong&gt;&lt;span class=&quot;text-small&quot;&gt;NetworkServer 종료가 완료된 다음 JobDispatcher를 파괴하며 lifetime handle을 null 처리한다.&lt;/span&gt;&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;div class=&quot;sr-only&quot;&gt;
+    서버는 control thread, 기본 1~4개의 Boost.Asio I/O worker, 세션별 strand, JobDispatcher logic thread로 구성된다. 수신 데이터는 RingQ와 FrameDecoder를 거쳐 세션 JobQueue로 이동하고, 송신 데이터는 사전 바이트 예약 후 strand의 bounded deque에서 하나씩 async_write 된다.
+  &lt;/div&gt;
+
+  &lt;script&gt;
+    (() =&gt; {
+      const root = document.getElementById(&quot;mmo-server-thread-architecture&quot;);
+      if (root == null) return;
+
+      const details = {
+        overview: &quot;PlayServer는 보통 7 threads이며, I/O·세션 상태·게임 로직 책임을 분리한다.&quot;,
+        receive: &quot;수신 frame은 세션 strand에서 완성·검증된 뒤 bounded JobQueue를 통해 logic thread로 넘어간다.&quot;,
+        send: &quot;송신 memory는 strand에 post하기 전에 예약하므로 느린 client가 I/O queue 바깥에 packet을 무한 적재할 수 없다.&quot;,
+        shutdown: &quot;종료는 새 작업 차단 → 자원 cancel → completion drain → worker join 순서로 진행한다.&quot;
+      };
+
+      const detail = root.querySelector(&quot;.mode-detail&quot;);
+      const buttons = Array.from(root.querySelectorAll(&quot;button[data-mode]&quot;));
+      const views = Array.from(root.querySelectorAll(&quot;[data-view]&quot;));
+
+      const selectMode = (mode) =&gt; {
+        buttons.forEach((button) =&gt; {
+          const selected = button.dataset.mode === mode;
+          button.setAttribute(&quot;aria-pressed&quot;, String(selected));
+          button.classList.toggle(&quot;btn-primary&quot;, selected);
+        });
+        views.forEach((view) =&gt; {
+          view.hidden = view.dataset.view !== mode;
+        });
+        if (detail != null) detail.textContent = details[mode] ?? details.overview;
+      };
+
+      buttons.forEach((button) =&gt; {
+        button.addEventListener(&quot;click&quot;, () =&gt; selectMode(button.dataset.mode ?? &quot;overview&quot;));
+      });
+    })();
+  &lt;/script&gt;
+&lt;/div&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+
+  const getTrigger = (target) =&gt;
+    target?.nodeType === Node.ELEMENT_NODE
+      ? target.closest(&quot;[data-tooltip]&quot;)
+      : null;
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handleLeave = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    const trigger = getTrigger(event.target);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    document.removeEventListener(&quot;pointerover&quot;, handlePointerOpen);
+    document.removeEventListener(&quot;pointerout&quot;, handleLeave);
+    document.removeEventListener(&quot;focusin&quot;, handleFocusIn);
+    document.removeEventListener(&quot;focusout&quot;, handleLeave);
+    document.removeEventListener(&quot;keydown&quot;, handleKeyDown);
+    document.removeEventListener(&quot;contextmenu&quot;, handleContextMenu);
+    tooltip = null;
+  };
+
+  document.addEventListener(&quot;pointerover&quot;, handlePointerOpen);
+  document.addEventListener(&quot;pointerout&quot;, handleLeave);
+  document.addEventListener(&quot;focusin&quot;, handleFocusIn);
+  document.addEventListener(&quot;focusout&quot;, handleLeave);
+  document.addEventListener(&quot;keydown&quot;, handleKeyDown);
+  document.addEventListener(&quot;contextmenu&quot;, handleContextMenu);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</body>
+</html>

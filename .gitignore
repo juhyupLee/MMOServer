@@ -362,7 +362,21 @@ MigrationBackup/
 FodyWeavers.xsd
 
 
-#Juhyup 
+#Juhyup
 *.txt
+!CMakeLists.txt
+!**/CMakeLists.txt
 *.vcxproj.filters
 db/DBSchema/Backup
+
+# Local build outputs and optional vendored Boost headers
+/build/
+/include/boost/
+/artifacts/
+/core
+/core.*
+/*.dmp
+/gdb-report-*.txt
+
+# Claude Code session data
+.claude/

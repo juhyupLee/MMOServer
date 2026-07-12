@@ -6,6 +6,12 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/daily_file_sink.h"
 
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <memory>
+#include <sstream>
+
 
 void LogManager::Init()
 {
@@ -34,7 +40,11 @@ void LogManager::CreateLog()
 	// 시간을 문자열로 변환합니다.
 	std::time_t tt = std::chrono::system_clock::to_time_t(tp);
 	std::tm timeInfo;
+	#ifdef _WIN32
 	localtime_s(&timeInfo, &tt);
+	#else
+	localtime_r(&tt, &timeInfo);
+	#endif
 
 	// 문자열로 포맷을 지정합니다. YYYYMMDDHH 형식
 	std::stringstream ss;

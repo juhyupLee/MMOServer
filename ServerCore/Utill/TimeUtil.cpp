@@ -1,6 +1,10 @@
 
 #include "TimeUtil.h"
 
+#include <cstdlib>
+#include <format>
+#include <sstream>
+
 //============================================================================================================================
 DateTime::DateTime(int64_t epochTime)
     : epochTime(epochTime)

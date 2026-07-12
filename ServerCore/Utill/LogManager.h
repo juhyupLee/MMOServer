@@ -1,26 +1,26 @@
 #pragma once
 
+#include "Singleton.h"
+
+#include <spdlog/spdlog.h>
+
+#include <cstdint>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
+
 #define _MEMO(s)					#s
 #define MEMO(s)						_MEMO(s)
-
-#ifdef _MSC_VER
-	#define LOG(fmt, ...)				LogManager::GetInstance()->InfoPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_DEBUG(fmt, ...)			LogManager::GetInstance()->DebugPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_INFO(fmt, ...)			LogManager::GetInstance()->InfoPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_WARN(fmt, ...)			LogManager::GetInstance()->WarningPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_ERR(fmt, ...)			LogManager::GetInstance()->ErrorPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_CRI(fmt, ...)			LogManager::GetInstance()->CriticalPrint("[" __FUNCTION__ " "  MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define PERFORMANCE(fmt, ...)		LogManager::GetInstance()->InfoPrint(fmt, ##__VA_ARGS__)
-#else
-	// GCC/Clang: __FUNCTION__ is not a string literal, so build prefix at runtime
-	#define LOG(fmt, ...)				LogManager::GetInstance()->InfoPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_DEBUG(fmt, ...)			LogManager::GetInstance()->DebugPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_INFO(fmt, ...)			LogManager::GetInstance()->InfoPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_WARN(fmt, ...)			LogManager::GetInstance()->WarningPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_ERR(fmt, ...)			LogManager::GetInstance()->ErrorPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define LOG_CRI(fmt, ...)			LogManager::GetInstance()->CriticalPrint(std::string("[") + __func__ + " " MEMO(__LINE__) "] " fmt, ##__VA_ARGS__)
-	#define PERFORMANCE(fmt, ...)		LogManager::GetInstance()->InfoPrint(fmt, ##__VA_ARGS__)
-#endif
+#define LOG_MESSAGE(fmt)			(std::string("[") + __func__ + " " MEMO(__LINE__) "] " + (fmt))
+#define LOG(fmt, ...)				LogManager::GetInstance()->InfoPrint(LOG_MESSAGE(fmt) __VA_OPT__(,) __VA_ARGS__)
+#define LOG_DEBUG(fmt, ...)			LogManager::GetInstance()->DebugPrint(LOG_MESSAGE(fmt) __VA_OPT__(,) __VA_ARGS__)
+#define LOG_INFO(fmt, ...)			LogManager::GetInstance()->InfoPrint(LOG_MESSAGE(fmt) __VA_OPT__(,) __VA_ARGS__)
+#define LOG_WARN(fmt, ...)			LogManager::GetInstance()->WarningPrint(LOG_MESSAGE(fmt) __VA_OPT__(,) __VA_ARGS__)
+#define LOG_ERR(fmt, ...)			LogManager::GetInstance()->ErrorPrint(LOG_MESSAGE(fmt) __VA_OPT__(,) __VA_ARGS__)
+#define LOG_CRI(fmt, ...)			LogManager::GetInstance()->CriticalPrint(LOG_MESSAGE(fmt) __VA_OPT__(,) __VA_ARGS__)
+#define PERFORMANCE(fmt, ...)		LogManager::GetInstance()->InfoPrint((fmt) __VA_OPT__(,) __VA_ARGS__)
 
 #ifndef _DEBUG
     #define SPDLOG_NO_EXCEPTIONS
@@ -181,6 +181,10 @@ public:
 	}
 
 	void PrintPacket(const std::string& tag, const std::string& log);
+
+    //static std::string MessageToJson(const uint8_t* buffer);
+	//static std::string MessageToJson(const char* buffer);
+	//atic std::string MessageToJson(const PacketHolder& messageHolder);
 
 private:
 	void AppendDetailInfo(std::string& result, const std::string& fmt, const std::vector<LogValue>& values);

@@ -84,9 +84,10 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -98,12 +99,14 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>.\PCH;..\include\spdlog\include\;..\include\spdlog\include\spdlog;..\include\pqxx;..\include\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\PCH;..\include;..\include\spdlog\include\;..\include\spdlog\include\spdlog;..\include\pqxx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <ObjectFileName>$(IntDir)%(Filename).obj</ObjectFileName>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/utf-8 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,6 +120,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,12 +137,13 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>PCH_$(ProjectName).h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PCH_$(ProjectName).h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\PCH;..\include\spdlog\include\;..\include\spdlog\include\spdlog;..\include\libpq;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalIncludeDirectories>.\PCH;..\include;..\include\spdlog\include\;..\include\spdlog\include\spdlog;..\include\pqxx;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ObjectFileName>$(IntDir)%(Filename).obj</ObjectFileName>
+      <PreprocessorDefinitions>_WIN32_WINNT=0x0A00;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/utf-8 /Zc:preprocessor %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,20 +153,29 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Dump\MemoryDump.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="Memory\Global.cpp" />
     <ClCompile Include="Memory\MemoryPool.cpp" />
     <ClCompile Include="Memory\RingBuffer.cpp" />
+    <ClCompile Include="Network\FrameDecoder.cpp" />
     <ClCompile Include="Network\JobDispatcher.cpp" />
     <ClCompile Include="Network\JobQueue.cpp" />
-    <ClCompile Include="Network\NetworkServer.cpp" />
-    <ClCompile Include="Network\NetworkSession.cpp" />
-    <ClCompile Include="Network\NetworkTask.cpp" />
-    <ClCompile Include="PCH\PCH_ServerCore.cpp" />
-    <ClCompile Include="Test\Test_LockFreeQ.cpp" />
-    <ClCompile Include="Test\Test_LockFreeStack.cpp" />
-    <ClCompile Include="Test\Test_MemoryPool.cpp" />
-    <ClCompile Include="Test\Test_MemoryPoolTLS.cpp" />
+    <ClCompile Include="Network\NetworkServer.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="Network\NetworkSession.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></ForcedIncludeFiles>
+      <ForcedIncludeFiles Condition="'$(Configuration)|$(Platform)'=='Release|x64'"></ForcedIncludeFiles>
+    </ClCompile>
+    <ClCompile Include="PCH\PCH_ServerCore.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="Utill\LogManager.cpp" />
     <ClCompile Include="Utill\Singleton.cpp" />
     <ClCompile Include="Utill\TimeUtil.cpp" />
@@ -179,6 +193,7 @@
     <ClInclude Include="Memory\ObjectPool.h" />
     <ClInclude Include="Memory\Protocol.h" />
     <ClInclude Include="Memory\RingBuffer.h" />
+    <ClInclude Include="Network\FrameDecoder.h" />
     <ClInclude Include="Network\BaseJob.h" />
     <ClInclude Include="Network\BaseServerApp.h" />
     <ClInclude Include="Network\JobDispatcher.h" />
@@ -186,7 +201,6 @@
     <ClInclude Include="Network\MessageJob.h" />
     <ClInclude Include="Network\NetworkServer.h" />
     <ClInclude Include="Network\NetworkSession.h" />
-    <ClInclude Include="Network\NetworkTask.h" />
     <ClInclude Include="PCH\PCH_ServerCore.h" />
     <ClInclude Include="Test\Test_LockFreeQ.h" />
     <ClInclude Include="Test\Test_LockFreeStack.h" />

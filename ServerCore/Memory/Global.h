@@ -1,5 +1,16 @@
 #pragma once
-#include "MemoryPool.h"
+
+#include "../../flatbuffers/ProtocoID.h"
+
+#include <algorithm>
+#include <concepts>
+#include <cstdint>
+#include <iterator>
+#include <memory>
+#include <ranges>
+#include <type_traits>
+#include <unordered_set>
+#include <vector>
 #define YIELD_TRY_MAX 300
 #define MAX_SLEEP_ITERATION 4000
 
@@ -18,7 +29,7 @@ template<typename T> concept PacketConcept = std::is_base_of_v<flatbuffers::Nati
 template<PacketConcept T>
 std::shared_ptr<MessageHolderT> CreatePacketHolder(const T& message)
 {
-	auto messageHolder = MakeMySharedPtr<MessageHolderT>();
+	auto messageHolder = std::make_shared<MessageHolderT>();
 	messageHolder->message.Set(const_cast<T&>(message));
 	return messageHolder;
 }
@@ -28,32 +39,8 @@ template<typename T> concept MessageConcept = std::is_base_of_v<flatbuffers::Nat
 template<MessageConcept T>
 static PacketHolder CreateMessageHolder(const T& message, const std::unordered_set<int64_t>& accountIDs = {})
 {
-	auto messageHolder = MakeMySharedPtr<MessageHolderT>();
+	auto messageHolder = std::make_shared<MessageHolderT>();
 	messageHolder->message.Set(const_cast<T&>(message));
 	std::ranges::copy(accountIDs, std::back_inserter(messageHolder->accountID));
 	return messageHolder;
 }
-
-
-enum class EStep
-{
-	None,
-	Running,
-	SuccessSend,
-	SuccessConnect,
-	Failed,
-};
-
-enum class IOType
-{
-	IO_NONE,
-	IO_SEND,
-	IO_SEND_ZERO,
-	IO_RECV,
-	IO_RECV_ZERO,
-	IO_ACCEPT,
-	IO_CONNECT,
-	IO_DISCONNECT,
-	IO_CONSLOE_PRINT,
-	IO_FILE_WRITE
-};

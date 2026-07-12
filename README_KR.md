@@ -2,31 +2,33 @@
 
 고성능 C++ 기반 MMORPG 서버 아키텍처
 
+스레드 소유권과 수신·송신·종료 흐름: [`docs/server-thread-architecture.html`](docs/server-thread-architecture.html)
+
 🏗 Overview
 
 이 프로젝트는 대규모 동시 접속자 처리를 목표로 설계된 C++ MMO 서버로,
-IOCP 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL 트랜잭션 처리,
+Boost.Asio 기반 비동기 네트워크, FlatBuffers 프로토콜, PostgreSQL 트랜잭션 처리,
 그리고 커스텀 메모리 풀 allocator를 중심으로 구성되어 있습니다.
 
-특히 SendQ는 Lock-Free 큐로 구현되어 있어
-스레드 경합을 최소화하고, 네트워크 처리 비용을 크게 절감합니다.
+송신 경로는 세션별 strand와 소유권이 명확한 `deque<shared_ptr<NetworkPacket>>`로
+직렬화되며, `post()` 대기분까지 포함하는 바이트 상한을 적용합니다.
 
 또한 PostgreSQL 스키마를 자동 생성하고 Diff 적용까지 처리하는
 **DB Migration 자동화 시스템(Python)**이 내장되어 있어 실제 서비스 환경에서도 확장 가능합니다.
 
 🚀 Features
-🔌 1. IOCP 기반 고성능 네트워크 시스템
+🔌 1. Boost.Asio 기반 비동기 네트워크 시스템
 ✔ 완전 비동기 Recv/Send
 
-Windows IOCP 기반 Overlapped I/O 처리
+Windows에서는 IOCP, Linux에서는 epoll 백엔드를 Asio가 사용합니다.
 
-소켓 이벤트 기반으로 초당 수십만 개 처리 가능
+Accept / Connect / Read / Write를 동일한 서버 인터페이스로 처리합니다.
 
-✔ SendQ = Lock-Free Queue
+✔ SendQ = strand + bounded queue
 
-네트워크 스레드와 로직 스레드 간 Lock contention 제거
+한 세션의 소켓·송신 상태는 strand에서 직렬화됩니다.
 
-대량 송신 상황에서도 안정적인 성능 제공
+느린 클라이언트가 상한을 넘으면 세션을 종료해 메모리 증가를 제한합니다.
 
 ✔ Session 단위 연결 관리
 
@@ -78,7 +80,7 @@ JSONB, 배열, 복합 타입 활용 능력 내장
 
 서비스 환경에서도 견고한 데이터 계층을 구성할 수 있습니다.
 
-⚙️ 5. Custom Memory Pool & STL Allocator
+⚙️ 5. Custom Memory Pool & STL Allocator (실험 경로)
 
 MMO 서버 개발을 위해 설계된 고성능 메모리 풀 구현체입니다.  
 
@@ -90,7 +92,7 @@ malloc/new 대비 10~30배 빠름
 
 고빈도 패킷·로직 객체에 최적화
 
-스레드 로컬 할당, 락프리 구조, 크로스 스레드 해제를 지원합니다.
+스레드 로컬 할당, 락프리 구조, 크로스 스레드 해제를 실험합니다. 현재 네트워크 객체는 `std::make_shared`를 사용하고, Linux 서버 타깃에서는 128-bit CAS와 주소 배치 가정의 검증이 끝날 때까지 커스텀 풀을 제외합니다.
 
 ### ✨ 특징
 - **TLS 기반 메모리 풀**: 스레드 단위 풀 관리 → 경쟁 최소화

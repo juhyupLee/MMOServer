@@ -1,12 +1,15 @@
 #pragma once
 
-struct BufferSegment
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+struct MutableBufferSegment
 {
-	char* buf;
-	size_t len;
+	char* data{ nullptr };
+	std::size_t size{ 0 };
 };
 
-struct Session;
 class RingQ
 {
 public:
@@ -19,6 +22,12 @@ public:
 	RingQ();
 	~RingQ();
 public:
+	//----------------------------------------------------------
+	// For Debug
+	//----------------------------------------------------------
+	//void GetDirectDeQData(DirectData* directSize, Session* curSession);
+	//----------------------------------------------------------
+
 
 	int Enqueue(char* buffer, int32_t size);
 	int Dequeue(char* buffer, int32_t size);
@@ -27,15 +36,17 @@ public:
 	int32_t GetReadSize() const;
 
 
-	void GetDirectEnQData(std::vector<BufferSegment>& segments);
-	void GetDirectDeQData(std::vector<BufferSegment>& segments);
+	// The writable part of a ring buffer can wrap at the physical end, so at
+	// most two platform-neutral segments are exposed to the socket layer.
+	std::array<MutableBufferSegment, 2> GetWritableSegments() noexcept;
 
 	int32_t GetDirectWriteSize()const;
 	int32_t GetDirectReadSize()const;
 
 	void ClearBuffer();
 
-	void MoveWitePosition(int size);
+	bool CommitWrite(std::size_t size) noexcept;
+	void MoveWitePosition(int size); // Legacy spelling kept for existing callers.
 	void MoveReadPosition(int size);
 
 
