@@ -381,6 +381,7 @@ flatbuffers/flatc_bak*.exe
 /core.*
 /*.dmp
 /gdb-report-*.txt
+/bench_results.csv
 
 # Claude Code session data
 .claude/
