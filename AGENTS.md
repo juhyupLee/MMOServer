@@ -39,7 +39,8 @@ MMOServer/
 ├─ PlayServer/                    실제 서버 실행 파일과 메트릭 기록
 ├─ SoakClient/                    Linux 장시간 봇과 실제 서버용 ProtocolProbe
 ├─ DummyClient/                   기존 봇 클라이언트/Visual Studio 프로젝트
-├─ flatbuffers/                   스키마, 생성 헤더, bundled FlatBuffers
+├─ ThirdParty/FlatBuffers/        MMOServer가 직접 관리하는 커스텀 flatc/runtime 소스
+├─ flatbuffers/                   스키마, 생성 헤더/runtime, 검증된 Windows flatc.exe
 ├─ include/                       bundled spdlog/pqxx 및 개발자 로컬 의존성
 ├─ db/DBSchema/                   DB 스키마와 생성 도구
 ├─ docs/                          구조 설명 자료
@@ -57,6 +58,18 @@ MMOServer/
   Visual Studio 경로이며 Linux soak의 기준으로 사용하지 않는다.
 - Boost.Asio는 헤더 기반으로 사용한다. `include/boost/asio.hpp`가 있으면 로컬
   헤더를, 없으면 CMake가 시스템 Boost를 찾는다. spdlog 헤더는 저장소 것을 쓴다.
+- 커스텀 FlatBuffers의 source-of-truth는 `ThirdParty/FlatBuffers`다. 이 디렉터리는
+  submodule/subtree가 아니라 MMOServer Git이 직접 추적하는 일반 소스다. 출처와
+  커스텀 내역은 `ThirdParty/FlatBuffers/MMOSERVER_CUSTOM.md`를 따른다.
+- `flatbuffers/flatc.exe`, `flatbuffers/flatbuffers/` runtime header와
+  `flatbuffers/ProtocoID.h`는 source-of-truth에서 만든 추적 대상 산출물이다. 임의로
+  다운로드한 `flatc.exe`만 교체하거나 compiler/runtime/generated code 버전을
+  따로 올리지 않는다. Windows에서는 `scripts/build_custom_flatbuffers.ps1` 또는
+  CMake의 `MMOCustomFlatc` target으로 셋을 함께 갱신한다.
+- MMOServer의 `MessageID`는 `union MessageID : int`를 사용한다. 커스텀 C# generator가
+  explicit union underlying type을 보존해야 하며, compiler 갱신 때 C++와 C# 생성을
+  모두 검증한다. C++ generated header의 FlatBuffers version assertion은 bundled
+  runtime version과 일치해야 한다.
 - `Memory/MemoryPool.cpp`와 관련 PCH는 현재 `MSVC`에서만 `ServerCore`에 들어간다.
   커스텀 allocator의 128-bit CAS와 주소 배치 가정에 대한 이식성 검증 전에는
   Linux 서버 경로에 억지로 넣지 않는다. 활성 네트워크 객체는 `std::make_shared`

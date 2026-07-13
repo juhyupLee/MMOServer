@@ -62,3 +62,20 @@ target_include_directories(ProjectSpdlog INTERFACE
 add_subdirectory(ServerCore)
 add_subdirectory(PlayServer)
 add_subdirectory(SoakClient)
+
+if(WIN32)
+    find_program(MMO_POWERSHELL_EXECUTABLE
+        NAMES powershell.exe
+        REQUIRED
+    )
+    add_custom_target(MMOCustomFlatc
+        COMMAND
+            "${MMO_POWERSHELL_EXECUTABLE}"
+            -NoProfile
+            -ExecutionPolicy Bypass
+            -File "${CMAKE_SOURCE_DIR}/scripts/build_custom_flatbuffers.ps1"
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+        USES_TERMINAL
+        COMMENT "Build and promote the MMOServer custom flatc"
+    )
+endif()

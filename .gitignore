@@ -369,6 +369,10 @@ FodyWeavers.xsd
 *.vcxproj.filters
 db/DBSchema/Backup
 
+# Superseded local FlatBuffers compiler backups. The maintained compiler is
+# rebuilt from ThirdParty/FlatBuffers by scripts/build_custom_flatbuffers.ps1.
+flatbuffers/flatc_bak*.exe
+
 # Local build outputs and optional vendored Boost headers
 /build/
 /include/boost/

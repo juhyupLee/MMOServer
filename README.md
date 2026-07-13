@@ -173,7 +173,18 @@ std::vector<int, MyAllocator<int>> v;
 
 - `flatbuffers/*.fbs`에 메시지 스키마 정의
 - `build_protocol.bat`로 C++ 헤더 자동 생성
+- `ThirdParty/FlatBuffers`에서 C# explicit union underlying type을 지원하는 커스텀
+  `flatc` 소스를 MMOServer Git으로 직접 관리
 - `MessageID` union으로 메시지 종류 enum화 → **컴파일 타임에 잘못된 핸들러 등록 차단**
+
+커스텀 compiler, runtime header와 C++ 생성 코드는 다음 명령으로 같은 버전으로
+빌드·동기화합니다. C# 생성 가능 여부도 함께 검사합니다.
+
+```powershell
+.\scripts\build_custom_flatbuffers.ps1
+```
+
+Windows CMake 구성에서는 `MMOCustomFlatc` target으로도 같은 작업을 실행할 수 있습니다.
 
 ```fbs
 // 클라 → 게임 서버 요청 패턴

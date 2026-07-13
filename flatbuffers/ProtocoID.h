@@ -9,8 +9,8 @@
 // Ensure the included flatbuffers.h is the same version as when this file was
 // generated, otherwise it may not be compatible.
 static_assert(FLATBUFFERS_VERSION_MAJOR == 25 &&
-              FLATBUFFERS_VERSION_MINOR == 2 &&
-              FLATBUFFERS_VERSION_REVISION == 10,
+              FLATBUFFERS_VERSION_MINOR == 12 &&
+              FLATBUFFERS_VERSION_REVISION == 19,
              "Non-compatible flatbuffers version included");
 
 struct FConnectReq;
@@ -1906,8 +1906,10 @@ struct MessageIDUnion {
   }
 };
 
-bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, MessageID type);
-bool VerifyMessageIDVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types);
+template <bool B = false>
+bool VerifyMessageID(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, MessageID type);
+template <bool B = false>
+bool VerifyMessageIDVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types);
 
 struct FConnectReqT : public ::flatbuffers::NativeTable {
   typedef FConnectReq TableType;
@@ -1937,7 +1939,8 @@ struct FConnectReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t port() const {
     return GetField<int32_t>(VT_PORT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyOffset(verifier, VT_IP) &&
@@ -2029,7 +2032,8 @@ struct FConnectAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   EResultID result() const {
     return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2111,7 +2115,8 @@ struct FAcceptAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t port() const {
     return GetField<int32_t>(VT_PORT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2206,7 +2211,8 @@ struct FDisconnectReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t seq() const {
     return GetField<int32_t>(VT_SEQ, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            verifier.EndTable();
@@ -2272,7 +2278,8 @@ struct FDisconnectAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   EResultID result() const {
     return static_cast<EResultID>(GetField<int32_t>(VT_RESULT, 0));
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2354,7 +2361,8 @@ struct FAuthenticationReq FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
@@ -2461,7 +2469,8 @@ struct FAuthenticationAck FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table
   int64_t accountID() const {
     return GetField<int64_t>(VT_ACCOUNTID, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2549,7 +2558,8 @@ struct CLGS_CONNECT_REQ_ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
@@ -2651,7 +2661,8 @@ struct CLGS_CONNECT_ACK_ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table 
   int32_t result() const {
     return GetField<int32_t>(VT_RESULT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2733,7 +2744,8 @@ struct CLGS_AUTHEN_REQ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyOffset(verifier, VT_ACCOUNTTOKEN) &&
@@ -2835,7 +2847,8 @@ struct CLGS_AUTHEN_ACK FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   int32_t result() const {
     return GetField<int32_t>(VT_RESULT, 0);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_RESULT, 4) &&
@@ -2922,7 +2935,8 @@ struct DBGS_Authentication_REQ FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::
   const ::flatbuffers::String *connectSessionKey() const {
     return GetPointer<const ::flatbuffers::String *>(VT_CONNECTSESSIONKEY);
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<int32_t>(verifier, VT_SEQ, 4) &&
            VerifyField<int32_t>(verifier, VT_SESSIONID, 4) &&
@@ -3020,7 +3034,8 @@ struct F_GUEST_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_GUEST_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3068,7 +3083,8 @@ struct F_GUEST_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tabl
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_GUEST_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3116,7 +3132,8 @@ struct F_MEMBER_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_MEMBER_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3164,7 +3181,8 @@ struct F_MEMBER_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return F_MEMBER_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3212,7 +3230,8 @@ struct S_SERVER_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return S_SERVER_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3260,7 +3279,8 @@ struct S_SERVER_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return S_SERVER_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3308,7 +3328,8 @@ struct P_SERVER_MESSAGE_MIN FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return P_SERVER_MESSAGE_MINTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3356,7 +3377,8 @@ struct P_SERVER_MESSAGE_MAX FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Tab
   static const ::flatbuffers::TypeTable *MiniReflectTypeTable() {
     return P_SERVER_MESSAGE_MAXTypeTable();
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            verifier.EndTable();
   }
@@ -3463,7 +3485,8 @@ struct MessageHolder FLATBUFFERS_FINAL_CLASS : private ::flatbuffers::Table {
   const F_MEMBER_MESSAGE_MAX *message_as_F_MEMBER_MESSAGE_MAX() const {
     return message_type() == MessageID::F_MEMBER_MESSAGE_MAX ? static_cast<const F_MEMBER_MESSAGE_MAX *>(message()) : nullptr;
   }
-  bool Verify(::flatbuffers::Verifier &verifier) const {
+  template <bool B = false>
+  bool Verify(::flatbuffers::VerifierTemplate<B> &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyOffset(verifier, VT_ACCOUNTID) &&
            verifier.VerifyVector(accountID()) &&
@@ -3603,11 +3626,11 @@ inline void FConnectReq::UnPackTo(FConnectReqT *_o, const ::flatbuffers::resolve
   { auto _e = port(); _o->port = _e; }
 }
 
-inline ::flatbuffers::Offset<FConnectReq> FConnectReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFConnectReq(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FConnectReq> CreateFConnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FConnectReq::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FConnectReq> CreateFConnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FConnectReq> FConnectReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FConnectReqT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3634,11 +3657,11 @@ inline void FConnectAck::UnPackTo(FConnectAckT *_o, const ::flatbuffers::resolve
   { auto _e = result(); _o->result = _e; }
 }
 
-inline ::flatbuffers::Offset<FConnectAck> FConnectAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFConnectAck(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FConnectAck> CreateFConnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FConnectAck::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FConnectAck> CreateFConnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FConnectAck> FConnectAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FConnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FConnectAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3665,11 +3688,11 @@ inline void FAcceptAck::UnPackTo(FAcceptAckT *_o, const ::flatbuffers::resolver_
   { auto _e = port(); _o->port = _e; }
 }
 
-inline ::flatbuffers::Offset<FAcceptAck> FAcceptAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFAcceptAck(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FAcceptAck> CreateFAcceptAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FAcceptAck::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FAcceptAck> CreateFAcceptAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FAcceptAck> FAcceptAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAcceptAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FAcceptAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3697,11 +3720,11 @@ inline void FDisconnectReq::UnPackTo(FDisconnectReqT *_o, const ::flatbuffers::r
   { auto _e = seq(); _o->seq = _e; }
 }
 
-inline ::flatbuffers::Offset<FDisconnectReq> FDisconnectReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFDisconnectReq(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FDisconnectReq> CreateFDisconnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FDisconnectReq::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FDisconnectReq> CreateFDisconnectReq(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FDisconnectReq> FDisconnectReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FDisconnectReqT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3724,11 +3747,11 @@ inline void FDisconnectAck::UnPackTo(FDisconnectAckT *_o, const ::flatbuffers::r
   { auto _e = result(); _o->result = _e; }
 }
 
-inline ::flatbuffers::Offset<FDisconnectAck> FDisconnectAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFDisconnectAck(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FDisconnectAck> CreateFDisconnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FDisconnectAck::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FDisconnectAck> CreateFDisconnectAck(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FDisconnectAck> FDisconnectAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FDisconnectAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FDisconnectAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3755,11 +3778,11 @@ inline void FAuthenticationReq::UnPackTo(FAuthenticationReqT *_o, const ::flatbu
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<FAuthenticationReq> FAuthenticationReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFAuthenticationReq(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FAuthenticationReq> CreateFAuthenticationReq(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FAuthenticationReq::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FAuthenticationReq> CreateFAuthenticationReq(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FAuthenticationReq> FAuthenticationReq::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationReqT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FAuthenticationReqT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3789,11 +3812,11 @@ inline void FAuthenticationAck::UnPackTo(FAuthenticationAckT *_o, const ::flatbu
   { auto _e = accountID(); _o->accountID = _e; }
 }
 
-inline ::flatbuffers::Offset<FAuthenticationAck> FAuthenticationAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateFAuthenticationAck(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<FAuthenticationAck> CreateFAuthenticationAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return FAuthenticationAck::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<FAuthenticationAck> CreateFAuthenticationAck(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<FAuthenticationAck> FAuthenticationAck::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const FAuthenticationAckT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const FAuthenticationAckT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3822,11 +3845,11 @@ inline void CLGS_CONNECT_REQ_::UnPackTo(CLGS_CONNECT_REQ_T *_o, const ::flatbuff
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CLGS_CONNECT_REQ_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_CONNECT_REQ_(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CreateCLGS_CONNECT_REQ_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_CONNECT_REQ_::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CreateCLGS_CONNECT_REQ_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_CONNECT_REQ_> CLGS_CONNECT_REQ_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_REQ_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_CONNECT_REQ_T* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3855,11 +3878,11 @@ inline void CLGS_CONNECT_ACK_::UnPackTo(CLGS_CONNECT_ACK_T *_o, const ::flatbuff
   { auto _e = result(); _o->result = _e; }
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CLGS_CONNECT_ACK_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_CONNECT_ACK_(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CreateCLGS_CONNECT_ACK_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_CONNECT_ACK_::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CreateCLGS_CONNECT_ACK_(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_CONNECT_ACK_> CLGS_CONNECT_ACK_::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_CONNECT_ACK_T* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_CONNECT_ACK_T* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3886,11 +3909,11 @@ inline void CLGS_AUTHEN_REQ::UnPackTo(CLGS_AUTHEN_REQT *_o, const ::flatbuffers:
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CLGS_AUTHEN_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_AUTHEN_REQ(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CreateCLGS_AUTHEN_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_AUTHEN_REQ::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CreateCLGS_AUTHEN_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_AUTHEN_REQ> CLGS_AUTHEN_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_AUTHEN_REQT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3919,11 +3942,11 @@ inline void CLGS_AUTHEN_ACK::UnPackTo(CLGS_AUTHEN_ACKT *_o, const ::flatbuffers:
   { auto _e = result(); _o->result = _e; }
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CLGS_AUTHEN_ACK::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateCLGS_AUTHEN_ACK(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CreateCLGS_AUTHEN_ACK(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return CLGS_AUTHEN_ACK::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CreateCLGS_AUTHEN_ACK(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<CLGS_AUTHEN_ACK> CLGS_AUTHEN_ACK::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const CLGS_AUTHEN_ACKT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const CLGS_AUTHEN_ACKT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3951,11 +3974,11 @@ inline void DBGS_Authentication_REQ::UnPackTo(DBGS_Authentication_REQT *_o, cons
   { auto _e = connectSessionKey(); if (_e) _o->connectSessionKey = _e->str(); }
 }
 
-inline ::flatbuffers::Offset<DBGS_Authentication_REQ> DBGS_Authentication_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateDBGS_Authentication_REQ(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<DBGS_Authentication_REQ> CreateDBGS_Authentication_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return DBGS_Authentication_REQ::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<DBGS_Authentication_REQ> CreateDBGS_Authentication_REQ(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<DBGS_Authentication_REQ> DBGS_Authentication_REQ::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const DBGS_Authentication_REQT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const DBGS_Authentication_REQT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -3984,11 +4007,11 @@ inline void F_GUEST_MESSAGE_MIN::UnPackTo(F_GUEST_MESSAGE_MINT *_o, const ::flat
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> F_GUEST_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_GUEST_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> CreateF_GUEST_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_GUEST_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> CreateF_GUEST_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MIN> F_GUEST_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_GUEST_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4007,11 +4030,11 @@ inline void F_GUEST_MESSAGE_MAX::UnPackTo(F_GUEST_MESSAGE_MAXT *_o, const ::flat
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> F_GUEST_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_GUEST_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> CreateF_GUEST_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_GUEST_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> CreateF_GUEST_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_GUEST_MESSAGE_MAX> F_GUEST_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_GUEST_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_GUEST_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4030,11 +4053,11 @@ inline void F_MEMBER_MESSAGE_MIN::UnPackTo(F_MEMBER_MESSAGE_MINT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> F_MEMBER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_MEMBER_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> CreateF_MEMBER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_MEMBER_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> CreateF_MEMBER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MIN> F_MEMBER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_MEMBER_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4053,11 +4076,11 @@ inline void F_MEMBER_MESSAGE_MAX::UnPackTo(F_MEMBER_MESSAGE_MAXT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> F_MEMBER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateF_MEMBER_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> CreateF_MEMBER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return F_MEMBER_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> CreateF_MEMBER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<F_MEMBER_MESSAGE_MAX> F_MEMBER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const F_MEMBER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const F_MEMBER_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4076,11 +4099,11 @@ inline void S_SERVER_MESSAGE_MIN::UnPackTo(S_SERVER_MESSAGE_MINT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> S_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateS_SERVER_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> CreateS_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return S_SERVER_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> CreateS_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MIN> S_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const S_SERVER_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4099,11 +4122,11 @@ inline void S_SERVER_MESSAGE_MAX::UnPackTo(S_SERVER_MESSAGE_MAXT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> S_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateS_SERVER_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> CreateS_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return S_SERVER_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> CreateS_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<S_SERVER_MESSAGE_MAX> S_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const S_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const S_SERVER_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4122,11 +4145,11 @@ inline void P_SERVER_MESSAGE_MIN::UnPackTo(P_SERVER_MESSAGE_MINT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> P_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateP_SERVER_MESSAGE_MIN(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> CreateP_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return P_SERVER_MESSAGE_MIN::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> CreateP_SERVER_MESSAGE_MIN(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MIN> P_SERVER_MESSAGE_MIN::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MINT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const P_SERVER_MESSAGE_MINT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4145,11 +4168,11 @@ inline void P_SERVER_MESSAGE_MAX::UnPackTo(P_SERVER_MESSAGE_MAXT *_o, const ::fl
   (void)_resolver;
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> P_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateP_SERVER_MESSAGE_MAX(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> CreateP_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return P_SERVER_MESSAGE_MAX::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> CreateP_SERVER_MESSAGE_MAX(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<P_SERVER_MESSAGE_MAX> P_SERVER_MESSAGE_MAX::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const P_SERVER_MESSAGE_MAXT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const P_SERVER_MESSAGE_MAXT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4171,11 +4194,11 @@ inline void MessageHolder::UnPackTo(MessageHolderT *_o, const ::flatbuffers::res
   { auto _e = message(); if (_e) _o->message.value = MessageIDUnion::UnPack(_e, message_type(), _resolver); }
 }
 
-inline ::flatbuffers::Offset<MessageHolder> MessageHolder::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
-  return CreateMessageHolder(_fbb, _o, _rehasher);
+inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+  return MessageHolder::Pack(_fbb, _o, _rehasher);
 }
 
-inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT *_o, const ::flatbuffers::rehasher_function_t *_rehasher) {
+inline ::flatbuffers::Offset<MessageHolder> MessageHolder::Pack(::flatbuffers::FlatBufferBuilder &_fbb, const MessageHolderT* _o, const ::flatbuffers::rehasher_function_t *_rehasher) {
   (void)_rehasher;
   (void)_o;
   struct _VectorArgs { ::flatbuffers::FlatBufferBuilder *__fbb; const MessageHolderT* __o; const ::flatbuffers::rehasher_function_t *__rehasher; } _va = { &_fbb, _o, _rehasher}; (void)_va;
@@ -4189,7 +4212,8 @@ inline ::flatbuffers::Offset<MessageHolder> CreateMessageHolder(::flatbuffers::F
       _message);
 }
 
-inline bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, MessageID type) {
+template <bool B>
+inline bool VerifyMessageID(::flatbuffers::VerifierTemplate<B> &verifier, const void *obj, MessageID type) {
   switch (type) {
     case MessageID::NONE: {
       return true;
@@ -4254,7 +4278,8 @@ inline bool VerifyMessageID(::flatbuffers::Verifier &verifier, const void *obj, 
   }
 }
 
-inline bool VerifyMessageIDVector(::flatbuffers::Verifier &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types) {
+template <bool B>
+inline bool VerifyMessageIDVector(::flatbuffers::VerifierTemplate<B> &verifier, const ::flatbuffers::Vector<::flatbuffers::Offset<void>> *values, const ::flatbuffers::Vector<MessageID> *types) {
   if (!values || !types) return !values && !types;
   if (values->size() != types->size()) return false;
   for (::flatbuffers::uoffset_t i = 0; i < values->size(); ++i) {
@@ -5863,14 +5888,16 @@ inline const MessageHolder *GetSizePrefixedMessageHolder(const void *buf) {
   return ::flatbuffers::GetSizePrefixedRoot<MessageHolder>(buf);
 }
 
+template <bool B = false>
 inline bool VerifyMessageHolderBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifyBuffer<MessageHolder>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifyBuffer<MessageHolder>(nullptr);
 }
 
+template <bool B = false>
 inline bool VerifySizePrefixedMessageHolderBuffer(
-    ::flatbuffers::Verifier &verifier) {
-  return verifier.VerifySizePrefixedBuffer<MessageHolder>(nullptr);
+    ::flatbuffers::VerifierTemplate<B> &verifier) {
+  return verifier.template VerifySizePrefixedBuffer<MessageHolder>(nullptr);
 }
 
 inline void FinishMessageHolderBuffer(

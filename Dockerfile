@@ -20,7 +20,7 @@ RUN cmake -S . -B /build -G Ninja \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DCMAKE_CXX_COMPILER=g++-14 \
         -DBUILD_TESTING=ON \
-    && cmake --build /build --parallel \
+    && cmake --build /build --parallel 4 \
     && ctest --test-dir /build --output-on-failure
 
 FROM ubuntu:24.04 AS runtime
