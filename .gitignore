@@ -367,5 +367,6 @@ FodyWeavers.xsd
 *.vcxproj.filters
 db/DBSchema/Backup
 
+/bench_results.csv
 # Claude Code session data
 .claude/
